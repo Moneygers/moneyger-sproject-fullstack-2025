@@ -1,0 +1,33 @@
+# Python
+env/
+env311/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+db.sqlite3
+
+# Django specific
+*.log
+*.pot
+*.pyc
+__pycache__/
+
+# Node.js
+node_modules/
+dist/
+build/
+
+# Vite
+.vite/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VS Code settings
+.vscode/
+
+# Environment variables
+.env
