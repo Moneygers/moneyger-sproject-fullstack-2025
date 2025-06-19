@@ -1,0 +1,22 @@
+# Production-only dependencies
+-r requirements.txt
+
+# Production server
+gunicorn==21.2.0
+gevent==23.9.1
+
+# Static file serving
+whitenoise==6.6.0
+
+# Production database
+psycopg2-binary==2.9.7
+
+# Monitoring
+sentry-sdk==1.38.0
+newrelic==9.2.0
+
+# Security
+django-security==0.17.0
+
+# Performance
+django-cachalot==2.6.1  # ORM caching
