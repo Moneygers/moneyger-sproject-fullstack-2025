@@ -1,0 +1,19 @@
+{
+  "name": "parkmanager-backend",
+  "version": "1.0.0",
+  "description": "Django REST Framework backend for ParkManager system",
+  "scripts": {
+    "install": "pip install -r requirements.txt",
+    "dev": "python manage.py runserver",
+    "migrate": "python manage.py migrate",
+    "makemigrations": "python manage.py makemigrations",
+    "collectstatic": "python manage.py collectstatic --noinput",
+    "test": "pytest",
+    "lint": "flake8 .",
+    "format": "black .",
+    "setup": "bash install.sh"
+  },
+  "keywords": ["django", "rest-framework", "parking-management", "api", "backend"],
+  "author": "ParkManager Team",
+  "license": "MIT"
+}
