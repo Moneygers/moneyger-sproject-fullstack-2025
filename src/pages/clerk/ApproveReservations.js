@@ -104,57 +104,51 @@ const ApproveReservations = () => {
               {pendingReservations.map((reservation) => (
                 <div key={reservation.id} className="reservation-item">
                   <div className="reservation-content">
-                    <div className="reservation-info">
+                    <div className="reservation-main-info">
                       <div className="reservation-icon">📅</div>
-                      <div className="reservation-details">
-                        <div className="reservation-header">
-                          <h3 className="slot-id">{reservation.slot}</h3>
+
+                      <div className="reservation-info-row">
+                        <div className="info-field">
+                          <div className="info-label">Slot</div>
+                          <div className="info-value slot-id">{reservation.slot}</div>
+                        </div>
+
+                        <div className="info-field">
+                          <div className="info-label">Customer</div>
+                          <div className="info-value customer-name">{reservation.customer_name}</div>
+                        </div>
+
+                        <div className="info-field">
+                          <div className="info-label">Phone</div>
+                          <div className="info-value phone">{reservation.phone_number}</div>
+                        </div>
+
+                        <div className="info-field">
+                          <div className="info-label">Date & Time</div>
+                          <div className="info-value">
+                            {new Date(`${reservation.reserved_date}T${reservation.reserved_time}`).toLocaleString()}
+                          </div>
+                        </div>
+
+                        <div className="info-field">
+                          <div className="info-label">Duration</div>
+                          <div className="info-value">{reservation.duration_hours}h</div>
+                        </div>
+
+                        <div className="info-field">
+                          <div className="info-label">Status</div>
                           <span className="status-badge pending">PENDING APPROVAL</span>
                         </div>
-                        <div className="customer-info">
-                          <div className="info-item">
-                            <span className="info-icon">👤</span>
-                            {reservation.customer_name}
-                          </div>
-                          <div className="info-item">
-                            <span className="info-icon">📞</span>
-                            {reservation.phone_number}
-                          </div>
-                        </div>
-                        <p className="reservation-time">
-                          {new Date(`${reservation.reserved_date}T${reservation.reserved_time}`).toLocaleString()} •{" "}
-                          {reservation.duration_hours}h duration
-                        </p>
                       </div>
                     </div>
 
                     <div className="reservation-actions">
                       <button onClick={() => handleApproval(reservation.id, true)} className="approve-button">
-                        <span className="button-icon">✅</span>
-                        <span>Approve</span>
+                        ✅ Approve
                       </button>
                       <button onClick={() => handleApproval(reservation.id, false)} className="reject-button">
-                        <span className="button-icon">❌</span>
-                        <span>Reject</span>
+                        ❌ Reject
                       </button>
-                    </div>
-                  </div>
-
-                  {/* Additional Details */}
-                  <div className="reservation-details-card">
-                    <h4 className="details-title">Reservation Details</h4>
-                    <div className="details-grid">
-                      <div className="detail-item">
-                        <span className="detail-label">Date & Time:</span>
-                        <div className="detail-value">
-                          {new Date(`${reservation.reserved_date}T${reservation.reserved_time}`).toLocaleDateString()}{" "}
-                          at {reservation.reserved_time}
-                        </div>
-                      </div>
-                      <div className="detail-item">
-                        <span className="detail-label">Slot Type:</span>
-                        <div className="detail-value">VIP Parking</div>
-                      </div>
                     </div>
                   </div>
                 </div>

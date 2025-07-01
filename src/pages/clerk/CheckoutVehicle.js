@@ -231,50 +231,48 @@ const CheckoutVehicle = () => {
               {filteredSlots.map((slot) => (
                 <div key={slot.id} className="slot-item">
                   <div className="slot-content">
-                    <div className="slot-info">
+                    <div className="slot-header-section">
                       <div className="slot-icon">🚗</div>
-                      <div className="slot-details">
-                        <div className="slot-header">
-                          <h3 className="slot-id">{slot.id}</h3>
-                          <span className={`slot-type ${slot.slot_type}`}>{slot.slot_type?.toUpperCase()}</span>
-                        </div>
+                      <div className="slot-basic-info">
+                        <h3 className="slot-id">{slot.id}</h3>
+                        <span className={`slot-type ${slot.slot_type}`}>{slot.slot_type?.toUpperCase()}</span>
                         <p className="slot-location">
                           Floor {slot.floor} • Section {slot.section}
                         </p>
                       </div>
                     </div>
 
-                    <div className="checkout-info">
-                      <div className="info-grid">
-                        <div className="info-item">
+                    <div className="checkout-info-row">
+                      <div className="checkout-info-fields">
+                        <div className="info-field">
                           <div className="info-label">
                             <span className="info-icon">🚗</span>
                             License Plate
                           </div>
-                          <div className="info-value">{slot.current_allocation?.license_plate}</div>
+                          <div className="info-value license-plate">{slot.current_allocation?.license_plate}</div>
                         </div>
 
                         {slot.current_allocation?.customer_name && (
-                          <div className="info-item">
+                          <div className="info-field">
                             <div className="info-label">
                               <span className="info-icon">👤</span>
                               Customer
                             </div>
-                            <div className="info-value">{slot.current_allocation.customer_name}</div>
+                            <div className="info-value customer-name">{slot.current_allocation.customer_name}</div>
                           </div>
                         )}
 
-                        <div className="info-item">
+                        <div className="info-field">
                           <div className="info-label">
                             <span className="info-icon">⏰</span>
                             Duration
                           </div>
-                          <div className="info-value">
+                          <div className="info-value duration">
                             {calculateDuration(slot.current_allocation?.start_time || "")}
                           </div>
                         </div>
 
-                        <div className="info-item">
+                        <div className="info-field">
                           <div className="info-label">
                             <span className="info-icon">💳</span>
                             Fee

@@ -117,32 +117,6 @@ const MonitorReservations = () => {
     return matchesSearch && matchesStatus
   })
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "active":
-        return "status-active"
-      case "completed":
-        return "status-completed"
-      case "cancelled":
-        return "status-cancelled"
-      default:
-        return "status-default"
-    }
-  }
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "active":
-        return "⏰"
-      case "completed":
-        return "✅"
-      case "cancelled":
-        return "❌"
-      default:
-        return "📅"
-    }
-  }
-
   const formatParkingDuration = (minutes) => {
     if (!minutes) return "Not arrived"
 
@@ -157,13 +131,6 @@ const MonitorReservations = () => {
 
   const isReservationActive = (reservation) => {
     return reservation.status === "active" && reservation.arrival_time
-  }
-
-  const isReservationUpcoming = (reservation) => {
-    const reservationDateTime = new Date(`${reservation.reserved_date}T${reservation.reserved_time}`)
-    const now = new Date()
-
-    return reservationDateTime > now && reservation.status === "active" && !reservation.arrival_time
   }
 
   const hasArrived = (reservation) => {
@@ -182,7 +149,6 @@ const MonitorReservations = () => {
 
   const activeReservations = reservations.filter((r) => r.status === "active").length
   const completedReservations = reservations.filter((r) => r.status === "completed").length
-  const upcomingReservations = reservations.filter((r) => isReservationUpcoming(r)).length
   const currentlyParked = reservations.filter((r) => isReservationActive(r)).length
 
   return (
@@ -217,16 +183,6 @@ const MonitorReservations = () => {
 
           <div className="summary-card">
             <div className="summary-content">
-              <div className="summary-icon">⏰</div>
-              <div className="summary-info">
-                <div className="summary-label">Upcoming Today</div>
-                <div className="summary-value">{upcomingReservations}</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="summary-card">
-            <div className="summary-content">
               <div className="summary-icon">✅</div>
               <div className="summary-info">
                 <div className="summary-label">Completed</div>
@@ -241,15 +197,13 @@ const MonitorReservations = () => {
           <div className="filters-grid">
             <div className="filter-group">
               <label className="filter-label">Search</label>
-              <div className="search-input-wrapper">
-                <input
-                  type="text"
-                  placeholder="Slot, customer name, or phone..."
-                  className="search-input"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
+              <input
+                type="text"
+                placeholder="Slot, customer name, or phone..."
+                className="search-input"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
 
             <div className="filter-group">
@@ -293,41 +247,50 @@ const MonitorReservations = () => {
               {filteredReservations.map((reservation) => (
                 <div key={reservation.id} className="reservation-item">
                   <div className="reservation-content">
-                    <div className="reservation-info">
+                    <div className="reservation-main-info">
                       <div className="reservation-icon">📅</div>
-                      <div className="reservation-details">
-                        <div className="reservation-header">
-                          <h3 className="slot-id">{reservation.slot}</h3>
-                          <span className={`status-badge ${getStatusColor(reservation.status)}`}>
-                            <span className="status-icon">{getStatusIcon(reservation.status)}</span>
-                            <span>{reservation.status.toUpperCase()}</span>
-                          </span>
-                          {isReservationActive(reservation) && <span className="parked-badge">PARKED</span>}
-                          {!hasArrived(reservation) && reservation.status === "active" && (
-                            <span className="waiting-badge">WAITING</span>
-                          )}
+
+                      <div className="reservation-info-row">
+                        <div className="info-field">
+                          <div className="info-label">Slot</div>
+                          <div className="info-value slot-id">{reservation.slot}</div>
                         </div>
-                        <p className="customer-info">
-                          <span className="customer-icon">👤</span>
-                          {reservation.customer_name} • <span className="phone-icon">📞</span>
-                          {reservation.phone_number}
-                        </p>
-                        <div className="reservation-times">
-                          <p>
-                            Reserved:{" "}
+
+                        <div className="info-field">
+                          <div className="info-label">Customer</div>
+                          <div className="info-value customer-name">{reservation.customer_name}</div>
+                        </div>
+
+                        <div className="info-field">
+                          <div className="info-label">Phone</div>
+                          <div className="info-value phone">{reservation.phone_number}</div>
+                        </div>
+
+                        <div className="info-field">
+                          <div className="info-label">Date & Time</div>
+                          <div className="info-value">
                             {new Date(`${reservation.reserved_date}T${reservation.reserved_time}`).toLocaleString()}
-                          </p>
-                          {hasArrived(reservation) ? (
-                            <p>
-                              <span className="duration-icon">⏰</span>
-                              Parked for: {formatParkingDuration(reservation.parking_duration)}
-                            </p>
-                          ) : (
-                            <p>
-                              <span className="duration-icon">⏰</span>
-                              Expected duration: {reservation.duration_hours}h
-                            </p>
-                          )}
+                          </div>
+                        </div>
+
+                        <div className="info-field">
+                          <div className="info-label">Duration</div>
+                          <div className="info-value">
+                            {hasArrived(reservation)
+                              ? formatParkingDuration(reservation.parking_duration)
+                              : `${reservation.duration_hours}h expected`}
+                          </div>
+                        </div>
+
+                        <div className="info-field">
+                          <div className="info-label">Status</div>
+                          <div className="status-badges">
+                            <span className={`status-badge status-${reservation.status}`}>{reservation.status}</span>
+                            {isReservationActive(reservation) && <span className="parked-badge">PARKED</span>}
+                            {!hasArrived(reservation) && reservation.status === "active" && (
+                              <span className="waiting-badge">WAITING</span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -335,8 +298,7 @@ const MonitorReservations = () => {
                     <div className="reservation-actions">
                       {reservation.status === "active" && !hasArrived(reservation) && (
                         <button onClick={() => handleArrival(reservation.id)} className="arrive-button">
-                          <span className="button-icon">📍</span>
-                          <span>Arrive</span>
+                          Arrive
                         </button>
                       )}
 
@@ -358,30 +320,7 @@ const MonitorReservations = () => {
                       )}
 
                       {reservation.status === "completed" && <span className="completed-text">✓ Completed</span>}
-
                       {reservation.status === "cancelled" && <span className="cancelled-text">✗ Cancelled</span>}
-                    </div>
-                  </div>
-
-                  {/* Additional Info for Clerks */}
-                  <div className="additional-info">
-                    <div className="info-grid">
-                      <div className="info-item">
-                        <span className="info-label">Slot Type:</span>
-                        <div className="info-value">VIP</div>
-                      </div>
-                      <div className="info-item">
-                        <span className="info-label">Floor:</span>
-                        <div className="info-value">Floor {reservation.slot.charAt(1)}</div>
-                      </div>
-                      <div className="info-item">
-                        <span className="info-label">Duration:</span>
-                        <div className="info-value">{reservation.duration_hours}h</div>
-                      </div>
-                      <div className="info-item">
-                        <span className="info-label">Status:</span>
-                        <div className="info-value">{reservation.status}</div>
-                      </div>
                     </div>
                   </div>
                 </div>

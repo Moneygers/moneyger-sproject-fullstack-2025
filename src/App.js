@@ -22,9 +22,9 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<LoginForm />} />
           <Route path="/login" element={<LoginForm />} />
-          <Route path="/customer-view" element={<CustomerView />} />
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/" element={<CustomerView />} />
 
           {/* Clerk routes */}
           <Route path="/clerk/update-slots" element={<UpdateSlots />} />

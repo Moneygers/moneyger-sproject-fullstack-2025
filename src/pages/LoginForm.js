@@ -30,7 +30,7 @@ const LoginForm = () => {
   }
 
   const handleCustomerView = () => {
-    window.location.href = "/customer-view"
+    window.location.href = "/"
   }
 
   return (
