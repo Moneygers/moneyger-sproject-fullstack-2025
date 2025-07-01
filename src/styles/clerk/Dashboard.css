@@ -1,0 +1,255 @@
+.dashboard-container {
+  padding: 1.5rem;
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 16rem;
+}
+
+.spinner {
+  width: 8rem;
+  height: 8rem;
+  border: 2px solid #e5e7eb;
+  border-bottom: 2px solid #2563eb;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.dashboard-header {
+  margin-bottom: 1.5rem;
+}
+
+.main-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.5rem 0;
+}
+
+.subtitle {
+  color: #6b7280;
+  margin: 0;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: white;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+}
+
+.stat-content {
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.stat-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-icon.available {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.stat-icon.occupied {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.stat-icon.reservations {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.stat-icon.revenue {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.icon {
+  font-size: 1.5rem;
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.stat-value {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+.occupancy-section {
+  margin-bottom: 2rem;
+}
+
+.occupancy-card {
+  background: white;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+}
+
+.occupancy-title {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #111827;
+  margin: 0 0 1rem 0;
+}
+
+.occupancy-content {
+  position: relative;
+  padding-top: 0.25rem;
+}
+
+.occupancy-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.occupancy-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  text-transform: uppercase;
+  border-radius: 9999px;
+  color: #2563eb;
+  background-color: #dbeafe;
+}
+
+.occupancy-percentage {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.progress-bar {
+  overflow: hidden;
+  height: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.75rem;
+  display: flex;
+  border-radius: 0.25rem;
+  background-color: #dbeafe;
+}
+
+.progress-fill {
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+  white-space: nowrap;
+  color: white;
+  justify-content: center;
+  background-color: #2563eb;
+  transition: width 0.6s ease;
+}
+
+.quick-actions {
+  margin-bottom: 2rem;
+}
+
+.actions-card {
+  background: white;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+}
+
+.actions-title {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #111827;
+  margin: 0 0 1rem 0;
+}
+
+.actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  color: #374151;
+}
+
+.action-button:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  transform: translateY(-1px);
+}
+
+.action-icon {
+  font-size: 1.25rem;
+}
+
+.action-text {
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .actions-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .occupancy-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+  }
+}
