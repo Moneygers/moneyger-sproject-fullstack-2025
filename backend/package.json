@@ -1,19 +1,38 @@
 {
   "name": "parkmanager-backend",
   "version": "1.0.0",
-  "description": "Django REST Framework backend for ParkManager system",
+  "description": "Django REST Framework backend for ParkManager parking management system",
+  "main": "manage.py",
   "scripts": {
-    "install": "pip install -r requirements.txt",
+    "setup": "python setup_data.py",
     "dev": "python manage.py runserver",
     "migrate": "python manage.py migrate",
     "makemigrations": "python manage.py makemigrations",
     "collectstatic": "python manage.py collectstatic --noinput",
-    "test": "pytest",
-    "lint": "flake8 .",
-    "format": "black .",
-    "setup": "bash install.sh"
+    "test": "python manage.py test",
+    "shell": "python manage.py shell",
+    "createsuperuser": "python manage.py createsuperuser",
+    "verify": "python verify_setup.py",
+    "reset-db": "rm -f db.sqlite3 && python manage.py migrate && python manage.py setup_parking"
   },
-  "keywords": ["django", "rest-framework", "parking-management", "api", "backend"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/parkmanager-backend.git"
+  },
+  "keywords": [
+    "django",
+    "rest-framework",
+    "parking-management",
+    "api",
+    "backend",
+    "jwt-authentication",
+    "websocket",
+    "real-time"
+  ],
   "author": "ParkManager Team",
-  "license": "MIT"
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yourusername/parkmanager-backend/issues"
+  },
+  "homepage": "https://github.com/yourusername/parkmanager-backend#readme"
 }

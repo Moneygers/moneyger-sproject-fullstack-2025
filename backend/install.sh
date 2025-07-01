@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # ParkManager Backend Installation Script
@@ -11,7 +10,7 @@ python -m venv venv
 
 # Activate virtual environment
 echo "🔧 Activating virtual environment..."
-source venv\Scripts\activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Upgrade pip
 echo "⬆️ Upgrading pip..."
