@@ -10,85 +10,56 @@ const MonitorReservations = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
 
-  // Mock reservation data
-  const mockReservations = [
-    {
-      id: 1,
-      slot: "F1-A1-05",
-      customer_name: "John Doe",
-      phone_number: "09123456789",
-      reserved_date: "2024-01-16",
-      reserved_time: "14:00",
-      duration_hours: 2,
-      status: "active",
-      arrival_time: "2024-01-16T14:15:00",
-      parking_duration: 45,
-    },
-    {
-      id: 2,
-      slot: "F1-A1-06",
-      customer_name: "Jane Smith",
-      phone_number: "09987654321",
-      reserved_date: "2024-01-16",
-      reserved_time: "16:30",
-      duration_hours: 3,
-      status: "active",
-      arrival_time: "2024-01-16T16:25:00",
-      parking_duration: 120,
-    },
-    {
-      id: 3,
-      slot: "F2-B1-03",
-      customer_name: "Mike Johnson",
-      phone_number: "09111222333",
-      reserved_date: "2024-01-15",
-      reserved_time: "10:00",
-      duration_hours: 4,
-      status: "completed",
-      arrival_time: "2024-01-15T10:00:00",
-      parking_duration: 240,
-    },
-    {
-      id: 4,
-      slot: "F1-A1-07",
-      customer_name: "Sarah Wilson",
-      phone_number: "09444555666",
-      reserved_date: "2024-01-17",
-      reserved_time: "09:00",
-      duration_hours: 1,
-      status: "active",
-    },
-    {
-      id: 5,
-      slot: "F2-A1-02",
-      customer_name: "David Brown",
-      phone_number: "09777888999",
-      reserved_date: "2024-01-16",
-      reserved_time: "18:00",
-      duration_hours: 2,
-      status: "active",
-    },
-  ]
-
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setReservations(mockReservations)
+    fetchReservations()
+  }, [statusFilter])
+
+  const fetchReservations = async () => {
+    try {
+      const params = new URLSearchParams()
+      if (statusFilter !== "all") {
+        params.append("status", statusFilter)
+      }
+
+      const response = await fetch(`http://127.0.0.1:8000/api/reservations/?${params}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setReservations(data)
+      } else {
+        console.error("Failed to fetch reservations")
+      }
+    } catch (error) {
+      console.error("Error fetching reservations:", error)
+    } finally {
       setLoading(false)
-    }, 1000)
-  }, [])
+    }
+  }
 
   const handleArrival = async (reservationId) => {
     try {
-      const currentTime = new Date().toISOString()
+      const response = await fetch(`http://127.0.0.1:8000/api/reservations/${reservationId}/arrival/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({}),
+      })
 
-      setReservations((prev) =>
-        prev.map((res) =>
-          res.id === reservationId ? { ...res, arrival_time: currentTime, parking_duration: 0 } : res,
-        ),
-      )
-
-      alert("Customer arrival recorded successfully!")
+      if (response.ok) {
+        const data = await response.json()
+        setReservations((prev) => prev.map((res) => (res.id === reservationId ? data.reservation : res)))
+        alert("Customer arrival recorded successfully!")
+        fetchReservations() // Refresh the list
+      } else {
+        const errorData = await response.json()
+        alert(`Failed to record arrival: ${errorData.error || "Unknown error"}`)
+      }
     } catch (error) {
       console.error("Error recording arrival:", error)
       alert("Failed to record arrival")
@@ -97,9 +68,34 @@ const MonitorReservations = () => {
 
   const handleStatusChange = async (reservationId, newStatus) => {
     try {
-      setReservations((prev) => prev.map((res) => (res.id === reservationId ? { ...res, status: newStatus } : res)))
+      let endpoint = `http://127.0.0.1:8000/api/reservations/${reservationId}/`
+      let method = "PATCH"
+      let body = JSON.stringify({ status: newStatus })
 
-      alert(`Reservation ${newStatus} successfully`)
+      if (newStatus === "completed") {
+        endpoint = `http://127.0.0.1:8000/api/reservations/${reservationId}/complete/`
+        method = "POST"
+        body = JSON.stringify({})
+      }
+
+      const response = await fetch(endpoint, {
+        method: method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: body,
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setReservations((prev) => prev.map((res) => (res.id === reservationId ? data.reservation || data : res)))
+        alert(`Reservation ${newStatus} successfully`)
+        fetchReservations() // Refresh the list
+      } else {
+        const errorData = await response.json()
+        alert(`Failed to update reservation: ${errorData.error || "Unknown error"}`)
+      }
     } catch (error) {
       console.error("Error updating reservation:", error)
       alert("Failed to update reservation")
@@ -108,23 +104,26 @@ const MonitorReservations = () => {
 
   const filteredReservations = reservations.filter((reservation) => {
     const matchesSearch =
-      reservation.slot.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reservation.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reservation.phone_number.includes(searchTerm)
+      searchTerm === "" ||
+      reservation.slot?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      reservation.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      reservation.phone_number?.includes(searchTerm)
 
-    const matchesStatus = statusFilter === "all" || reservation.status === statusFilter
-
-    return matchesSearch && matchesStatus
+    return matchesSearch
   })
 
   const getStatusColor = (status) => {
     switch (status) {
-      case "active":
+      case "approved":
         return "status-active"
+      case "arrived":
+        return "status-arrived"
       case "completed":
         return "status-completed"
-      case "cancelled":
+      case "rejected":
         return "status-cancelled"
+      case "pending":
+        return "status-pending"
       default:
         return "status-default"
     }
@@ -132,12 +131,16 @@ const MonitorReservations = () => {
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case "active":
+      case "approved":
         return "⏰"
+      case "arrived":
+        return "🚗"
       case "completed":
         return "✅"
-      case "cancelled":
+      case "rejected":
         return "❌"
+      case "pending":
+        return "⏳"
       default:
         return "📅"
     }
@@ -156,31 +159,36 @@ const MonitorReservations = () => {
   }
 
   const isReservationActive = (reservation) => {
-    return reservation.status === "active" && reservation.arrival_time
+    return reservation.status === "arrived" && reservation.arrival_time
   }
 
   const isReservationUpcoming = (reservation) => {
+    if (!reservation.reserved_date || !reservation.reserved_time) return false
+
     const reservationDateTime = new Date(`${reservation.reserved_date}T${reservation.reserved_time}`)
     const now = new Date()
 
-    return reservationDateTime > now && reservation.status === "active" && !reservation.arrival_time
+    return reservationDateTime > now && reservation.status === "approved" && !reservation.arrival_time
   }
 
   const hasArrived = (reservation) => {
-    return reservation.arrival_time !== undefined
+    return reservation.arrival_time !== undefined && reservation.arrival_time !== null
   }
 
   if (loading) {
     return (
-      <div className="monitor-reservations-container">
-        <div className="loading-spinner">
-          <div className="spinner"></div>
+      <Layout>
+        <div className="monitor-reservations-container">
+          <div className="loading-spinner">
+            <div className="spinner"></div>
+          </div>
         </div>
-      </div>
+      </Layout>
     )
   }
 
-  const activeReservations = reservations.filter((r) => r.status === "active").length
+  const activeReservations = reservations.filter((r) => r.status === "approved").length
+  const arrivedReservations = reservations.filter((r) => r.status === "arrived").length
   const completedReservations = reservations.filter((r) => r.status === "completed").length
   const upcomingReservations = reservations.filter((r) => isReservationUpcoming(r)).length
   const currentlyParked = reservations.filter((r) => isReservationActive(r)).length
@@ -207,10 +215,10 @@ const MonitorReservations = () => {
 
           <div className="summary-card">
             <div className="summary-content">
-              <div className="summary-icon">📍</div>
+              <div className="summary-icon">🚗</div>
               <div className="summary-info">
-                <div className="summary-label">Currently Parked</div>
-                <div className="summary-value">{currentlyParked}</div>
+                <div className="summary-label">Arrived</div>
+                <div className="summary-value">{arrivedReservations}</div>
               </div>
             </div>
           </div>
@@ -256,9 +264,11 @@ const MonitorReservations = () => {
               <label className="filter-label">Status</label>
               <select className="filter-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
                 <option value="all">All Status</option>
-                <option value="active">Active</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="arrived">Arrived</option>
                 <option value="completed">Completed</option>
-                <option value="cancelled">Cancelled</option>
+                <option value="rejected">Rejected</option>
               </select>
             </div>
 
@@ -300,10 +310,10 @@ const MonitorReservations = () => {
                           <h3 className="slot-id">{reservation.slot}</h3>
                           <span className={`status-badge ${getStatusColor(reservation.status)}`}>
                             <span className="status-icon">{getStatusIcon(reservation.status)}</span>
-                            <span>{reservation.status.toUpperCase()}</span>
+                            <span>{reservation.status?.toUpperCase()}</span>
                           </span>
-                          {isReservationActive(reservation) && <span className="parked-badge">PARKED</span>}
-                          {!hasArrived(reservation) && reservation.status === "active" && (
+                          {reservation.status === "arrived" && <span className="parked-badge">PARKED</span>}
+                          {!hasArrived(reservation) && reservation.status === "approved" && (
                             <span className="waiting-badge">WAITING</span>
                           )}
                         </div>
@@ -315,7 +325,9 @@ const MonitorReservations = () => {
                         <div className="reservation-times">
                           <p>
                             Reserved:{" "}
-                            {new Date(`${reservation.reserved_date}T${reservation.reserved_time}`).toLocaleString()}
+                            {reservation.reserved_date && reservation.reserved_time
+                              ? new Date(`${reservation.reserved_date}T${reservation.reserved_time}`).toLocaleString()
+                              : "N/A"}
                           </p>
                           {hasArrived(reservation) ? (
                             <p>
@@ -325,7 +337,7 @@ const MonitorReservations = () => {
                           ) : (
                             <p>
                               <span className="duration-icon">⏰</span>
-                              Expected duration: {reservation.duration_hours}h
+                              Expected duration: {reservation.duration_hours || 0}h
                             </p>
                           )}
                         </div>
@@ -333,14 +345,14 @@ const MonitorReservations = () => {
                     </div>
 
                     <div className="reservation-actions">
-                      {reservation.status === "active" && !hasArrived(reservation) && (
+                      {reservation.status === "approved" && !hasArrived(reservation) && (
                         <button onClick={() => handleArrival(reservation.id)} className="arrive-button">
                           <span className="button-icon">📍</span>
                           <span>Arrive</span>
                         </button>
                       )}
 
-                      {reservation.status === "active" && hasArrived(reservation) && (
+                      {reservation.status === "arrived" && (
                         <>
                           <button
                             onClick={() => handleStatusChange(reservation.id, "completed")}
@@ -349,7 +361,7 @@ const MonitorReservations = () => {
                             Complete
                           </button>
                           <button
-                            onClick={() => handleStatusChange(reservation.id, "cancelled")}
+                            onClick={() => handleStatusChange(reservation.id, "rejected")}
                             className="cancel-button"
                           >
                             Cancel
@@ -359,7 +371,7 @@ const MonitorReservations = () => {
 
                       {reservation.status === "completed" && <span className="completed-text">✓ Completed</span>}
 
-                      {reservation.status === "cancelled" && <span className="cancelled-text">✗ Cancelled</span>}
+                      {reservation.status === "rejected" && <span className="cancelled-text">✗ Cancelled</span>}
                     </div>
                   </div>
 
@@ -368,15 +380,17 @@ const MonitorReservations = () => {
                     <div className="info-grid">
                       <div className="info-item">
                         <span className="info-label">Slot Type:</span>
-                        <div className="info-value">VIP</div>
+                        <div className="info-value">{reservation.slot_type || "Regular"}</div>
                       </div>
                       <div className="info-item">
                         <span className="info-label">Floor:</span>
-                        <div className="info-value">Floor {reservation.slot.charAt(1)}</div>
+                        <div className="info-value">
+                          {reservation.slot ? `Floor ${reservation.slot.charAt(1)}` : "N/A"}
+                        </div>
                       </div>
                       <div className="info-item">
                         <span className="info-label">Duration:</span>
-                        <div className="info-value">{reservation.duration_hours}h</div>
+                        <div className="info-value">{reservation.duration_hours || 0}h</div>
                       </div>
                       <div className="info-item">
                         <span className="info-label">Status:</span>

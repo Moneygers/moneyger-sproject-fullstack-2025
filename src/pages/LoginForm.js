@@ -1,6 +1,8 @@
 "use client"
 
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { useAuth } from "../contexts/AuthContext"
 import "../styles/LoginForm.css"
 
 const LoginForm = () => {
@@ -9,6 +11,8 @@ const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const { login } = useAuth()
+  const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -16,21 +20,53 @@ const LoginForm = () => {
     setLoading(true)
 
     try {
-      // Simulate login logic
-      if (username === "admin" && password === "password") {
-        alert("Login successful! Redirecting to dashboard...")
+      const response = await fetch("http://localhost:8000/api/auth/login/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: username,
+          password: password,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Store token and user data
+        localStorage.setItem("token", data.token)
+        localStorage.setItem("user", JSON.stringify(data.user))
+
+        // Update auth context
+        await login({
+          username: username,
+          password: password,
+          role: data.user.role,
+          email: data.user.email,
+        })
+
+        // Redirect based on role
+        if (data.user.role === "admin") {
+          navigate("/admin/payment-reports")
+        } else if (data.user.role === "clerk") {
+          navigate("/dashboard")
+        } else {
+          navigate("/customer-view")
+        }
       } else {
-        setError("Invalid username or password")
+        setError(data.message || "Invalid username or password")
       }
     } catch (err) {
-      setError("Invalid username or password")
+      console.error("Login error:", err)
+      setError("Network error. Please try again.")
     } finally {
       setLoading(false)
     }
   }
 
   const handleCustomerView = () => {
-    window.location.href = "/customer-view"
+    navigate("/")
   }
 
   return (

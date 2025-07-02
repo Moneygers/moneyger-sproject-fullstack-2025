@@ -17,35 +17,73 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
 
   useEffect(() => {
-    // Mock user data - replace with actual authentication logic
-    const mockUser = {
-      id: 1,
-      first_name: "John",
-      last_name: "Doe",
-      role: "clerk",
-      email: "john.doe@example.com",
+    // Check if user is logged in on app start
+    const token = localStorage.getItem("token")
+    const userData = localStorage.getItem("user")
+
+    if (token && userData) {
+      try {
+        const parsedUser = JSON.parse(userData)
+        setUser(parsedUser)
+        setIsAuthenticated(true)
+      } catch (error) {
+        console.error("Error parsing user data:", error)
+        localStorage.removeItem("token")
+        localStorage.removeItem("user")
+      }
     }
-    setUser(mockUser)
-    setIsAuthenticated(true)
   }, [])
 
   const login = async (credentials) => {
-    // Mock login logic
-    const mockUser = {
-      id: 1,
-      first_name: "John",
-      last_name: "Doe",
-      role: credentials.role || "clerk",
-      email: credentials.email || "john.doe@example.com",
+    try {
+      const response = await fetch("http://localhost:8000/api/auth/login/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: credentials.username,
+          password: credentials.password,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        localStorage.setItem("token", data.token)
+        localStorage.setItem("user", JSON.stringify(data.user))
+        setUser(data.user)
+        setIsAuthenticated(true)
+        return data.user
+      } else {
+        throw new Error(data.message || "Login failed")
+      }
+    } catch (error) {
+      console.error("Login error:", error)
+      throw error
     }
-    setUser(mockUser)
-    setIsAuthenticated(true)
-    return mockUser
   }
 
-  const logout = () => {
-    setUser(null)
-    setIsAuthenticated(false)
+  const logout = async () => {
+    try {
+      const token = localStorage.getItem("token")
+      if (token) {
+        await fetch("http://localhost:8000/api/auth/logout/", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        })
+      }
+    } catch (error) {
+      console.error("Logout error:", error)
+    } finally {
+      localStorage.removeItem("token")
+      localStorage.removeItem("user")
+      setUser(null)
+      setIsAuthenticated(false)
+    }
   }
 
   const isAdmin = user?.role === "admin"

@@ -19,46 +19,22 @@ const CheckoutVehicle = () => {
 
   const fetchOccupiedSlots = async () => {
     try {
-      // Mock data - replace with actual API call
-      const mockSlots = [
-        {
-          id: "F1-A1-02",
-          floor: 1,
-          section: "A",
-          status: "occupied",
-          slot_type: "regular",
-          current_allocation: {
-            license_plate: "ABC-123",
-            customer_name: "John Doe",
-            start_time: "2024-01-15T10:00:00Z",
-          },
+      const response = await fetch("http://localhost:8000/api/slots/?status=occupied", {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        {
-          id: "F1-B1-01",
-          floor: 1,
-          section: "B",
-          status: "occupied",
-          slot_type: "vip",
-          current_allocation: {
-            license_plate: "XYZ-789",
-            customer_name: "Jane Smith",
-            start_time: "2024-01-15T09:30:00Z",
-          },
-        },
-        {
-          id: "F2-A1-03",
-          floor: 2,
-          section: "A",
-          status: "occupied",
-          slot_type: "regular",
-          current_allocation: {
-            license_plate: "DEF-456",
-            customer_name: "Mike Johnson",
-            start_time: "2024-01-15T11:15:00Z",
-          },
-        },
-      ]
-      setOccupiedSlots(mockSlots)
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log("Fetched occupied slots:", data)
+        setOccupiedSlots(data)
+      } else {
+        console.error("Failed to fetch occupied slots:", response.status, response.statusText)
+        const errorText = await response.text()
+        console.error("Error response:", errorText)
+      }
     } catch (error) {
       console.error("Error fetching occupied slots:", error)
     } finally {
@@ -75,10 +51,7 @@ const CheckoutVehicle = () => {
     if (!selectedSlot) return
 
     try {
-      // Process payment first
       setPaymentMethod(method)
-
-      // Then show print option
       setShowCheckoutModal(false)
       setShowPrintModal(true)
     } catch (error) {
@@ -91,24 +64,40 @@ const CheckoutVehicle = () => {
     if (!selectedSlot) return
 
     try {
-      // Mock API call to release slot
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      const response = await fetch(`http://localhost:8000/api/slots/${selectedSlot.id}/checkout/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          payment_method: paymentMethod,
+          print_receipt: shouldPrint,
+        }),
+      })
 
-      if (shouldPrint) {
-        printReceipt()
+      if (response.ok) {
+        const result = await response.json()
+
+        if (shouldPrint) {
+          printReceipt(result)
+        }
+
+        alert(`Vehicle ${selectedSlot.current_allocation?.license_plate} checked out successfully!`)
+        setShowPrintModal(false)
+        setSelectedSlot(null)
+        fetchOccupiedSlots()
+      } else {
+        const errorData = await response.json()
+        alert(`Failed to checkout vehicle: ${errorData.error || "Unknown error"}`)
       }
-
-      alert(`Vehicle ${selectedSlot.current_allocation?.license_plate} checked out successfully!`)
-      setShowPrintModal(false)
-      setSelectedSlot(null)
-      fetchOccupiedSlots()
     } catch (error) {
       console.error("Error checking out vehicle:", error)
       alert("Failed to checkout vehicle")
     }
   }
 
-  const printReceipt = () => {
+  const printReceipt = (receiptData) => {
     if (!selectedSlot) return
 
     const receiptContent = `
@@ -130,14 +119,14 @@ const CheckoutVehicle = () => {
           <div class="header">🏢 ParkManager</div>
           <div>Parking Receipt</div>
           
-          <div class="info"><strong>Slot:</strong> ${selectedSlot.id}</div>
+          <div class="info"><strong>Slot:</strong> ${selectedSlot.display_id || selectedSlot.id}</div>
           <div class="info"><strong>License Plate:</strong> ${selectedSlot.current_allocation?.license_plate}</div>
           <div class="info"><strong>Entry Time:</strong> ${new Date(selectedSlot.current_allocation?.start_time || "").toLocaleString()}</div>
           <div class="info"><strong>Exit Time:</strong> ${new Date().toLocaleString()}</div>
-          <div class="info"><strong>Duration:</strong> ${calculateDuration(selectedSlot.current_allocation?.start_time || "")}</div>
+          <div class="info"><strong>Duration:</strong> ${receiptData?.duration || "N/A"}</div>
           <div class="info"><strong>Payment Method:</strong> ${paymentMethod}</div>
           
-          <div class="total">Total: ₱${calculateFee(selectedSlot.current_allocation?.start_time || "", selectedSlot.slot_type)}</div>
+          <div class="total">Total: ₱${receiptData?.total_fee || "0.00"}</div>
           
           <div style="margin-top: 20px; font-size: 12px;">
             <p>Thank you for using ParkManager!</p>
@@ -157,6 +146,7 @@ const CheckoutVehicle = () => {
   }
 
   const calculateDuration = (startTime) => {
+    if (!startTime) return "N/A"
     const start = new Date(startTime)
     const now = new Date()
     const diffMs = now.getTime() - start.getTime()
@@ -166,6 +156,7 @@ const CheckoutVehicle = () => {
   }
 
   const calculateFee = (startTime, slotType) => {
+    if (!startTime) return 0
     const start = new Date(startTime)
     const now = new Date()
     const diffHours = Math.ceil((now.getTime() - start.getTime()) / (1000 * 60 * 60))
@@ -177,9 +168,26 @@ const CheckoutVehicle = () => {
     return diffHours * hourlyRate
   }
 
+  const getSlotDisplayId = (slot) => {
+    if (slot.display_id) return slot.display_id
+
+    // Extract floor number from structure (FLOOR1 -> 1)
+    let floor = 1
+    if (slot.structure) {
+      const floorMatch = slot.structure.match(/FLOOR(\d+)/)
+      if (floorMatch) {
+        floor = Number.parseInt(floorMatch[1])
+      }
+    } else if (slot.floor) {
+      floor = slot.floor
+    }
+
+    return `F${floor}-${slot.section}-${slot.slotNo}`
+  }
+
   const filteredSlots = occupiedSlots.filter(
     (slot) =>
-      slot.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      getSlotDisplayId(slot)?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       slot.current_allocation?.license_plate?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       slot.current_allocation?.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()),
   )
@@ -224,7 +232,11 @@ const CheckoutVehicle = () => {
             <div className="no-slots">
               <div className="no-slots-icon">🚗</div>
               <h3 className="no-slots-title">No occupied slots found</h3>
-              <p className="no-slots-text">All parking slots are currently available.</p>
+              <p className="no-slots-text">
+                {occupiedSlots.length === 0
+                  ? "All parking slots are currently available."
+                  : "No slots match your search criteria."}
+              </p>
             </div>
           ) : (
             <div className="slots-list">
@@ -235,11 +247,12 @@ const CheckoutVehicle = () => {
                       <div className="slot-icon">🚗</div>
                       <div className="slot-details">
                         <div className="slot-header">
-                          <h3 className="slot-id">{slot.id}</h3>
+                          <h3 className="slot-id">{getSlotDisplayId(slot)}</h3>
                           <span className={`slot-type ${slot.slot_type}`}>{slot.slot_type?.toUpperCase()}</span>
                         </div>
                         <p className="slot-location">
-                          Floor {slot.floor} • Section {slot.section}
+                          Floor {slot.floor || (slot.structure ? slot.structure.replace("FLOOR", "") : "1")} • Section{" "}
+                          {slot.section}
                         </p>
                       </div>
                     </div>
@@ -251,7 +264,7 @@ const CheckoutVehicle = () => {
                             <span className="info-icon">🚗</span>
                             License Plate
                           </div>
-                          <div className="info-value">{slot.current_allocation?.license_plate}</div>
+                          <div className="info-value">{slot.current_allocation?.license_plate || "N/A"}</div>
                         </div>
 
                         {slot.current_allocation?.customer_name && (
@@ -269,9 +282,7 @@ const CheckoutVehicle = () => {
                             <span className="info-icon">⏰</span>
                             Duration
                           </div>
-                          <div className="info-value">
-                            {calculateDuration(slot.current_allocation?.start_time || "")}
-                          </div>
+                          <div className="info-value">{calculateDuration(slot.current_allocation?.start_time)}</div>
                         </div>
 
                         <div className="info-item">
@@ -280,7 +291,7 @@ const CheckoutVehicle = () => {
                             Fee
                           </div>
                           <div className="info-value fee">
-                            ₱{calculateFee(slot.current_allocation?.start_time || "", slot.slot_type)}
+                            ₱{calculateFee(slot.current_allocation?.start_time, slot.slot_type)}
                           </div>
                         </div>
                       </div>
@@ -305,7 +316,7 @@ const CheckoutVehicle = () => {
               <div className="payment-summary">
                 <div className="summary-row">
                   <span className="summary-label">Slot:</span>
-                  <span className="summary-value">{selectedSlot.id}</span>
+                  <span className="summary-value">{getSlotDisplayId(selectedSlot)}</span>
                 </div>
                 <div className="summary-row">
                   <span className="summary-label">License Plate:</span>
@@ -314,13 +325,13 @@ const CheckoutVehicle = () => {
                 <div className="summary-row">
                   <span className="summary-label">Duration:</span>
                   <span className="summary-value">
-                    {calculateDuration(selectedSlot.current_allocation?.start_time || "")}
+                    {calculateDuration(selectedSlot.current_allocation?.start_time)}
                   </span>
                 </div>
                 <div className="summary-row">
                   <span className="summary-label">Total Fee:</span>
                   <span className="summary-value fee">
-                    ₱{calculateFee(selectedSlot.current_allocation?.start_time || "", selectedSlot.slot_type)}
+                    ₱{calculateFee(selectedSlot.current_allocation?.start_time, selectedSlot.slot_type)}
                   </span>
                 </div>
               </div>
@@ -360,7 +371,7 @@ const CheckoutVehicle = () => {
               <div className="success-content">
                 <div className="success-icon">✅</div>
                 <p className="success-text">
-                  Payment of ₱{calculateFee(selectedSlot.current_allocation?.start_time || "", selectedSlot.slot_type)}{" "}
+                  Payment of ₱{calculateFee(selectedSlot.current_allocation?.start_time, selectedSlot.slot_type)}{" "}
                   processed successfully via {paymentMethod}
                 </p>
               </div>

@@ -20,48 +20,20 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      // Mock data - replace with actual API calls
-      const mockSlots = [
-        { id: "F1-A1-01", status: "available" },
-        { id: "F1-A1-02", status: "occupied" },
-        { id: "F1-A1-03", status: "available" },
-        { id: "F1-B1-01", status: "occupied" },
-        { id: "F2-A1-01", status: "available" },
-        { id: "F2-A1-02", status: "reserved" },
-        { id: "F3-A1-01", status: "available" },
-        { id: "F4-A1-01", status: "available" },
-      ]
-
-      const mockReservations = [
-        { id: 1, status: "active" },
-        { id: 2, status: "active" },
-        { id: 3, status: "completed" },
-        { id: 4, status: "active" },
-      ]
-
-      const mockTransactions = [
-        { id: 1, amount: "150.00", created_at: new Date().toISOString() },
-        { id: 2, amount: "200.00", created_at: new Date().toISOString() },
-        { id: 3, amount: "75.00", created_at: new Date().toISOString() },
-      ]
-
-      const totalSlots = mockSlots.length
-      const availableSlots = mockSlots.filter((slot) => slot.status === "available").length
-      const occupiedSlots = mockSlots.filter((slot) => slot.status === "occupied").length
-      const reservations = mockReservations.filter((res) => res.status === "active").length
-
-      // Calculate today's revenue
-      const today = new Date().toISOString().split("T")[0]
-      const todayTransactions = mockTransactions.filter((trans) => trans.created_at.startsWith(today))
-      const todayRevenue = todayTransactions.reduce((sum, trans) => sum + Number.parseFloat(trans.amount), 0)
-
-      setStats({
-        totalSlots,
-        availableSlots,
-        occupiedSlots,
-        reservations,
-        todayRevenue,
+      const response = await fetch("http://localhost:8000/api/dashboard/stats/", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       })
+
+      if (response.ok) {
+        const data = await response.json()
+        setStats(data)
+      } else {
+        console.error("Failed to fetch dashboard data", response.status, response.statusText)
+      }
     } catch (error) {
       console.error("Error fetching dashboard data:", error)
     } finally {
@@ -137,7 +109,7 @@ const Dashboard = () => {
               </div>
               <div className="stat-info">
                 <div className="stat-label">Today's Revenue</div>
-                <div className="stat-value">₱{stats.todayRevenue.toFixed(2)}</div>
+                <div className="stat-value">₱{stats.todayRevenue?.toFixed(2) || "0.00"}</div>
               </div>
             </div>
           </div>

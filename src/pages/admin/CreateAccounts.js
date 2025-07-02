@@ -64,21 +64,42 @@ const CreateAccounts = () => {
 
     setLoading(true)
     try {
-      // Mock API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      alert(`${formData.role} account created successfully for ${formData.first_name} ${formData.last_name}`)
-
-      // Reset form
-      setFormData({
-        username: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-        first_name: "",
-        last_name: "",
-        role: "clerk",
-        phone_number: "",
+      const response = await fetch("http://localhost:8000/api/users/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          email: formData.email,
+          password: formData.password,
+          first_name: formData.first_name,
+          last_name: formData.last_name,
+          role: formData.role,
+          phone_number: formData.phone_number,
+        }),
       })
+
+      if (response.ok) {
+        const result = await response.json()
+        alert(`${formData.role} account created successfully for ${formData.first_name} ${formData.last_name}`)
+
+        // Reset form
+        setFormData({
+          username: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+          first_name: "",
+          last_name: "",
+          role: "clerk",
+          phone_number: "",
+        })
+      } else {
+        const errorData = await response.json()
+        alert(`Failed to create user account: ${errorData.message || "Unknown error"}`)
+      }
     } catch (error) {
       console.error("Error creating user:", error)
       alert("Failed to create user account")
@@ -180,8 +201,8 @@ const CreateAccounts = () => {
                   <div className="form-group">
                     <label className="form-label">Role *</label>
                     <select name="role" value={formData.role} onChange={handleInputChange} className="form-select">
-                      <option value="clerk">Parking Clerk</option>
-                      <option value="admin">Administrator</option>
+                      <option value="clerk">Clerk</option>
+                      <option value="admin">Admin</option>
                     </select>
                   </div>
                 </div>

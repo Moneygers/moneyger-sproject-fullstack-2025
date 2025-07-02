@@ -11,84 +11,136 @@ const ManageUsers = () => {
   const [roleFilter, setRoleFilter] = useState("all")
   const [editingUser, setEditingUser] = useState(null)
   const [showEditModal, setShowEditModal] = useState(false)
-
-  // Mock users data
-  const mockUsers = [
-    {
-      id: 1,
-      username: "admin",
-      email: "admin@parkmanager.com",
-      first_name: "John",
-      last_name: "Doe",
-      role: "admin",
-    },
-    {
-      id: 2,
-      username: "clerk1",
-      email: "clerk1@parkmanager.com",
-      first_name: "Jane",
-      last_name: "Smith",
-      role: "clerk",
-    },
-    {
-      id: 3,
-      username: "clerk2",
-      email: "clerk2@parkmanager.com",
-      first_name: "Bob",
-      last_name: "Johnson",
-      role: "clerk",
-    },
-    {
-      id: 4,
-      username: "customer1",
-      email: "customer1@example.com",
-      first_name: "Alice",
-      last_name: "Brown",
-      role: "customer",
-    },
-  ]
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [userToDelete, setUserToDelete] = useState(null)
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setUsers(mockUsers)
-      setLoading(false)
-    }, 1000)
+    fetchUsers()
   }, [])
 
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/api/users/", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setUsers(data)
+      } else {
+        console.error("Failed to fetch users")
+        alert("Failed to fetch users. Please try again.")
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error)
+      alert("Network error. Please check your connection.")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleEdit = (user) => {
-    setEditingUser(user)
+    setEditingUser({ ...user })
     setShowEditModal(true)
   }
 
-  const handleDelete = async (userId, userName) => {
-    if (window.confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) {
-      try {
-        setUsers((prev) => prev.filter((user) => user.id !== userId))
-        alert("User deleted successfully")
-      } catch (error) {
-        console.error("Error deleting user:", error)
-        alert("Failed to delete user")
+  const handleDeleteClick = (user) => {
+    setUserToDelete(user)
+    setShowDeleteModal(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!userToDelete) return
+
+    try {
+      const response = await fetch(`http://localhost:8000/api/users/${userToDelete.id}/`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
+
+      if (response.ok) {
+        setUsers((prev) => prev.filter((user) => user.id !== userToDelete.id))
+        alert(`User "${userToDelete.first_name} ${userToDelete.last_name}" deleted successfully`)
+      } else {
+        const errorData = await response.json()
+        alert(`Failed to delete user: ${errorData.error || "Unknown error"}`)
       }
+    } catch (error) {
+      console.error("Error deleting user:", error)
+      alert("Network error. Failed to delete user.")
+    } finally {
+      setShowDeleteModal(false)
+      setUserToDelete(null)
     }
   }
 
   const handleUpdateUser = async (updatedUser) => {
     try {
-      setUsers((prev) => prev.map((user) => (user.id === updatedUser.id ? updatedUser : user)))
-      setShowEditModal(false)
-      setEditingUser(null)
-      alert("User updated successfully")
+      // Prepare data for backend
+      const userData = {
+        id: updatedUser.id,
+        first_name: updatedUser.first_name,
+        last_name: updatedUser.last_name,
+        username: updatedUser.username,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        phone_no: updatedUser.phone_no || "",
+      }
+
+      // Only include password if it was provided
+      if (updatedUser.password && updatedUser.password.trim()) {
+        userData.password = updatedUser.password
+      }
+
+      console.log("Sending update data:", userData)
+
+      const response = await fetch(`http://localhost:8000/api/users/${updatedUser.id}/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(userData),
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        setUsers((prev) => prev.map((user) => (user.id === updatedUser.id ? result : user)))
+        setShowEditModal(false)
+        setEditingUser(null)
+        alert("User updated successfully")
+      } else {
+        const errorData = await response.json()
+        console.error("Update error response:", errorData)
+
+        let errorMessage = "Failed to update user"
+
+        if (errorData.username) {
+          errorMessage = `Username error: ${errorData.username[0]}`
+        } else if (errorData.email) {
+          errorMessage = `Email error: ${errorData.email[0]}`
+        } else if (errorData.error) {
+          errorMessage = errorData.error
+        } else if (errorData.non_field_errors) {
+          errorMessage = errorData.non_field_errors[0]
+        }
+
+        alert(errorMessage)
+      }
     } catch (error) {
       console.error("Error updating user:", error)
-      alert("Failed to update user")
+      alert("Network error. Failed to update user.")
     }
   }
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
-      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesRole = roleFilter === "all" || user.role === roleFilter
@@ -102,8 +154,6 @@ const ManageUsers = () => {
         return "role-badge admin"
       case "clerk":
         return "role-badge clerk"
-      case "customer":
-        return "role-badge customer"
       default:
         return "role-badge default"
     }
@@ -111,76 +161,210 @@ const ManageUsers = () => {
 
   // Edit User Modal Component
   const EditUserModal = ({ user, onClose, onSave }) => {
-    const [formData, setFormData] = useState({ ...user })
+    const [formData, setFormData] = useState({
+      ...user,
+      password: "",
+      confirmPassword: "",
+    })
+    const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+    const [errors, setErrors] = useState({})
 
     const handleInputChange = (e) => {
       const { name, value } = e.target
       setFormData((prev) => ({ ...prev, [name]: value }))
+
+      // Clear error when user starts typing
+      if (errors[name]) {
+        setErrors((prev) => ({ ...prev, [name]: "" }))
+      }
+    }
+
+    const validateForm = () => {
+      const newErrors = {}
+
+      if (!formData.username?.trim()) {
+        newErrors.username = "Username is required"
+      }
+
+      if (!formData.email?.trim()) {
+        newErrors.email = "Email is required"
+      } else {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(formData.email)) {
+          newErrors.email = "Please enter a valid email address"
+        }
+      }
+
+      if (!formData.first_name?.trim()) {
+        newErrors.first_name = "First name is required"
+      }
+
+      if (!formData.last_name?.trim()) {
+        newErrors.last_name = "Last name is required"
+      }
+
+      // Password validation (only if password is provided)
+      if (formData.password && formData.password.trim()) {
+        if (formData.password.length < 8) {
+          newErrors.password = "Password must be at least 8 characters long"
+        }
+
+        if (formData.password !== formData.confirmPassword) {
+          newErrors.confirmPassword = "Passwords do not match"
+        }
+      }
+
+      setErrors(newErrors)
+      return Object.keys(newErrors).length === 0
     }
 
     const handleSubmit = (e) => {
       e.preventDefault()
-      onSave(formData)
+
+      if (!validateForm()) {
+        return
+      }
+
+      // Create clean data object
+      const updateData = {
+        id: formData.id,
+        first_name: formData.first_name?.trim(),
+        last_name: formData.last_name?.trim(),
+        username: formData.username?.trim(),
+        email: formData.email?.trim(),
+        role: formData.role,
+        phone_no: formData.phone_no?.trim() || "",
+      }
+
+      // Only include password if it was provided and is not empty
+      if (formData.password && formData.password.trim()) {
+        updateData.password = formData.password.trim()
+      }
+
+      onSave(updateData)
     }
 
     return (
       <div className="modal-overlay">
         <div className="modal-content">
-          <h3 className="modal-title">Edit User</h3>
+          <h3 className="modal-title">Edit User - {user.username}</h3>
 
           <form onSubmit={handleSubmit} className="modal-form">
             <div className="modal-form-grid">
               <div className="form-group">
-                <label className="form-label">First Name</label>
+                <label className="form-label">First Name *</label>
                 <input
                   type="text"
                   name="first_name"
-                  value={formData.first_name}
+                  value={formData.first_name || ""}
                   onChange={handleInputChange}
-                  className="form-input"
+                  className={`form-input ${errors.first_name ? "error" : ""}`}
                 />
+                {errors.first_name && <p className="error-message">{errors.first_name}</p>}
               </div>
+
               <div className="form-group">
-                <label className="form-label">Last Name</label>
+                <label className="form-label">Last Name *</label>
                 <input
                   type="text"
                   name="last_name"
-                  value={formData.last_name}
+                  value={formData.last_name || ""}
                   onChange={handleInputChange}
-                  className="form-input"
+                  className={`form-input ${errors.last_name ? "error" : ""}`}
                 />
+                {errors.last_name && <p className="error-message">{errors.last_name}</p>}
               </div>
             </div>
 
             <div className="form-group">
-              <label className="form-label">Username</label>
+              <label className="form-label">Username *</label>
               <input
                 type="text"
                 name="username"
-                value={formData.username}
+                value={formData.username || ""}
                 onChange={handleInputChange}
-                className="form-input"
+                className={`form-input ${errors.username ? "error" : ""}`}
               />
+              {errors.username && <p className="error-message">{errors.username}</p>}
             </div>
 
             <div className="form-group">
-              <label className="form-label">Email</label>
+              <label className="form-label">Email *</label>
               <input
                 type="email"
                 name="email"
-                value={formData.email}
+                value={formData.email || ""}
+                onChange={handleInputChange}
+                className={`form-input ${errors.email ? "error" : ""}`}
+              />
+              {errors.email && <p className="error-message">{errors.email}</p>}
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Phone Number</label>
+              <input
+                type="tel"
+                name="phone_no"
+                value={formData.phone_no || ""}
                 onChange={handleInputChange}
                 className="form-input"
+                placeholder="09123456789"
               />
             </div>
 
             <div className="form-group">
-              <label className="form-label">Role</label>
-              <select name="role" value={formData.role} onChange={handleInputChange} className="form-select">
-                <option value="admin">Administrator</option>
+              <label className="form-label">Role *</label>
+              <select name="role" value={formData.role || ""} onChange={handleInputChange} className="form-select">
+                <option value="admin">Admin</option>
                 <option value="clerk">Clerk</option>
-                <option value="customer">Customer</option>
               </select>
+            </div>
+
+            {/* Password Section */}
+            <div className="form-section">
+              <h4 className="section-title">Change Password (Optional)</h4>
+              <div className="modal-form-grid">
+                <div className="form-group">
+                  <label className="form-label">New Password</label>
+                  <div className="password-input-container">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      value={formData.password || ""}
+                      onChange={handleInputChange}
+                      className={`form-input ${errors.password ? "error" : ""}`}
+                      placeholder="Leave blank to keep current password"
+                    />
+                    <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
+                      {showPassword ? "🙈" : "👁️"}
+                    </button>
+                  </div>
+                  {errors.password && <p className="error-message">{errors.password}</p>}
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Confirm New Password</label>
+                  <div className="password-input-container">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      name="confirmPassword"
+                      value={formData.confirmPassword || ""}
+                      onChange={handleInputChange}
+                      className={`form-input ${errors.confirmPassword ? "error" : ""}`}
+                      placeholder="Confirm new password"
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? "🙈" : "👁️"}
+                    </button>
+                  </div>
+                  {errors.confirmPassword && <p className="error-message">{errors.confirmPassword}</p>}
+                </div>
+              </div>
             </div>
 
             <div className="modal-actions">
@@ -196,6 +380,37 @@ const ManageUsers = () => {
       </div>
     )
   }
+
+  // Delete Confirmation Modal
+  const DeleteConfirmModal = ({ user, onClose, onConfirm }) => (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <h3 className="modal-title">Confirm Delete</h3>
+        <div className="delete-confirmation">
+          <div className="warning-icon">⚠️</div>
+          <p>Are you sure you want to delete the user:</p>
+          <div className="user-details">
+            <strong>
+              {user.first_name} {user.last_name}
+            </strong>
+            <br />
+            <span>Username: {user.username}</span>
+            <br />
+            <span>Role: {user.role}</span>
+          </div>
+          <p className="warning-text">This action cannot be undone.</p>
+        </div>
+        <div className="modal-actions">
+          <button type="button" onClick={onClose} className="cancel-button">
+            Cancel
+          </button>
+          <button type="button" onClick={onConfirm} className="delete-confirm-button">
+            Delete User
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 
   if (loading) {
     return (
@@ -241,7 +456,7 @@ const ManageUsers = () => {
 
           <div className="summary-card">
             <div className="summary-content">
-              <div className="summary-icon total">👥</div>
+              <div className="summary-icon total">🟢</div>
               <div className="summary-info">
                 <div className="summary-label">Total Users</div>
                 <div className="summary-value">{users.length}</div>
@@ -268,9 +483,8 @@ const ManageUsers = () => {
               <label className="filter-label">Filter by Role</label>
               <select className="filter-select" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
                 <option value="all">All Roles</option>
-                <option value="admin">Administrators</option>
-                <option value="clerk">Clerks</option>
-                <option value="customer">Customers</option>
+                <option value="admin">Admin</option>
+                <option value="clerk">Clerk</option>
               </select>
             </div>
 
@@ -314,8 +528,8 @@ const ManageUsers = () => {
                   <div key={user.id} className="table-row">
                     <div className="table-cell user-cell">
                       <div className="user-avatar">
-                        {user.first_name.charAt(0)}
-                        {user.last_name.charAt(0)}
+                        {user.first_name?.charAt(0) || ""}
+                        {user.last_name?.charAt(0) || ""}
                       </div>
                       <div className="user-info">
                         <div className="user-name">
@@ -325,19 +539,16 @@ const ManageUsers = () => {
                       </div>
                     </div>
                     <div className="table-cell">
-                      <span className={getRoleClass(user.role)}>{user.role.toUpperCase()}</span>
+                      <span className={getRoleClass(user.role)}>{user.role?.toUpperCase()}</span>
                     </div>
                     <div className="table-cell">{user.email}</div>
                     <div className="table-cell">{user.username}</div>
                     <div className="table-cell actions-cell">
                       <button onClick={() => handleEdit(user)} className="edit-button">
-                        Edit
+                        ✏️ Edit
                       </button>
-                      <button
-                        onClick={() => handleDelete(user.id, `${user.first_name} ${user.last_name}`)}
-                        className="delete-button"
-                      >
-                        Delete
+                      <button onClick={() => handleDeleteClick(user)} className="delete-button">
+                        🗑️ Delete
                       </button>
                     </div>
                   </div>
@@ -356,6 +567,18 @@ const ManageUsers = () => {
               setEditingUser(null)
             }}
             onSave={handleUpdateUser}
+          />
+        )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && userToDelete && (
+          <DeleteConfirmModal
+            user={userToDelete}
+            onClose={() => {
+              setShowDeleteModal(false)
+              setUserToDelete(null)
+            }}
+            onConfirm={confirmDelete}
           />
         )}
       </div>

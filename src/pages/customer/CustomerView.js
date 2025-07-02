@@ -23,29 +23,28 @@ const CustomerView = () => {
 
   const fetchAvailableSlots = async () => {
     try {
-      // Mock data - replace with actual API call
-      const mockSlots = [
-        { id: "A1", floor: 1, section: "A", status: "available", slot_type: "regular" },
-        { id: "A2", floor: 1, section: "A", status: "available", slot_type: "vip" },
-        { id: "A3", floor: 1, section: "A", status: "available", slot_type: "disabled" },
-        { id: "A4", floor: 1, section: "A", status: "occupied", slot_type: "regular" },
-        { id: "B1", floor: 1, section: "B", status: "available", slot_type: "regular" },
-        { id: "B2", floor: 1, section: "B", status: "available", slot_type: "regular" },
-        { id: "C1", floor: 2, section: "A", status: "available", slot_type: "regular" },
-        { id: "C2", floor: 2, section: "A", status: "available", slot_type: "vip" },
-        { id: "D1", floor: 3, section: "A", status: "available", slot_type: "regular" },
-        { id: "E1", floor: 4, section: "A", status: "available", slot_type: "regular" },
-      ]
-      setSlots(mockSlots)
+      const response = await fetch("http://localhost:8000/api/slots/")
+
+      if (response.ok) {
+        const data = await response.json()
+        setSlots(data)
+      } else {
+        console.error("Failed to fetch slots")
+      }
     } catch (error) {
-      console.error("Error fetching available slots:", error)
+      console.error("Error fetching slots:", error)
     } finally {
       setLoading(false)
     }
   }
 
   const getFloorSlots = (floor) => {
-    return slots.filter((slot) => slot.floor === floor)
+    return slots
+      .filter((slot) => {
+        const floorNumber = Number.parseInt(slot.structure.replace("FLOOR", ""))
+        return floorNumber === floor
+      })
+      .filter((slot) => slot.status === "available")
   }
 
   const getSlotsBySection = (floorSlots) => {
@@ -97,10 +96,33 @@ const CustomerView = () => {
     }
 
     try {
-      alert(`Reservation created for slot ${selectedSlot.id}`)
-      setShowReservationModal(false)
-      setReservationForm({ name: "", plateNumber: "", contactNumber: "" })
-      setSelectedSlot(null)
+      const response = await fetch("http://localhost:8000/api/reservations/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          park_slot: selectedSlot.id,
+          name: reservationForm.name,
+          plate_no: reservationForm.plateNumber,
+          mobileNo: reservationForm.contactNumber,
+          date: new Date().toISOString().split("T")[0], // Today's date in YYYY-MM-DD format
+        }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        alert(
+          `Reservation created successfully for slot F${Number.parseInt(selectedSlot.structure.replace("FLOOR", ""))}-${selectedSlot.section}-${selectedSlot.slotNo}`,
+        )
+        setShowReservationModal(false)
+        setReservationForm({ name: "", plateNumber: "", contactNumber: "" })
+        setSelectedSlot(null)
+        fetchAvailableSlots() // Refresh slots
+      } else {
+        const errorData = await response.json()
+        alert(`Failed to create reservation: ${errorData.detail || "Unknown error"}`)
+      }
     } catch (error) {
       console.error("Error creating reservation:", error)
       alert("Failed to create reservation")
@@ -161,7 +183,7 @@ const CustomerView = () => {
                 <div className="floor-button-content">
                   <span className="floor-icon">{floor === 1 ? "🏢" : floor === 4 ? "☀️" : "🅿️"}</span>
                   <span className="floor-name">
-                    {floor === 1 ? "Ground Floor" : floor === 4 ? "Rooftop" : `Floor ${floor}`}
+                    {floor === 1 ? "Floor 1" : floor === 4 ? "Floor 4" : `Floor ${floor}`}
                   </span>
                 </div>
                 <div className="floor-available-count">
@@ -176,11 +198,7 @@ const CustomerView = () => {
         <div className="customer-floor-layout">
           <div className="floor-layout-header">
             <h2 className="floor-layout-title">
-              {selectedFloor === 1
-                ? "🏢 Ground Floor - Main Level"
-                : selectedFloor === 4
-                  ? "☀️ Rooftop Level - Open Air"
-                  : `🏢 Floor ${selectedFloor}`}
+              {selectedFloor === 1 ? "🏢 Floor 1" : selectedFloor === 4 ? "🏢 Floor 4" : `🏢 Floor ${selectedFloor}`}
             </h2>
             <p className="floor-layout-subtitle">
               {availableCount} available slots out of {currentFloorSlots.length} total
@@ -212,7 +230,7 @@ const CustomerView = () => {
                           slot.status === "available" ? "clickable" : ""
                         }`}
                       >
-                        <div className="customer-slot-id">{slot.id}</div>
+                        <div className="customer-slot-id">{`F${Number.parseInt(slot.structure.replace("FLOOR", ""))}-${slot.section}-${slot.slotNo}`}</div>
                         <div className="customer-slot-icon">{getSlotIcon(slot)}</div>
                         <div className="customer-slot-type">
                           {slot.slot_type === "vip" ? "VIP" : slot.slot_type === "disabled" ? "DISABLED" : "AVAILABLE"}
@@ -273,7 +291,10 @@ const CustomerView = () => {
         <div className="modal-overlay">
           <div className="reservation-modal">
             <div className="modal-header">
-              <h3 className="modal-title">Reserve Slot {selectedSlot.id}</h3>
+              <h3 className="modal-title">
+                Reserve Slot{" "}
+                {`F${Number.parseInt(selectedSlot.structure.replace("FLOOR", ""))}-${selectedSlot.section}-${selectedSlot.slotNo}`}
+              </h3>
               <button
                 onClick={() => {
                   setShowReservationModal(false)
@@ -291,7 +312,7 @@ const CustomerView = () => {
                 <strong>Slot Details:</strong>
               </div>
               <div className="slot-details-info">
-                Floor {selectedSlot.floor} • Section {selectedSlot.section} •
+                Floor {Number.parseInt(selectedSlot.structure.replace("FLOOR", ""))} • Section {selectedSlot.section} •
                 {selectedSlot.slot_type === "vip"
                   ? " VIP Slot"
                   : selectedSlot.slot_type === "disabled"

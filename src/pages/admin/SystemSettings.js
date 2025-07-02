@@ -1,12 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import AdminLayout from "../../components/AdminLayout"
 import "../../styles/admin/SystemSettings.css"
 
 const SystemSettings = () => {
   const [settings, setSettings] = useState({
-    // Parking Settings
     regularHourlyRate: 50,
     vipHourlyRate: 100,
     disabledHourlyRate: 30,
@@ -15,8 +14,33 @@ const SystemSettings = () => {
     enableReservations: true,
     enableNotifications: true,
   })
-
+  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    fetchSettings()
+  }, [])
+
+  const fetchSettings = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/api/settings/", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setSettings(data)
+      } else {
+        console.error("Failed to fetch settings")
+      }
+    } catch (error) {
+      console.error("Error fetching settings:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target
@@ -28,24 +52,63 @@ const SystemSettings = () => {
 
   const handleSave = async () => {
     setSaving(true)
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-    setSaving(false)
-    alert("Settings saved successfully!")
+    try {
+      const response = await fetch("http://localhost:8000/api/settings/", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(settings),
+      })
+
+      if (response.ok) {
+        alert("Settings saved successfully!")
+      } else {
+        alert("Failed to save settings")
+      }
+    } catch (error) {
+      console.error("Error saving settings:", error)
+      alert("Failed to save settings")
+    } finally {
+      setSaving(false)
+    }
   }
 
-  const resetToDefaults = () => {
+  const resetToDefaults = async () => {
     if (window.confirm("Are you sure you want to reset all settings to default values?")) {
-      setSettings({
-        regularHourlyRate: 50,
-        vipHourlyRate: 100,
-        disabledHourlyRate: 30,
-        maxParkingHours: 24,
-        maxReservationDays: 7,
-        enableReservations: true,
-        enableNotifications: true,
-      })
+      try {
+        const response = await fetch("http://localhost:8000/api/settings/reset/", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        })
+
+        if (response.ok) {
+          const defaultSettings = await response.json()
+          setSettings(defaultSettings)
+          alert("Settings reset to defaults successfully!")
+        } else {
+          alert("Failed to reset settings")
+        }
+      } catch (error) {
+        console.error("Error resetting settings:", error)
+        alert("Failed to reset settings")
+      }
     }
+  }
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="system-settings-container">
+          <div className="loading-spinner">
+            <div className="spinner"></div>
+          </div>
+        </div>
+      </AdminLayout>
+    )
   }
 
   return (

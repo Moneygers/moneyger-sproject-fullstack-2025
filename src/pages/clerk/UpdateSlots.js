@@ -25,40 +25,19 @@ const UpdateSlots = () => {
 
   const fetchSlots = async () => {
     try {
-      // Mock data - replace with actual API call
-      const mockSlots = [
-        { id: "F1-A1-01", floor: 1, section: "A", status: "available", slot_type: "regular", current_allocation: null },
-        {
-          id: "F1-A1-02",
-          floor: 1,
-          section: "A",
-          status: "occupied",
-          slot_type: "regular",
-          current_allocation: { license_plate: "ABC-123" },
+      const response = await fetch("http://localhost:8000/api/slots/", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        { id: "F1-A1-03", floor: 1, section: "A", status: "available", slot_type: "vip", current_allocation: null },
-        {
-          id: "F1-A1-04",
-          floor: 1,
-          section: "A",
-          status: "available",
-          slot_type: "disabled",
-          current_allocation: null,
-        },
-        {
-          id: "F1-B1-01",
-          floor: 1,
-          section: "B",
-          status: "occupied",
-          slot_type: "regular",
-          current_allocation: { license_plate: "XYZ-789" },
-        },
-        { id: "F2-A1-01", floor: 2, section: "A", status: "available", slot_type: "regular", current_allocation: null },
-        { id: "F2-A1-02", floor: 2, section: "A", status: "reserved", slot_type: "vip", current_allocation: null },
-        { id: "F3-A1-01", floor: 3, section: "A", status: "available", slot_type: "regular", current_allocation: null },
-        { id: "F4-A1-01", floor: 4, section: "A", status: "available", slot_type: "regular", current_allocation: null },
-      ]
-      setSlots(mockSlots)
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log("Fetched slots data:", data) // Debug log
+        setSlots(data)
+      } else {
+        console.error("Failed to fetch slots")
+      }
     } catch (error) {
       console.error("Error fetching slots:", error)
     } finally {
@@ -70,7 +49,11 @@ const UpdateSlots = () => {
     let filtered = slots
 
     if (searchTerm) {
-      filtered = filtered.filter((slot) => slot.id.toLowerCase().includes(searchTerm.toLowerCase()))
+      filtered = filtered.filter(
+        (slot) =>
+          getSlotDisplayId(slot).toLowerCase().includes(searchTerm.toLowerCase()) ||
+          slot.id?.toString().toLowerCase().includes(searchTerm.toLowerCase()),
+      )
     }
 
     if (statusFilter !== "all") {
@@ -78,10 +61,41 @@ const UpdateSlots = () => {
     }
 
     if (floorFilter !== "all") {
-      filtered = filtered.filter((slot) => slot.floor.toString() === floorFilter)
+      const floorNumber = Number.parseInt(floorFilter)
+      filtered = filtered.filter((slot) => {
+        const slotFloor = slot.structure ? Number.parseInt(slot.structure.replace("FLOOR", "")) : slot.floor
+        return slotFloor === floorNumber
+      })
     }
 
     setFilteredSlots(filtered)
+  }
+
+  const getSlotDisplayId = (slot) => {
+    if (slot.structure && slot.section && slot.slotNo) {
+      // Use CustomerView.js format
+      return `F${Number.parseInt(slot.structure.replace("FLOOR", ""))}-${slot.section}-${slot.slotNo}`
+    } else if (slot.floor && slot.section && slot.slot_number) {
+      // Fallback format
+      return `F${slot.floor}-${slot.section}-${slot.slot_number}`
+    } else if (slot.display_id) {
+      return slot.display_id
+    }
+    return `Slot ${slot.id}`
+  }
+
+  const getSlotPlateNumber = (slot) => {
+    // Check multiple possible locations for license plate
+    if (slot.current_allocation?.license_plate) {
+      return slot.current_allocation.license_plate
+    }
+    if (slot.license_plate) {
+      return slot.license_plate
+    }
+    if (slot.current_vehicle?.license_plate) {
+      return slot.current_vehicle.license_plate
+    }
+    return null
   }
 
   const handleSlotClick = (slot) => {
@@ -98,21 +112,34 @@ const UpdateSlots = () => {
     if (!selectedSlot || !plateNumber.trim()) return
 
     try {
-      // Mock API call
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      const response = await fetch(`http://localhost:8000/api/slots/${selectedSlot.id}/assign/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          license_plate: plateNumber.trim(),
+        }),
+      })
 
-      setSlots((prev) =>
-        prev.map((slot) =>
-          slot.id === selectedSlot.id
-            ? { ...slot, status: "occupied", current_allocation: { license_plate: plateNumber.trim() } }
-            : slot,
-        ),
-      )
+      if (response.ok) {
+        const result = await response.json()
 
-      setShowPlateModal(false)
-      setSelectedSlot(null)
-      setPlateNumber("")
-      alert(`Slot ${selectedSlot.id} assigned to vehicle ${plateNumber}`)
+        // Update the slots list with the new slot data
+        setSlots((prev) => prev.map((slot) => (slot.id === selectedSlot.id ? result.slot : slot)))
+
+        setShowPlateModal(false)
+        setSelectedSlot(null)
+        setPlateNumber("")
+
+        alert(
+          `Slot ${getSlotDisplayId(selectedSlot)} assigned to vehicle ${plateNumber}.\nPayment record created with amount ₱${result.payment.amount}`,
+        )
+      } else {
+        const errorData = await response.json()
+        alert(`Failed to assign slot: ${errorData.error || "Unknown error"}`)
+      }
     } catch (error) {
       console.error("Error assigning slot:", error)
       alert("Failed to assign slot")
@@ -122,14 +149,24 @@ const UpdateSlots = () => {
   const handleReleaseSlot = async (slotId) => {
     if (window.confirm("Release this parking slot?")) {
       try {
-        // Mock API call
-        await new Promise((resolve) => setTimeout(resolve, 500))
+        const response = await fetch(`http://localhost:8000/api/slots/${slotId}/release/`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        })
 
-        setSlots((prev) =>
-          prev.map((slot) => (slot.id === slotId ? { ...slot, status: "available", current_allocation: null } : slot)),
-        )
+        if (response.ok) {
+          const result = await response.json()
 
-        alert(`Slot ${slotId} has been released`)
+          // Update the slots list with the new slot data
+          setSlots((prev) => prev.map((slot) => (slot.id === slotId ? result.slot : slot)))
+
+          alert(`Slot has been released`)
+        } else {
+          const errorData = await response.json()
+          alert(`Failed to release slot: ${errorData.error || "Unknown error"}`)
+        }
       } catch (error) {
         console.error("Error releasing slot:", error)
         alert("Failed to release slot")
@@ -183,7 +220,7 @@ const UpdateSlots = () => {
               <div className="search-input-wrapper">
                 <input
                   type="text"
-                  placeholder="Slot ID (e.g., F1-A1-01)"
+                  placeholder="Slot ID (e.g., F1-A-1)"
                   className="search-input"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -239,11 +276,9 @@ const UpdateSlots = () => {
                 }`}
                 onClick={() => handleSlotClick(slot)}
               >
-                <div className="slot-id">{slot.id}</div>
+                <div className="slot-id">{getSlotDisplayId(slot)}</div>
                 <div className="slot-icon">{getSlotIcon(slot.status, slot.slot_type)}</div>
-                {slot.current_allocation?.license_plate && (
-                  <div className="slot-plate">{slot.current_allocation.license_plate}</div>
-                )}
+                {getSlotPlateNumber(slot) && <div className="slot-plate">{getSlotPlateNumber(slot)}</div>}
               </div>
             ))}
           </div>
@@ -285,9 +320,25 @@ const UpdateSlots = () => {
         {showPlateModal && selectedSlot && (
           <div className="modal-overlay">
             <div className="plate-modal">
-              <h3 className="modal-title">Enter Plate No.</h3>
+              <h3 className="modal-title">Assign Vehicle to Slot {getSlotDisplayId(selectedSlot)}</h3>
+
+              <div className="slot-info">
+                <p>
+                  <strong>Slot Type:</strong> {selectedSlot.slot_type?.toUpperCase()}
+                </p>
+                <p>
+                  <strong>Floor:</strong>{" "}
+                  {selectedSlot.structure
+                    ? Number.parseInt(selectedSlot.structure.replace("FLOOR", ""))
+                    : selectedSlot.floor}
+                </p>
+                <p>
+                  <strong>Section:</strong> {selectedSlot.section}
+                </p>
+              </div>
 
               <div className="modal-input-group">
+                <label className="input-label">License Plate Number</label>
                 <input
                   type="text"
                   placeholder="ABC-1234"
@@ -304,7 +355,7 @@ const UpdateSlots = () => {
                   Cancel
                 </button>
                 <button onClick={handleAssignSlot} disabled={!plateNumber.trim()} className="modal-assign">
-                  Assign
+                  Assign Vehicle
                 </button>
               </div>
             </div>

@@ -7,52 +7,93 @@ import "../../styles/clerk/ApproveReservations.css"
 const ApproveReservations = () => {
   const [pendingReservations, setPendingReservations] = useState([])
   const [loading, setLoading] = useState(true)
-
-  // Mock pending reservations data
-  const mockPendingReservations = [
-    {
-      id: 5,
-      slot: "F1-A1-05",
-      customer_name: "Alice Brown",
-      phone_number: "09777888999",
-      reserved_date: "2024-01-17",
-      reserved_time: "15:00",
-      duration_hours: 3,
-      status: "pending",
-    },
-    {
-      id: 6,
-      slot: "F1-A1-06",
-      customer_name: "Bob Wilson",
-      phone_number: "09666777888",
-      reserved_date: "2024-01-18",
-      reserved_time: "10:30",
-      duration_hours: 2,
-      status: "pending",
-    },
-  ]
+  const [error, setError] = useState(null)
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setPendingReservations(mockPendingReservations)
-      setLoading(false)
-    }, 1000)
+    fetchPendingReservations()
   }, [])
+
+  const fetchPendingReservations = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const response = await fetch("http://127.0.0.1:8000/api/reservations/?status=pending", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setPendingReservations(data)
+      } else {
+        const errorData = await response.json()
+        setError(errorData.message || "Failed to fetch pending reservations")
+        console.error("Failed to fetch pending reservations:", errorData)
+      }
+    } catch (error) {
+      setError("Network error occurred while fetching reservations")
+      console.error("Error fetching pending reservations:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleApproval = async (reservationId, approved) => {
     try {
-      if (approved) {
-        alert("Reservation approved successfully!")
-      } else {
-        alert("Reservation rejected successfully!")
-      }
+      const endpoint = approved ? "approve" : "reject"
+      const response = await fetch(`http://127.0.0.1:8000/api/reservations/${reservationId}/${endpoint}/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
 
-      // Remove from pending list
-      setPendingReservations((prev) => prev.filter((res) => res.id !== reservationId))
+      if (response.ok) {
+        const result = await response.json()
+        alert(
+          result.message || (approved ? "Reservation approved successfully!" : "Reservation rejected successfully!"),
+        )
+
+        // Remove from pending list
+        setPendingReservations((prev) => prev.filter((res) => res.id !== reservationId))
+      } else {
+        const errorData = await response.json()
+        alert(errorData.error || "Failed to process reservation")
+      }
     } catch (error) {
       console.error("Error processing reservation:", error)
-      alert("Failed to process reservation")
+      alert("Network error occurred while processing reservation")
+    }
+  }
+
+  const formatDate = (dateString) => {
+    try {
+      return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    } catch (error) {
+      return dateString
+    }
+  }
+
+  const formatDateTime = (dateString) => {
+    try {
+      return new Date(dateString).toLocaleString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    } catch (error) {
+      return dateString
     }
   }
 
@@ -62,6 +103,24 @@ const ApproveReservations = () => {
         <div className="approve-reservations-container">
           <div className="loading-spinner">
             <div className="spinner"></div>
+            <p>Loading pending reservations...</p>
+          </div>
+        </div>
+      </Layout>
+    )
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="approve-reservations-container">
+          <div className="error-message">
+            <div className="error-icon">⚠️</div>
+            <h3>Error Loading Reservations</h3>
+            <p>{error}</p>
+            <button onClick={fetchPendingReservations} className="retry-button">
+              Try Again
+            </button>
           </div>
         </div>
       </Layout>
@@ -74,6 +133,9 @@ const ApproveReservations = () => {
         <div className="approve-reservations-header">
           <h1 className="main-title">Approve Parking Reservations</h1>
           <p className="subtitle">Review and approve pending parking reservations</p>
+          <button onClick={fetchPendingReservations} className="refresh-button">
+            🔄 Refresh
+          </button>
         </div>
 
         {/* Summary */}
@@ -108,32 +170,54 @@ const ApproveReservations = () => {
                       <div className="reservation-icon">📅</div>
                       <div className="reservation-details">
                         <div className="reservation-header">
-                          <h3 className="slot-id">{reservation.slot}</h3>
+                          <h3 className="slot-id">{reservation.slot || `Slot ${reservation.park_slot}`}</h3>
                           <span className="status-badge pending">PENDING APPROVAL</span>
                         </div>
                         <div className="customer-info">
                           <div className="info-item">
                             <span className="info-icon">👤</span>
-                            {reservation.customer_name}
+                            <span>{reservation.customer_name || reservation.name}</span>
+                          </div>
+                          <div className="info-item">
+                            <span className="info-icon">🚗</span>
+                            <span>{reservation.plate_no}</span>
                           </div>
                           <div className="info-item">
                             <span className="info-icon">📞</span>
-                            {reservation.phone_number}
+                            <span>{reservation.phone_number || reservation.mobileNo}</span>
                           </div>
                         </div>
-                        <p className="reservation-time">
-                          {new Date(`${reservation.reserved_date}T${reservation.reserved_time}`).toLocaleString()} •{" "}
-                          {reservation.duration_hours}h duration
-                        </p>
+                        <div className="reservation-time">
+                          <span className="info-icon">📅</span>
+                          <span>Reserved for: {formatDate(reservation.reserved_date || reservation.date)}</span>
+                        </div>
+                        {reservation.fee && (
+                          <div className="reservation-fee">
+                            <span className="info-icon">💰</span>
+                            <span>Fee: ₱{Number.parseFloat(reservation.fee).toFixed(2)}</span>
+                          </div>
+                        )}
+                        <div className="reservation-created">
+                          <span className="info-icon">🕒</span>
+                          <span>Requested: {formatDateTime(reservation.created_at)}</span>
+                        </div>
                       </div>
                     </div>
 
                     <div className="reservation-actions">
-                      <button onClick={() => handleApproval(reservation.id, true)} className="approve-button">
+                      <button
+                        onClick={() => handleApproval(reservation.id, true)}
+                        className="approve-button"
+                        title="Approve this reservation"
+                      >
                         <span className="button-icon">✅</span>
                         <span>Approve</span>
                       </button>
-                      <button onClick={() => handleApproval(reservation.id, false)} className="reject-button">
+                      <button
+                        onClick={() => handleApproval(reservation.id, false)}
+                        className="reject-button"
+                        title="Reject this reservation"
+                      >
                         <span className="button-icon">❌</span>
                         <span>Reject</span>
                       </button>
@@ -145,16 +229,27 @@ const ApproveReservations = () => {
                     <h4 className="details-title">Reservation Details</h4>
                     <div className="details-grid">
                       <div className="detail-item">
-                        <span className="detail-label">Date & Time:</span>
-                        <div className="detail-value">
-                          {new Date(`${reservation.reserved_date}T${reservation.reserved_time}`).toLocaleDateString()}{" "}
-                          at {reservation.reserved_time}
-                        </div>
+                        <span className="detail-label">Reservation Date:</span>
+                        <div className="detail-value">{formatDate(reservation.reserved_date || reservation.date)}</div>
                       </div>
                       <div className="detail-item">
                         <span className="detail-label">Slot Type:</span>
-                        <div className="detail-value">VIP Parking</div>
+                        <div className="detail-value">{reservation.slot_type || "Regular"}</div>
                       </div>
+                      <div className="detail-item">
+                        <span className="detail-label">Status:</span>
+                        <div className="detail-value">
+                          <span className="status-badge pending">{reservation.status}</span>
+                        </div>
+                      </div>
+                      {reservation.park_slot_details && (
+                        <div className="detail-item">
+                          <span className="detail-label">Slot Details:</span>
+                          <div className="detail-value">
+                            {reservation.park_slot_details.structure} - Section {reservation.park_slot_details.section}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
