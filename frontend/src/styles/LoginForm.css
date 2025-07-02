@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f9fafb;
+  background-color: #a5a5a568;
   padding: 3rem 1rem;
 }
 
@@ -32,14 +32,15 @@
 }
 
 .logo-container {
+  width: auto;
+  height: auto;
   display: flex;
   justify-content: center;
-  margin-bottom: 1.5rem;
-}
-
-.car-icon {
-  font-size: 3rem;
-  color: #2563eb;
+  align-items: center;
+  margin-top: -10rem;
+  margin-bottom: 1rem;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .login-title {
@@ -47,7 +48,15 @@
   font-size: 1.875rem;
   font-weight: 800;
   color: #111827;
-  line-height: 1.2;
+  line-height: 1.6;
+}
+
+.login-slogan{
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1;
 }
 
 .login-subtitle {
@@ -57,7 +66,7 @@
 }
 
 .login-form {
-  margin-top: 2rem;
+  margin-top: 0rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -218,6 +227,12 @@
   color: #6b7280;
 }
 
+.logo-image {
+  width: 250px !important;
+  height: 250px !important;
+  object-fit: contain;
+}
+
 @media (min-width: 640px) {
   .login-title {
     font-size: 1.875rem;
@@ -225,5 +240,15 @@
 
   .input-field {
     font-size: 0.875rem;
+  }
+
+  .logo-container {
+    width: 200px;
+    height: 200px;
+  }
+
+  .logo-image {
+    width: 250px !important;
+    height: 250px !important;
   }
 }

@@ -74,9 +74,10 @@ const LoginForm = () => {
       <div className="login-form-wrapper">
         <div className="login-header">
           <div className="logo-container">
-            <div className="car-icon">🚗</div>
+            <img src="/favicon.png" alt="Park Moneyger Logo" className="logo-image" />
           </div>
-          <h2 className="login-title">ParkManager System</h2>
+          <h2 className="login-title">ParkMoneyger System</h2>
+          <h3 className="login-slogan">Park with flair, profit with care</h3>
           <p className="login-subtitle">Sign in to your account</p>
         </div>
 
