@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import Footer from "../../components/Footer"
 import "../../styles/customer/CustomerView.css"
 
 const CustomerView = () => {
@@ -382,6 +383,9 @@ const CustomerView = () => {
           </div>
         </div>
       )}
+
+      {/* Footer */}
+      <Footer />
     </div>
   )
 }

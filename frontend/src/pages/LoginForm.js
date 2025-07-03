@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
+import Footer from "../components/Footer"
 import "../styles/LoginForm.css"
 
 const LoginForm = () => {
@@ -70,71 +71,76 @@ const LoginForm = () => {
   }
 
   return (
-    <div className="login-container">
-      <div className="login-form-wrapper">
-        <div className="login-header">
-          <div className="logo-container">
-            <img src="/favicon.png" alt="Park Moneyger Logo" className="logo-image" />
-          </div>
-          <h2 className="login-title">ParkMoneyger System</h2>
-          <h3 className="login-slogan">Park with flair, profit with care</h3>
-          <p className="login-subtitle">Sign in to your account</p>
-        </div>
-
-        <form className="login-form" onSubmit={handleSubmit}>
-          <div className="input-group">
-            <div className="input-wrapper">
-              <label htmlFor="username" className="sr-only">
-                Username
-              </label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                required
-                className="input-field input-top"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
+    <div className="login-page-container">
+      <div className="login-container">
+        <div className="login-form-wrapper">
+          <div className="login-header">
+            <div className="logo-container">
+              <img src="/favicon.png" alt="Park Moneyger Logo" className="logo-image" />
             </div>
-            <div className="password-wrapper">
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                required
-                className="input-field input-bottom"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
-                {showPassword ? "👁️‍🗨️" : "👁️"}
+            <h2 className="login-title">ParkMoneyger System</h2>
+            <h3 className="login-slogan">Park with flair, profit with care</h3>
+            <p className="login-subtitle">Sign in to your account</p>
+          </div>
+
+          <form className="login-form" onSubmit={handleSubmit}>
+            <div className="input-group">
+              <div className="input-wrapper">
+                <label htmlFor="username" className="sr-only">
+                  Username
+                </label>
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  required
+                  className="input-field input-top"
+                  placeholder="Username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                />
+              </div>
+              <div className="password-wrapper">
+                <label htmlFor="password" className="sr-only">
+                  Password
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  className="input-field input-bottom"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
+                  {showPassword ? "👁️‍🗨️" : "👁️"}
+                </button>
+              </div>
+            </div>
+
+            {error && <div className="error-message">{error}</div>}
+
+            <div className="submit-wrapper">
+              <button type="submit" disabled={loading} className="submit-button">
+                {loading ? "Signing in..." : "Sign in"}
               </button>
             </div>
-          </div>
 
-          {error && <div className="error-message">{error}</div>}
-
-          <div className="submit-wrapper">
-            <button type="submit" disabled={loading} className="submit-button">
-              {loading ? "Signing in..." : "Sign in"}
-            </button>
-          </div>
-
-          <div className="customer-view-section">
-            <button type="button" onClick={handleCustomerView} className="customer-view-button">
-              <span className="eye-icon">👁️</span>
-              View Available Parking (Customer)
-            </button>
-            <p className="customer-view-note">No login required for viewing parking availability</p>
-          </div>
-        </form>
+            <div className="customer-view-section">
+              <button type="button" onClick={handleCustomerView} className="customer-view-button">
+                <span className="eye-icon">👁️</span>
+                View Available Parking (Customer)
+              </button>
+              <p className="customer-view-note">No login required for viewing parking availability</p>
+            </div>
+          </form>
+        </div>
       </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   )
 }
