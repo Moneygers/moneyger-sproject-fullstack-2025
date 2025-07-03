@@ -37,9 +37,18 @@
   margin-bottom: 1.5rem;
 }
 
-.car-icon {
-  font-size: 3rem;
-  color: #00fff7;
+.logo-image{
+  width: 200px;
+  height: 200px;
+  justify-content: center;
+}
+
+.login-slogan{
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f1f1f1;
+  line-height: 1.8;
 }
 
 .login-title {

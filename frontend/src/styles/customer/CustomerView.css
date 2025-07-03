@@ -64,6 +64,12 @@
   color: #00fff7;
 }
 
+.logo-image{
+  position: relative;
+  width: 70px;
+  height: 70px;
+}
+
 .back-icon {
   font-size: 1.25rem;
 }
@@ -71,7 +77,7 @@
 .header-divider {
   height: 1.5rem;
   width: 1px;
-  background-color: #1a1a1a;
+  background-color: #ffffff;
 }
 
 .brand-section {
@@ -87,8 +93,8 @@
 
 .brand-title {
   font-size: 1.5rem;
-  font-weight: 700;
-  color: #f1f1f1;
+  font-weight: 800;
+  color: #ffffff !important;
   margin: 0;
 }
 

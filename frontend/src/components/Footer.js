@@ -56,11 +56,13 @@ const Footer = () => {
           <div className="footer-content">
             {/* About Section */}
             <div className="footer-section">
-              <h3 className="footer-title">ParkManager</h3>
+              <h3 className="footer-title">ParkMoneyger</h3>
               <p className="footer-description">
-                A comprehensive parking management system designed to streamline parking operations, manage
-                reservations, and provide real-time slot availability. Built with modern technology to enhance user
-                experience for both customers and administrators.
+                ParkMoneyger is a web-based parking management system designed to streamline the process of 
+                assigning parking slots within large-scale facilities such as malls. 
+                Built using ReactJS, CSS, and Django, 
+                the system enables parking clerks to manually but efficiently assign slots to incoming vehicles, 
+                while also providing real-time parking availability to motorists and reporting tools to administrators.
               </p>
             </div>
 
@@ -79,7 +81,7 @@ const Footer = () => {
           {/* Copyright */}
           <div className="footer-bottom">
             <div className="footer-copyright">
-              <p>&copy; 2024 ParkManager. All rights reserved. Developed by Team ParkMoneyger.</p>
+              <p>&copy; 2025 ParkMoneyger. All rights reserved. Developed by Team ParkMoneygers.</p>
               <button onClick={() => setShowAboutModal(true)} className="about-us-button">
                 About Us
               </button>
@@ -93,7 +95,7 @@ const Footer = () => {
         <div className="modal-overlay" onClick={() => setShowAboutModal(false)}>
           <div className="about-modal" onClick={(e) => e.stopPropagation()}>
             <div className="about-modal-header">
-              <h2 className="about-modal-title">Meet Our Development Team</h2>
+              <h2 className="about-modal-title">Meet Our Development Team!</h2>
               <button onClick={() => setShowAboutModal(false)} className="about-modal-close">
                 ✕
               </button>
@@ -101,7 +103,7 @@ const Footer = () => {
 
             <div className="about-modal-content">
               <p className="team-description">
-                We are a passionate team of developers who created ParkManager to revolutionize parking management
+                We are a passionate team of developers who created ParkMoneyger System to revolutionize parking management
                 systems. Our diverse skills in frontend, backend, and full-stack development came together to build this
                 comprehensive solution.
               </p>

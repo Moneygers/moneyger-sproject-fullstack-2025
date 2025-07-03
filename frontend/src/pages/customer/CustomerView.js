@@ -160,7 +160,7 @@ const CustomerView = () => {
                 <img src="/favicon.png" alt="Park Moneyger Logo" className="logo-image" />
               </div>
               <div className="brand-info">
-                <h1 className="brand-title">ParkManager</h1>
+                <h1 className="brand-title">ParkMoneyger</h1>
                 <p className="brand-subtitle">Customer View - Available Parking Slots</p>
               </div>
             </div>
