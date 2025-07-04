@@ -12,21 +12,34 @@ class ParkSlotSerializer(serializers.ModelSerializer):
         fields = '__all__'
     
     def get_current_allocation(self, obj):
-        """Get current payment/allocation info for occupied slots"""
+        """Get current plate number from either reservation or payment"""
         if obj.status == 'occupied':
-            try:
-                # Get the most recent payment for this slot
-                payment = Payment.objects.filter(slot=obj).order_by('-created_at').first()
-                if payment:
-                    return {
-                        'license_plate': payment.plate_no,
-                        'start_time': payment.created_at.isoformat(),
-                        'payment_id': payment.recieptNo,
-                        'customer_name': getattr(payment, 'customer_name', None)
-                    }
-            except Payment.DoesNotExist:
-                pass
+            # 1. Try to find active reservation (status: 'arrived')
+            reservation = Reservations.objects.filter(
+                park_slot=obj,
+                status='arrived'
+            ).order_by('-created_at').first()
+
+            if reservation:
+                return {
+                    'license_plate': reservation.plate_no,
+                    'start_time': reservation.arrival_time.isoformat() if reservation.arrival_time else None,
+                    'payment_id': None,
+                    'customer_name': reservation.name
+                }
+
+            # 2. Fallback to latest payment
+            payment = Payment.objects.filter(slot=obj).order_by('-created_at').first()
+            if payment:
+                return {
+                    'license_plate': payment.plate_no,
+                    'start_time': payment.created_at.isoformat(),
+                    'payment_id': payment.recieptNo,
+                    'customer_name': getattr(payment, 'customer_name', None)
+                }
+
         return None
+
     
     def get_floor(self, obj):
         """Extract floor number from structure"""

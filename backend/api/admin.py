@@ -3,7 +3,7 @@ from .models import ParkSlot, Payment, User, Reservations
 
 @admin.register(ParkSlot)
 class ParkSlotAdmin(admin.ModelAdmin):
-    list_display = ('slotNo', 'structure', 'section', 'slot_type', 'status')
+    list_display = ('id','slotNo', 'structure', 'section', 'slot_type', 'status')
     list_filter = ('structure', 'section', 'slot_type', 'status')
     search_fields = ('slotNo',)
     ordering = ('structure', 'section', 'slotNo')
@@ -58,7 +58,7 @@ class PaymentAdmin(admin.ModelAdmin):
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('username', 'first_name', 'last_name', 'email', 'role')
+    list_display = ('id','username', 'first_name', 'last_name', 'email', 'role')
     list_filter = ('role',)
     search_fields = ('username', 'first_name', 'last_name', 'email')
     ordering = ('username',)
@@ -81,8 +81,8 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(Reservations)
 class ReservationsAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'plate_no', 'park_slot', 'status', 'fee', 'date', 'arrival_time', 'created_at')
-    list_filter = ('status', 'date', 'created_at', 'arrival_time')
+    list_display = ('id', 'name', 'plate_no', 'park_slot', 'status', 'fee', 'mode_of_payment', 'date', 'arrival_time', 'created_at')
+    list_filter = ('mode_of_payment', 'status', 'date', 'created_at', 'arrival_time')
     search_fields = ('name', 'plate_no', 'mobileNo')
     ordering = ('-created_at',)
     readonly_fields = ('created_at', 'arrival_time')
@@ -92,7 +92,7 @@ class ReservationsAdmin(admin.ModelAdmin):
             'fields': ('park_slot', 'status', 'fee', 'date', 'created_at')
         }),
         ('Customer Information', {
-            'fields': ('name', 'plate_no', 'mobileNo')
+            'fields': ('mode_of_payment', 'name', 'plate_no', 'mobileNo')
         }),
         ('Arrival Information', {
             'fields': ('arrival_time',),
@@ -143,4 +143,4 @@ class ReservationsAdmin(admin.ModelAdmin):
 # Customize admin site headers
 admin.site.site_header = "ParkManager Administration"
 admin.site.site_title = "ParkManager Admin"
-admin.site.index_title = "Welcome to ParkManager Administration"
+admin.site.index_title = "Welcome to ParkManager where you're our bitch"

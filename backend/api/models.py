@@ -92,9 +92,13 @@ class Reservations(models.Model):
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
     fee = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     arrival_time = models.DateTimeField(null=True, blank=True)
+    mode_of_payment = models.CharField(max_length=20, choices=[
+        ('cash', 'Cash'),
+        ('gcash', 'Gcash'),
+    ], null=True, blank=True)
 
     class Meta:
-        unique_together = ('park_slot', 'plate_no')
+        unique_together = ('park_slot', 'plate_no', 'created_at')
 
     def save(self, *args, **kwargs):
         if self.pk is None and self.park_slot.status == 'available':

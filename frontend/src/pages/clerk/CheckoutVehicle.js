@@ -19,7 +19,7 @@ const CheckoutVehicle = () => {
 
   const fetchOccupiedSlots = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/slots/?status=occupied", {
+      const response = await fetch("http://localhost:8000/api/slots/occupied-detailed/", {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,

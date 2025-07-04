@@ -158,34 +158,54 @@ class ParkSlotViewSet(viewsets.ModelViewSet):
         """Checkout a vehicle from a parking slot"""
         try:
             slot = self.get_object()
-            
+
             if slot.status != 'occupied':
                 return Response({
                     'error': f'Slot is not occupied. Current status: {slot.status}'
                 }, status=status.HTTP_400_BAD_REQUEST)
-            
+
             # Get the most recent payment for this slot
             payment = Payment.objects.filter(slot=slot).order_by('-created_at').first()
-            
+
             if not payment:
-                return Response({
-                    'error': 'No payment record found for this slot'
-                }, status=status.HTTP_400_BAD_REQUEST)
-            
+                # Fallback: Try to find a recent reservation with 'arrived' or 'approved' status
+                reservation = Reservations.objects.filter(
+                    park_slot=slot,
+                    status__in=['arrived', 'approved']
+                ).order_by('-created_at').first()
+
+                if not reservation:
+                    return Response({
+                        'error': 'No payment or valid reservation record found for this slot'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+                # Simulate a payment object from reservation (temporary for fee calculation and response)
+                class TempPayment:
+                    plate_no = reservation.plate_no
+                    created_at = reservation.arrival_time or reservation.created_at
+                    recieptNo = None
+                    customer_name = reservation.name
+                    amount = 0
+                    mode_of_payment = None
+                    def save(self): pass  # Do nothing
+
+                payment = TempPayment()
+
+
             # Validate checkout data
             serializer = CheckoutSerializer(data=request.data)
             if not serializer.is_valid():
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            
+
             payment_method = serializer.validated_data['payment_method']
             print_receipt = serializer.validated_data.get('print_receipt', False)
-            
+
             # Calculate parking duration and fee
             start_time = payment.created_at
             end_time = timezone.now()
             duration = end_time - start_time
             duration_hours = max(1, int(duration.total_seconds() / 3600))  # Minimum 1 hour
-            
+
             # Get hourly rate based on slot type
             if slot.slot_type == 'vip':
                 hourly_rate = SYSTEM_SETTINGS['vipHourlyRate']
@@ -193,18 +213,28 @@ class ParkSlotViewSet(viewsets.ModelViewSet):
                 hourly_rate = SYSTEM_SETTINGS['disabledHourlyRate']
             else:
                 hourly_rate = SYSTEM_SETTINGS['regularHourlyRate']
-            
+
             total_fee = hourly_rate * duration_hours
-            
+
             # Update payment record
             payment.amount = total_fee
             payment.mode_of_payment = payment_method
             payment.save()
-            
+
             # Update slot status
             slot.status = 'available'
             slot.save()
-            
+
+            # ✅ Automatically complete reservation if one exists
+            reservation = Reservations.objects.filter(
+                park_slot=slot,
+                status__in=['approved', 'arrived']
+            ).order_by('-created_at').first()
+
+            if reservation:
+                reservation.status = 'completed'
+                reservation.save()
+
             # Prepare response data
             response_data = {
                 'message': 'Vehicle checked out successfully',
@@ -215,11 +245,12 @@ class ParkSlotViewSet(viewsets.ModelViewSet):
                 'payment_method': payment_method,
                 'start_time': start_time.isoformat(),
                 'end_time': end_time.isoformat(),
-                'receipt_printed': print_receipt
+                'receipt_printed': print_receipt,
+                'reservation_updated': bool(reservation)
             }
-            
+
             return Response(response_data, status=status.HTTP_200_OK)
-            
+
         except Exception as e:
             return Response({
                 'error': f'Failed to checkout vehicle: {str(e)}'
@@ -262,6 +293,51 @@ class ParkSlotViewSet(viewsets.ModelViewSet):
     def release_vehicle(self, request, pk=None):
         """Legacy endpoint for backward compatibility"""
         return self.release(request, pk)
+
+    @action(detail=False, methods=['get'], url_path='occupied-detailed')
+    def occupied_detailed(self, request):
+        """Return occupied slots with current_allocation info (either from Reservations or Payments)"""
+        occupied_slots = ParkSlot.objects.filter(status='occupied')
+        enriched_slots = []
+
+        for slot in occupied_slots:
+            current_allocation = None
+
+            # Check for active reservation
+            reservation = Reservations.objects.filter(
+                park_slot=slot,
+                status='arrived'
+            ).order_by('-created_at').first()
+
+            if reservation:
+                current_allocation = {
+                    'license_plate': reservation.plate_no,
+                    'start_time': reservation.arrival_time.isoformat(),
+                    'customer_name': reservation.name
+                }
+            else:
+                # Fallback to payment record
+                payment = Payment.objects.filter(slot=slot).order_by('-created_at').first()
+                if payment:
+                    current_allocation = {
+                        'license_plate': payment.plate_no,
+                        'start_time': payment.created_at.isoformat(),
+                        'customer_name': None
+                    }
+
+            enriched_slots.append({
+                'id': slot.id,
+                'slotNo': slot.slotNo,
+                'structure': slot.structure,
+                'section': slot.section,
+                'slot_type': slot.slot_type,
+                'status': slot.status,
+                'display_id': getattr(slot, 'display_id', None),
+                'floor': getattr(slot, 'floor', None),
+                'current_allocation': current_allocation
+            })
+
+        return Response(enriched_slots)
 
 # Payment ViewSet
 class PaymentViewSet(viewsets.ModelViewSet):
@@ -518,33 +594,43 @@ class ReservationsViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def arrival(self, request, pk=None):
-        """Record customer arrival"""
+        """Record customer arrival and assign fee"""
         try:
             reservation = self.get_object()
-            
+
             if reservation.status != 'approved':
                 return Response({
                     'error': 'Only approved reservations can record arrival'
                 }, status=status.HTTP_400_BAD_REQUEST)
-            
-            # Set arrival time and update status to arrived
-            reservation.arrival_time = timezone.now()
+
+            # Get hourly rate
+            hourly_rate = SYSTEM_SETTINGS['regularHourlyRate']
+
+            # Set arrival time
+            arrival_time = timezone.now()
+            reservation.arrival_time = arrival_time
+
+            # For now, set fee to 1 hour's rate on arrival — final adjustment can happen on checkout
+            reservation.fee = hourly_rate
+
+            # Update reservation status
             reservation.status = 'arrived'
             reservation.save()
-            
-            # Update park slot status to occupied
+
+            # Update park slot status
             reservation.park_slot.status = 'occupied'
             reservation.park_slot.save()
-            
+
             return Response({
                 'message': 'Customer arrival recorded successfully',
                 'reservation': ReservationsSerializer(reservation).data
             }, status=status.HTTP_200_OK)
-            
+
         except Exception as e:
             return Response({
                 'error': f'Failed to record arrival: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 # Dashboard Stats View
 @api_view(['GET'])
