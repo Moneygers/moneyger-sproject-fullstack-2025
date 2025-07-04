@@ -64,7 +64,7 @@
   color: #00fff7;
 }
 
-.logo-image{
+.logo-image {
   position: relative;
   width: 70px;
   height: 70px;
@@ -246,7 +246,7 @@
 .customer-section {
   background: linear-gradient(135deg, rgba(26, 26, 26, 0.3) 0%, rgba(0, 0, 0, 0.3) 100%);
   border-radius: 0.5rem;
-  padding: 2rem;
+  padding: 1.5rem;
   border: 2px dashed #1a1a1a;
   width: 100%;
   max-width: 900px;
@@ -275,26 +275,26 @@
 
 .customer-slots-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 1rem;
   justify-items: center;
-  padding: 1rem;
+  padding: 0.5rem;
 }
 
 .customer-slot {
-  border-radius: 0.75rem;
-  padding: 1rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 120px;
-  width: 120px;
-  border: 3px solid transparent;
+  min-height: 80px;
+  width: 80px;
+  border: 2px solid transparent;
   transition: all 0.2s;
   font-weight: 600;
-  margin: 0.75rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  margin: 0.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .customer-slot.clickable {
@@ -303,54 +303,57 @@
 
 .customer-slot.clickable:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 20px rgba(0, 255, 247, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 255, 247, 0.4);
 }
 
 .customer-slot-available {
   background: linear-gradient(135deg, #00ff00 0%, #32cd32 100%);
   color: #000000;
-  border: 3px solid #00ff00;
+  border: 2px solid #00ff00;
 }
 
 .customer-slot-vip {
   background: linear-gradient(135deg, #ffff00 0%, #ffd700 100%);
   color: #000000;
-  border: 3px solid #ffff00;
+  border: 2px solid #ffff00;
 }
 
 .customer-slot-disabled {
   background: linear-gradient(135deg, #808080 0%, #a9a9a9 100%);
   color: #ffffff;
-  border: 3px solid #808080;
+  border: 2px solid #808080;
 }
 
 .customer-slot-occupied {
   background: linear-gradient(135deg, #ff0000 0%, #dc143c 100%);
   color: #ffffff;
-  border: 3px solid #ff0000;
+  border: 2px solid #ff0000;
 }
 
 .customer-slot-reserved {
   background: linear-gradient(135deg, #0066ff 0%, #4da6ff 100%);
   color: #000000;
-  border: 3px solid #0066ff;
+  border: 2px solid #0066ff;
 }
 
 .customer-slot-id {
-  font-size: 0.875rem;
+  font-size: 0.65rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
+  text-align: center;
+  line-height: 1;
 }
 
 .customer-slot-icon {
-  font-size: 1.5rem;
-  margin-bottom: 0.5rem;
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
 }
 
 .customer-slot-type {
-  font-size: 0.75rem;
+  font-size: 0.6rem;
   text-align: center;
   font-weight: 700;
+  line-height: 1;
 }
 
 .customer-legend {
@@ -614,13 +617,26 @@
   }
 
   .customer-slots-grid {
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 0.75rem;
   }
 
   .customer-slot {
-    min-height: 80px;
-    width: 80px;
+    min-height: 60px;
+    width: 60px;
+    padding: 0.25rem;
+  }
+
+  .customer-slot-id {
+    font-size: 0.55rem;
+  }
+
+  .customer-slot-icon {
+    font-size: 0.875rem;
+  }
+
+  .customer-slot-type {
+    font-size: 0.5rem;
   }
 
   .legend-grid {

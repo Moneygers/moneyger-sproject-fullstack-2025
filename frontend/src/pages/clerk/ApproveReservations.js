@@ -59,7 +59,6 @@ const ApproveReservations = () => {
           result.message || (approved ? "Reservation approved successfully!" : "Reservation rejected successfully!"),
         )
 
-        // Remove from pending list
         setPendingReservations((prev) => prev.filter((res) => res.id !== reservationId))
       } else {
         const errorData = await response.json()
@@ -77,20 +76,6 @@ const ApproveReservations = () => {
         year: "numeric",
         month: "long",
         day: "numeric",
-      })
-    } catch (error) {
-      return dateString
-    }
-  }
-
-  const formatDateTime = (dateString) => {
-    try {
-      return new Date(dateString).toLocaleString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
       })
     } catch (error) {
       return dateString
@@ -149,7 +134,7 @@ const ApproveReservations = () => {
           </div>
         </div>
 
-        {/* Pending Reservations */}
+        {/* Pending Reservations Table */}
         <div className="reservations-section">
           <div className="section-header">
             <h2 className="section-title">Pending Reservations</h2>
@@ -162,98 +147,88 @@ const ApproveReservations = () => {
               <p className="no-reservations-text">All reservations have been processed.</p>
             </div>
           ) : (
-            <div className="reservations-list">
-              {pendingReservations.map((reservation) => (
-                <div key={reservation.id} className="reservation-item">
-                  <div className="reservation-content">
-                    <div className="reservation-info">
-                      <div className="reservation-icon">📅</div>
-                      <div className="reservation-details">
-                        <div className="reservation-header">
-                          <h3 className="slot-id">{reservation.slot || `Slot ${reservation.park_slot}`}</h3>
-                          <span className="status-badge pending">PENDING APPROVAL</span>
+            <div className="table-container">
+              <table className="reservations-table">
+                <thead>
+                  <tr>
+                    <th>Slot</th>
+                    <th>Customer</th>
+                    <th>Phone</th>
+                    <th>Plate No</th>
+                    <th>Details</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pendingReservations.map((reservation) => (
+                    <tr key={reservation.id}>
+                      <td>
+                        <div className="slot-info">
+                          <span className="slot-id">{reservation.slot || `Slot ${reservation.park_slot}`}</span>
                         </div>
+                      </td>
+                      <td>
                         <div className="customer-info">
-                          <div className="info-item">
-                            <span className="info-icon">👤</span>
-                            <span>{reservation.customer_name || reservation.name}</span>
-                          </div>
-                          <div className="info-item">
-                            <span className="info-icon">🚗</span>
-                            <span>{reservation.plate_no}</span>
-                          </div>
-                          <div className="info-item">
-                            <span className="info-icon">📞</span>
-                            <span>{reservation.phone_number || reservation.mobileNo}</span>
-                          </div>
+                          <span className="customer-name">{reservation.customer_name || reservation.name}</span>
                         </div>
-                        <div className="reservation-time">
-                          <span className="info-icon">📅</span>
-                          <span>Reserved for: {formatDate(reservation.reserved_date || reservation.date)}</span>
-                        </div>
-                        {reservation.fee && (
-                          <div className="reservation-fee">
-                            <span className="info-icon">💰</span>
-                            <span>Fee: ₱{Number.parseFloat(reservation.fee).toFixed(2)}</span>
+                      </td>
+                      <td>
+                        <span className="phone-number">{reservation.phone_number || reservation.mobileNo}</span>
+                      </td>
+                      <td>
+                        <span className="plate-number">{reservation.plate_no}</span>
+                      </td>
+                      <td>
+                        <div className="reservation-details">
+                          <div className="detail-item">
+                            <span className="detail-label">Reservation Date:</span>
+                            <span className="detail-value">
+                              {formatDate(reservation.reserved_date || reservation.date)}
+                            </span>
                           </div>
-                        )}
-                        <div className="reservation-created">
-                          <span className="info-icon">🕒</span>
-                          <span>Requested: {formatDateTime(reservation.created_at)}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="reservation-actions">
-                      <button
-                        onClick={() => handleApproval(reservation.id, true)}
-                        className="approve-button"
-                        title="Approve this reservation"
-                      >
-                        <span className="button-icon">✅</span>
-                        <span>Approve</span>
-                      </button>
-                      <button
-                        onClick={() => handleApproval(reservation.id, false)}
-                        className="reject-button"
-                        title="Reject this reservation"
-                      >
-                        <span className="button-icon">❌</span>
-                        <span>Reject</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Additional Details */}
-                  <div className="reservation-details-card">
-                    <h4 className="details-title">Reservation Details</h4>
-                    <div className="details-grid">
-                      <div className="detail-item">
-                        <span className="detail-label">Reservation Date:</span>
-                        <div className="detail-value">{formatDate(reservation.reserved_date || reservation.date)}</div>
-                      </div>
-                      <div className="detail-item">
-                        <span className="detail-label">Slot Type:</span>
-                        <div className="detail-value">{reservation.slot_type || "Regular"}</div>
-                      </div>
-                      <div className="detail-item">
-                        <span className="detail-label">Status:</span>
-                        <div className="detail-value">
-                          <span className="status-badge pending">{reservation.status}</span>
-                        </div>
-                      </div>
-                      {reservation.park_slot_details && (
-                        <div className="detail-item">
-                          <span className="detail-label">Slot Details:</span>
-                          <div className="detail-value">
-                            {reservation.park_slot_details.structure} - Section {reservation.park_slot_details.section}
+                          <div className="detail-item">
+                            <span className="detail-label">Slot Type:</span>
+                            <span className="detail-value">{reservation.slot_type || "Regular"}</span>
                           </div>
+                          <div className="detail-item">
+                            <span className="detail-label">Status:</span>
+                            <span className="detail-value">
+                              <span className="status-badge pending">{reservation.status}</span>
+                            </span>
+                          </div>
+                          {reservation.park_slot_details && (
+                            <div className="detail-item">
+                              <span className="detail-label">Slot Details:</span>
+                              <span className="detail-value">
+                                {reservation.park_slot_details.structure} - Section{" "}
+                                {reservation.park_slot_details.section}
+                              </span>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
+                      </td>
+                      <td>
+                        <div className="action-buttons">
+                          <button
+                            onClick={() => handleApproval(reservation.id, true)}
+                            className="approve-button"
+                            title="Approve this reservation"
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => handleApproval(reservation.id, false)}
+                            className="reject-button"
+                            title="Reject this reservation"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

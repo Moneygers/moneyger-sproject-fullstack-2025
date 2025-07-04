@@ -5,6 +5,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  max-width: 100%;
+  margin: 0 auto;
 }
 
 .loading-spinner {
@@ -38,7 +40,7 @@
   align-items: center;
   margin-bottom: 1.5rem;
   width: 100%;
-  max-width: 80rem;
+  max-width: 90rem;
 }
 
 .header-content {
@@ -88,7 +90,7 @@
   overflow: hidden;
   border: 1px solid #1a1a1a;
   width: 100%;
-  max-width: 80rem;
+  max-width: 90rem;
 }
 
 .section-header {
@@ -134,6 +136,7 @@
   gap: 1rem;
   padding: 1.5rem;
   align-items: center;
+  width: 100%;
 }
 
 .slot-item {
@@ -143,7 +146,7 @@
   transition: all 0.2s ease;
   overflow: hidden;
   width: 100%;
-  max-width: 75rem;
+  max-width: 85rem;
   position: relative;
   z-index: 1;
 }
@@ -161,14 +164,17 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  align-items: center;
 }
 
 /* HORIZONTAL LAYOUT - All info in one row */
 .slot-header-section {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 1.5rem;
   width: 100%;
+  max-width: 80rem;
   background: linear-gradient(135deg, rgba(159, 0, 255, 0.1) 0%, rgba(0, 255, 247, 0.1) 100%);
   padding: 1rem 1.5rem;
   border-radius: 0.5rem;
@@ -229,9 +235,10 @@
 .checkout-info-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 2rem;
   width: 100%;
+  max-width: 80rem;
   padding: 1rem 1.5rem;
   background: linear-gradient(135deg, rgba(10, 10, 10, 0.8) 0%, rgba(26, 26, 26, 0.8) 100%);
   border-radius: 0.5rem;
@@ -244,6 +251,7 @@
 .checkout-info-fields {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 2.5rem;
   flex: 1;
   min-width: 0;
@@ -319,7 +327,7 @@
   position: relative;
   isolation: isolate;
   contain: layout style paint;
-  max-width: 150px;
+  min-width: 150px;
   white-space: nowrap;
 }
 
@@ -529,11 +537,13 @@
   .checkout-vehicle-header {
     flex-direction: column;
     gap: 1rem;
-    align-items: stretch;
+    align-items: center;
+    width: 100%;
   }
 
   .search-wrapper {
     width: 100%;
+    max-width: 400px;
   }
 
   .slot-content {
@@ -543,29 +553,33 @@
 
   .slot-header-section {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     gap: 1rem;
   }
 
   .checkout-info-row {
     flex-direction: column;
-    align-items: stretch;
+    align-items: center;
     gap: 1rem;
+    text-align: center;
   }
 
   .checkout-info-fields {
     flex-direction: column;
     gap: 1rem;
+    width: 100%;
   }
 
   .checkout-button {
     width: 100%;
+    max-width: 300px;
   }
 
   .payment-modal,
   .print-modal {
     margin: 1rem;
     padding: 1.5rem;
+    max-width: calc(100vw - 2rem);
   }
 }
 

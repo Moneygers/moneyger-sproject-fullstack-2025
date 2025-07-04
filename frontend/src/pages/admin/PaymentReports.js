@@ -71,7 +71,6 @@ const PaymentReports = () => {
               <div className="summary-info">
                 <div className="summary-label">Total Revenue</div>
                 <div className="summary-value">₱{reportData.totalRevenue?.toLocaleString() || "0"}</div>
-                <div className="summary-change positive">+12% from last week</div>
               </div>
             </div>
           </div>
@@ -82,7 +81,6 @@ const PaymentReports = () => {
               <div className="summary-info">
                 <div className="summary-label">Transactions</div>
                 <div className="summary-value">{reportData.transactions || 0}</div>
-                <div className="summary-change positive">+8% from last week</div>
               </div>
             </div>
           </div>
@@ -93,18 +91,6 @@ const PaymentReports = () => {
               <div className="summary-info">
                 <div className="summary-label">Avg. Transaction</div>
                 <div className="summary-value">₱{reportData.avgTransaction?.toLocaleString() || 0}</div>
-                <div className="summary-change positive">+3% from last week</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="summary-card">
-            <div className="summary-content">
-              <div className="summary-icon orange">💳</div>
-              <div className="summary-info">
-                <div className="summary-label">Peak Hour</div>
-                <div className="summary-value">{reportData.peakHour || "N/A"}</div>
-                <div className="summary-change">Highest revenue period</div>
               </div>
             </div>
           </div>
