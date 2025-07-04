@@ -4,23 +4,25 @@
   background-color: #000000;
 }
 
-.loading-spinner {
+.approve-reservations-container .loading-spinner {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 16rem;
+  gap: 1rem;
 }
 
-.spinner {
+.approve-reservations-container .spinner {
   width: 4rem;
   height: 4rem;
   border: 2px solid #1a1a1a;
   border-bottom: 2px solid #00fff7;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: approve-reservations-spin 1s linear infinite;
 }
 
-@keyframes spin {
+@keyframes approve-reservations-spin {
   0% {
     transform: rotate(0deg);
   }
@@ -29,24 +31,86 @@
   }
 }
 
-.approve-reservations-header {
+.approve-reservations-container .loading-spinner p {
+  color: #a0a0a0;
+  font-size: 0.875rem;
+}
+
+.approve-reservations-container .error-message {
+  text-align: center;
+  padding: 2rem;
+  background: #1a1a1a;
+  border-radius: 0.375rem;
+  border: 1px solid #333333;
+}
+
+.approve-reservations-container .error-icon {
+  font-size: 2rem;
   margin-bottom: 1rem;
 }
 
-.main-title {
+.approve-reservations-container .error-message h3 {
+  color: #f1f1f1;
+  margin: 0 0 0.5rem 0;
+}
+
+.approve-reservations-container .error-message p {
+  color: #a0a0a0;
+  margin: 0 0 1rem 0;
+}
+
+.approve-reservations-container .retry-button {
+  padding: 0.5rem 1rem;
+  background: #00fff7;
+  color: #000000;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.approve-reservations-container .retry-button:hover {
+  background: #9f00ff;
+  color: #ffffff;
+}
+
+.approve-reservations-container .approve-reservations-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.approve-reservations-container .main-title {
   font-size: 1.25rem;
   font-weight: 600;
   color: #f1f1f1;
   margin: 0 0 0.25rem 0;
 }
 
-.subtitle {
+.approve-reservations-container .subtitle {
   color: #a0a0a0;
   font-size: 0.875rem;
   margin: 0;
 }
 
-.summary-card {
+.approve-reservations-container .refresh-button {
+  padding: 0.5rem 1rem;
+  background: #00fff7;
+  color: #000000;
+  border-radius: 0.25rem;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.approve-reservations-container .refresh-button:hover {
+  background: #9f00ff;
+  color: #ffffff;
+}
+
+.approve-reservations-container .summary-card {
   background: #1a1a1a;
   border-radius: 0.375rem;
   margin-bottom: 1rem;
@@ -54,153 +118,160 @@
   padding: 0.75rem;
 }
 
-.summary-content {
+.approve-reservations-container .summary-content {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.summary-icon {
+.approve-reservations-container .summary-icon {
   font-size: 1.25rem;
   color: #9f00ff;
 }
 
-.summary-label {
+.approve-reservations-container .summary-label {
   font-size: 0.75rem;
   color: #a0a0a0;
   margin-bottom: 0.125rem;
 }
 
-.summary-value {
+.approve-reservations-container .summary-value {
   font-size: 1rem;
   font-weight: 600;
   color: #f1f1f1;
 }
 
-.reservations-section {
+.approve-reservations-container .reservations-section {
   background: #1a1a1a;
   border-radius: 0.375rem;
   border: 1px solid #333333;
 }
 
-.section-header {
+.approve-reservations-container .section-header {
   padding: 0.75rem 1rem;
   background: #333333;
   border-bottom: 1px solid #333333;
 }
 
-.section-title {
+.approve-reservations-container .section-title {
   font-size: 1rem;
   font-weight: 600;
   color: #f1f1f1;
   margin: 0;
 }
 
-.no-reservations {
+.approve-reservations-container .no-reservations {
   text-align: center;
   padding: 2rem;
 }
 
-.no-reservations-icon {
+.approve-reservations-container .no-reservations-icon {
   font-size: 2rem;
   color: #a0a0a0;
   margin-bottom: 0.5rem;
 }
 
-.no-reservations-title {
+.approve-reservations-container .no-reservations-title {
   font-size: 1rem;
   color: #f1f1f1;
   margin: 0 0 0.25rem 0;
 }
 
-.no-reservations-text {
+.approve-reservations-container .no-reservations-text {
   font-size: 0.875rem;
   color: #a0a0a0;
   margin: 0;
 }
 
-.reservations-list {
-  display: flex;
-  flex-direction: column;
+.approve-reservations-container .table-container {
+  overflow-x: auto;
 }
 
-.reservation-item {
-  padding: 1rem;
+.approve-reservations-container .reservations-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.approve-reservations-container .reservations-table th {
+  background: #333333;
+  color: #f1f1f1;
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.75rem;
+  text-align: left;
   border-bottom: 1px solid #333333;
 }
 
-.reservation-item:last-child {
-  border-bottom: none;
+.approve-reservations-container .reservations-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #333333;
+  color: #f1f1f1;
+  font-size: 0.875rem;
+  vertical-align: top;
 }
 
-/* HORIZONTAL LAYOUT - All info in one row */
-.reservation-content {
+.approve-reservations-container .reservations-table tr:hover {
+  background: rgba(159, 0, 255, 0.05);
+}
+
+.approve-reservations-container .slot-info {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1.5rem;
-  width: 100%;
 }
 
-.reservation-main-info {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  flex: 1;
-}
-
-.reservation-icon {
-  font-size: 1.5rem;
+.approve-reservations-container .slot-id {
+  font-weight: 600;
   color: #9f00ff;
-  flex-shrink: 0;
 }
 
-/* Horizontal info layout */
-.reservation-info-row {
+.approve-reservations-container .customer-info {
   display: flex;
   align-items: center;
-  gap: 2rem;
-  flex: 1;
 }
 
-.info-field {
+.approve-reservations-container .customer-name {
+  font-weight: 500;
+}
+
+.approve-reservations-container .phone-number {
+  font-family: "Courier New", monospace;
+  color: #a0a0a0;
+}
+
+.approve-reservations-container .plate-number {
+  font-family: "Courier New", monospace;
+  font-weight: 600;
+  color: #00fff7;
+  text-transform: uppercase;
+}
+
+.approve-reservations-container .reservation-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.approve-reservations-container .detail-item {
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
 }
 
-.info-label {
-  font-size: 0.625rem;
+.approve-reservations-container .detail-label {
+  font-size: 0.75rem;
   color: #a0a0a0;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
-.info-value {
+.approve-reservations-container .detail-value {
   font-size: 0.875rem;
   color: #f1f1f1;
-  font-weight: 500;
-  cursor: default;
 }
 
-.info-value.slot-id {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #9f00ff;
-}
-
-.info-value.customer-name {
-  font-weight: 600;
-  cursor: default;
-}
-
-.info-value.phone {
-  font-family: "Courier New", monospace;
-  cursor: default;
-}
-
-.status-badge {
+.approve-reservations-container .status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   padding: 0.125rem 0.5rem;
   font-size: 0.625rem;
   font-weight: 600;
@@ -208,18 +279,18 @@
   text-transform: uppercase;
 }
 
-.status-badge.pending {
+.approve-reservations-container .status-badge.pending {
   background: #9f00ff;
   color: #ffffff;
 }
 
-.reservation-actions {
+.approve-reservations-container .action-buttons {
   display: flex;
+  flex-direction: column;
   gap: 0.5rem;
-  flex-shrink: 0;
 }
 
-.approve-button {
+.approve-reservations-container .approve-button {
   padding: 0.5rem 0.75rem;
   background: #00fff7;
   color: #000000;
@@ -230,12 +301,12 @@
   font-size: 0.75rem;
 }
 
-.approve-button:hover {
+.approve-reservations-container .approve-button:hover {
   background: #9f00ff;
   color: #ffffff;
 }
 
-.reject-button {
+.approve-reservations-container .reject-button {
   padding: 0.5rem 0.75rem;
   background: #333333;
   color: #f1f1f1;
@@ -246,31 +317,26 @@
   font-size: 0.75rem;
 }
 
-.reject-button:hover {
+.approve-reservations-container .reject-button:hover {
   background: #666666;
 }
 
 @media (max-width: 768px) {
-  .reservation-content {
+  .approve-reservations-container .approve-reservations-header {
     flex-direction: column;
     align-items: stretch;
-    gap: 0.75rem;
-  }
-
-  .reservation-info-row {
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-
-  .reservation-actions {
-    justify-content: flex-start;
-  }
-}
-
-@media (max-width: 480px) {
-  .reservation-info-row {
-    flex-direction: column;
-    align-items: flex-start;
     gap: 0.5rem;
+  }
+
+  .approve-reservations-container .table-container {
+    overflow-x: scroll;
+  }
+
+  .approve-reservations-container .reservations-table {
+    min-width: 800px;
+  }
+
+  .approve-reservations-container .action-buttons {
+    flex-direction: row;
   }
 }
