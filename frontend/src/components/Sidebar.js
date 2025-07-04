@@ -180,7 +180,7 @@ const Sidebar = () => {
 
   return (
     <div className="sidebar">
-      <div className="sidebar-header">
+      <div className="sidebar-header" style={{ backgroundImage: "url('/favicon.png')" }}>
         <div className="sidebar-avatar">
           <span className="avatar-text">
             {user?.first_name?.charAt(0)}

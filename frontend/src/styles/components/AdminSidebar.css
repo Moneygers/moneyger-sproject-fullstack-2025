@@ -15,7 +15,28 @@
 .admin-sidebar-header {
   padding: 2rem 1.5rem;
   border-bottom: 1px solid #1a1a1a;
-  background: rgba(159, 0, 255, 0.1);
+  position: relative;
+  background-color: #000000;
+}
+
+.admin-sidebar-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: inherit; 
+  background-position: center;
+  background-size: 370px;
+  background-repeat: no-repeat;
+  opacity: 0.1;
+  z-index: 0;
+}
+
+.admin-sidebar-header > * {
+  position: relative;
+  z-index: 1; 
 }
 
 .admin-sidebar-avatar {

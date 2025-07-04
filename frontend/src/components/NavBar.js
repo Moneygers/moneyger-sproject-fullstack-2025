@@ -18,8 +18,10 @@ const NavBar = () => {
       <div className="navbar-container">
         <div className="navbar-content">
           <div className="navbar-brand">
-            <span className="brand-icon">🚗</span>
-            <h1 className="brand-title">ParkManager</h1>
+            <span className="brand-icon">
+              <img src="/favicon2.png" alt="Park Moneyger Logo" className="logo-image" />
+            </span>
+            <h1 className="brand-title">ParkMoneyger</h1>
           </div>
 
           <div className="navbar-actions">

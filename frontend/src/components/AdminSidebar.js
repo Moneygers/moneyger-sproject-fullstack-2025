@@ -17,7 +17,7 @@ const AdminSidebar = () => {
 
   return (
     <div className="admin-sidebar">
-      <div className="admin-sidebar-header">
+      <div className="admin-sidebar-header" style={{ backgroundImage: "url('/favicon.png')" }}>
         <div className="admin-sidebar-avatar">
           <span className="admin-avatar-text">
             {user?.first_name?.charAt(0)}
