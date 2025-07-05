@@ -219,7 +219,7 @@ class ParkSlotViewSet(viewsets.ModelViewSet):
 
             # Update payment record
             payment.amount = total_fee
-            payment.mode_of_payment = payment_method
+            payment.mode_of_payment = payment_method.lower()
             payment.save()
 
             # Update slot status
