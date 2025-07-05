@@ -320,6 +320,7 @@ const UpdateSlots = () => {
                   placeholder="ABC-1234"
                   className="plate-input"
                   value={plateNumber}
+                  maxLength={8}
                   onChange={(e) => setPlateNumber(e.target.value.toUpperCase())}
                   onKeyPress={(e) => e.key === "Enter" && handleAssignSlot()}
                   autoFocus

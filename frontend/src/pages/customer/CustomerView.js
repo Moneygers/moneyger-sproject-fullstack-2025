@@ -348,28 +348,6 @@ const CustomerView = () => {
           )}
         </div>
 
-        {/* Legend */}
-        <div className="customer-legend">
-          <h3 className="legend-title">Legend</h3>
-          <div className="legend-grid">
-            <div className="legend-item">
-              <div className="legend-color customer-slot-available"></div>
-              <span className="legend-text">Available</span>
-            </div>
-            <div className="legend-item">
-              <div className="legend-color customer-slot-vip"></div>
-              <span className="legend-text">VIP Available</span>
-            </div>
-            <div className="legend-item">
-              <div className="legend-color customer-slot-disabled"></div>
-              <span className="legend-text">PWD Slot</span>
-            </div>
-            <div className="legend-item">
-              <div className="legend-color customer-slot-occupied"></div>
-              <span className="legend-text">Occupied</span>
-            </div>
-          </div>
-        </div>
 
         {/* Info Card */}
         <div className="customer-info-card">
@@ -381,7 +359,7 @@ const CustomerView = () => {
                 Click on any available slot above to make a reservation, or visit our front desk for immediate parking.
               </p>
               <div className="info-details">
-                <p>• Payment accepted: Cash, Card, GCash, PayMaya</p>
+                <p>• Payment accepted: Cash, GCash</p>
                 <p>• Hourly rates apply based on slot type</p>
                 <p>• VIP slots include premium amenities</p>
               </div>
@@ -441,7 +419,7 @@ const CustomerView = () => {
                   className={`modal-input ${formErrors.plateNumber ? "error" : ""}`}
                   value={reservationForm.plateNumber}
                   onChange={(e) => handleInputChange("plateNumber", e.target.value)}
-                  maxLength={10}
+                  maxLength={8}
                 />
                 {formErrors.plateNumber && <div className="error-message">{formErrors.plateNumber}</div>}
               </div>
