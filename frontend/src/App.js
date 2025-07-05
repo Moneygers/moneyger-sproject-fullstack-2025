@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import { AuthProvider } from "./contexts/AuthContext"
 import LoginForm from "./pages/LoginForm"
 import CustomerView from "./pages/customer/CustomerView"
+import NotFound from "./pages/NotFound"
 
 // Clerk pages
 import UpdateSlots from "./pages/clerk/UpdateSlots"
@@ -23,7 +24,6 @@ function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<LoginForm />} />
-          <Route path="/login" element={<LoginForm />} />
           <Route path="/" element={<CustomerView />} />
 
           {/* Clerk routes */}
@@ -31,7 +31,7 @@ function App() {
           <Route path="/clerk/checkout-vehicle" element={<CheckoutVehicle />} />
           <Route path="/clerk/monitor-reservations" element={<MonitorReservations />} />
           <Route path="/clerk/approve-reservations" element={<ApproveReservations />} />
-          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
 
           {/* Admin routes */}
           <Route path="/admin/payment-reports" element={<PaymentReports />} />
@@ -39,6 +39,9 @@ function App() {
           <Route path="/admin/create-accounts" element={<CreateAccounts />} />
           <Route path="/admin/manage-users" element={<ManageUsers />} />
           <Route path="/admin/system-settings" element={<SystemSettings />} />
+
+          {/* 404 Catch-all route - MUST be last */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
     </AuthProvider>

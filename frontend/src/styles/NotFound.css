@@ -1,0 +1,336 @@
+.not-found-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", sans-serif;
+}
+
+.not-found-content {
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+  border-radius: 1rem;
+  padding: 3rem 2rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 255, 247, 0.1);
+  border: 1px solid #333333;
+}
+
+.error-display {
+  margin-bottom: 2rem;
+}
+
+.error-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  display: block;
+  filter: drop-shadow(0 4px 8px rgba(0, 255, 247, 0.3));
+}
+
+.error-code {
+  font-size: 6rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, #00fff7 0%, #9f00ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+  margin-bottom: 1rem;
+  text-shadow: 0 0 30px rgba(0, 255, 247, 0.5);
+}
+
+.error-message-section {
+  margin-bottom: 2rem;
+}
+
+.error-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #f1f1f1;
+  margin: 0 0 1rem 0;
+  line-height: 1.2;
+}
+
+.error-message {
+  font-size: 1.125rem;
+  color: #a0a0a0;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.6;
+}
+
+.current-path {
+  background: rgba(0, 255, 247, 0.1);
+  border: 1px solid rgba(0, 255, 247, 0.3);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.path-label {
+  display: block;
+  font-size: 0.875rem;
+  color: #a0a0a0;
+  margin-bottom: 0.5rem;
+}
+
+.path-value {
+  font-family: "Courier New", monospace;
+  font-size: 1rem;
+  color: #00fff7;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  display: inline-block;
+  word-break: break-all;
+}
+
+.suggestions-section {
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.suggestions-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #f1f1f1;
+  margin: 0 0 1rem 0;
+  text-align: center;
+}
+
+.suggestions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.suggestion-item {
+  background: rgba(159, 0, 255, 0.1);
+  border: 1px solid rgba(159, 0, 255, 0.3);
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  color: #f1f1f1;
+  font-size: 0.875rem;
+  position: relative;
+  padding-left: 2.5rem;
+}
+
+.suggestion-item::before {
+  content: "💡";
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+}
+
+.suggestion-item:last-child {
+  margin-bottom: 0;
+}
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  text-decoration: none;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.action-button.primary {
+  background: linear-gradient(135deg, #00fff7 0%, #9f00ff 100%);
+  color: #000000;
+  box-shadow: 0 4px 12px rgba(0, 255, 247, 0.3);
+}
+
+.action-button.primary:hover {
+  background: linear-gradient(135deg, #9f00ff 0%, #00fff7 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 255, 247, 0.4);
+}
+
+.action-button.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f1f1f1;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.action-button.secondary:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.button-icon {
+  font-size: 1rem;
+}
+
+.system-info {
+  border-top: 1px solid #333333;
+  padding-top: 2rem;
+  margin-top: 2rem;
+}
+
+.brand-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.brand-logo {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.5rem;
+}
+
+.brand-text {
+  text-align: left;
+}
+
+.brand-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f1f1f1;
+  margin: 0;
+}
+
+.brand-subtitle {
+  font-size: 0.875rem;
+  color: #a0a0a0;
+  margin: 0;
+}
+
+.user-info {
+  margin-top: 1rem;
+}
+
+.user-status {
+  font-size: 0.875rem;
+  color: #a0a0a0;
+  margin: 0;
+}
+
+.user-role {
+  color: #00fff7;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .not-found-container {
+    padding: 1rem;
+  }
+
+  .not-found-content {
+    padding: 2rem 1.5rem;
+  }
+
+  .error-code {
+    font-size: 4rem;
+  }
+
+  .error-title {
+    font-size: 1.5rem;
+  }
+
+  .error-message {
+    font-size: 1rem;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .action-button {
+    width: 100%;
+    max-width: 250px;
+  }
+
+  .brand-section {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .brand-text {
+    text-align: center;
+  }
+
+  .suggestions-section {
+    text-align: center;
+  }
+
+  .suggestion-item {
+    text-align: left;
+  }
+}
+
+@media (max-width: 480px) {
+  .error-code {
+    font-size: 3rem;
+  }
+
+  .error-title {
+    font-size: 1.25rem;
+  }
+
+  .path-value {
+    font-size: 0.875rem;
+  }
+
+  .brand-logo {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
+
+/* Animation for the error icon */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.error-icon {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Glow effect for the error code */
+@keyframes glow {
+  0%,
+  100% {
+    text-shadow: 0 0 20px rgba(0, 255, 247, 0.5);
+  }
+  50% {
+    text-shadow: 0 0 30px rgba(0, 255, 247, 0.8), 0 0 40px rgba(159, 0, 255, 0.3);
+  }
+}
+
+.error-code {
+  animation: glow 2s ease-in-out infinite;
+}
