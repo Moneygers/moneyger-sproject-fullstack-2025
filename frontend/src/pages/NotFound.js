@@ -17,7 +17,7 @@ const NotFound = () => {
     if (path.includes("/admin/") && !isAdmin) {
       return "unauthorized"
     }
-    if (path.includes("/clerk/") && !isClerk && !isAdmin) {
+    if ((path.includes("/clerk/") || path === "/dashboard") && !isClerk) {
       return "unauthorized"
     }
     if ((path.includes("/dashboard") || path.includes("/clerk/") || path.includes("/admin/")) && !isAuthenticated) {
@@ -36,11 +36,17 @@ const NotFound = () => {
         return {
           code: "403",
           title: "Access Forbidden",
-          message: "You do not have permission to access this area of the system.",
+          message: `You do not have permission to access this area. ${
+            location.pathname.includes("/admin/")
+              ? "This is an admin-only section."
+              : location.pathname.includes("/clerk/") || location.pathname === "/dashboard"
+                ? "This is a clerk-only section."
+                : "This section requires different privileges."
+          }`,
           icon: "🚫",
           suggestions: [
             "Contact your administrator if you believe you should have access",
-            "Return to your dashboard",
+            "Return to your authorized dashboard",
             "Log out and log in with appropriate credentials",
           ],
         }

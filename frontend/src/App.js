@@ -3,6 +3,7 @@ import { AuthProvider } from "./contexts/AuthContext"
 import LoginForm from "./pages/LoginForm"
 import CustomerView from "./pages/customer/CustomerView"
 import NotFound from "./pages/NotFound"
+import ProtectedRoute from "./components/ProtectedRoute"
 
 // Clerk pages
 import UpdateSlots from "./pages/clerk/UpdateSlots"
@@ -26,19 +27,89 @@ function App() {
           <Route path="/login" element={<LoginForm />} />
           <Route path="/" element={<CustomerView />} />
 
-          {/* Clerk routes */}
-          <Route path="/clerk/update-slots" element={<UpdateSlots />} />
-          <Route path="/clerk/checkout-vehicle" element={<CheckoutVehicle />} />
-          <Route path="/clerk/monitor-reservations" element={<MonitorReservations />} />
-          <Route path="/clerk/approve-reservations" element={<ApproveReservations />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          {/* Clerk routes - accessible by clerks only */}
+          <Route
+            path="/clerk/update-slots"
+            element={
+              <ProtectedRoute requiredRole="clerk">
+                <UpdateSlots />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/clerk/checkout-vehicle"
+            element={
+              <ProtectedRoute requiredRole="clerk">
+                <CheckoutVehicle />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/clerk/monitor-reservations"
+            element={
+              <ProtectedRoute requiredRole="clerk">
+                <MonitorReservations />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/clerk/approve-reservations"
+            element={
+              <ProtectedRoute requiredRole="clerk">
+                <ApproveReservations />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute requiredRole="clerk">
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
 
-          {/* Admin routes */}
-          <Route path="/admin/payment-reports" element={<PaymentReports />} />
-          <Route path="/admin/review-transactions" element={<ReviewTransactions />} />
-          <Route path="/admin/create-accounts" element={<CreateAccounts />} />
-          <Route path="/admin/manage-users" element={<ManageUsers />} />
-          <Route path="/admin/system-settings" element={<SystemSettings />} />
+          {/* Admin routes - accessible by admins only */}
+          <Route
+            path="/admin/payment-reports"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <PaymentReports />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/review-transactions"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <ReviewTransactions />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/create-accounts"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <CreateAccounts />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/manage-users"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <ManageUsers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/system-settings"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <SystemSettings />
+              </ProtectedRoute>
+            }
+          />
 
           {/* 404 Catch-all route - MUST be last */}
           <Route path="*" element={<NotFound />} />
