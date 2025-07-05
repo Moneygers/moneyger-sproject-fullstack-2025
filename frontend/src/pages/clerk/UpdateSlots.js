@@ -99,12 +99,12 @@ const UpdateSlots = () => {
   }
 
   const handleSlotClick = (slot) => {
-    if (slot.status === "available" && slot.slot_type == "disabled") {
+    if (slot.status === "available") {
       setSelectedSlot(slot)
       setShowPlateModal(true)
       setPlateNumber("")
     } else if (slot.status === "occupied") {
-      handleReleaseSlot(slot.id)
+      alert(`go to checkout page to release slot ${getSlotDisplayId(slot)}`)
     }
   }
 
@@ -143,34 +143,6 @@ const UpdateSlots = () => {
     } catch (error) {
       console.error("Error assigning slot:", error)
       alert("Failed to assign slot")
-    }
-  }
-
-  const handleReleaseSlot = async (slotId) => {
-    if (window.confirm("Release this parking slot?")) {
-      try {
-        const response = await fetch(`http://localhost:8000/api/slots/${slotId}/release/`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        })
-
-        if (response.ok) {
-          const result = await response.json()
-
-          // Update the slots list with the new slot data
-          setSlots((prev) => prev.map((slot) => (slot.id === slotId ? result.slot : slot)))
-
-          alert(`Slot has been released`)
-        } else {
-          const errorData = await response.json()
-          alert(`Failed to release slot: ${errorData.error || "Unknown error"}`)
-        }
-      } catch (error) {
-        console.error("Error releasing slot:", error)
-        alert("Failed to release slot")
-      }
     }
   }
 
