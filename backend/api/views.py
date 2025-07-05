@@ -679,91 +679,84 @@ def dashboard_stats(request):
 @api_view(['GET'])
 def payment_reports(request):
     try:
-        # Get date range from query parameters
+        # 1. Date range handling
         start_date = request.query_params.get('start_date')
         end_date = request.query_params.get('end_date')
-        
-        # Default to last 7 days if no date range provided
+
         if not start_date or not end_date:
             end_date = timezone.now().date()
             start_date = end_date - timedelta(days=7)
         else:
             start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
             end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
-        
-        # Get all payments within date range that have an amount
-        # Remove the mode_of_payment filter to include all payments
+
+        # 2. Fetch valid payments and reservations
         payments = Payment.objects.filter(
             date__range=[start_date, end_date],
-            amount__isnull=False,  # Ensure amount is not null
-            amount__gt=0  # Ensure amount is greater than 0
+            amount__isnull=False,
+            amount__gt=0
         )
-        
-        print(f"Date range: {start_date} to {end_date}")
-        print(f"Found {payments.count()} payments")
-        print(f"Payment amounts: {[float(p.amount) for p in payments]}")
-        
-        # Calculate total revenue
-        total_revenue = payments.aggregate(total=Sum('amount'))['total'] or Decimal('0')
-        print(f"Total revenue: {total_revenue}")
-        
-        # Calculate total transactions
-        total_transactions = payments.count()
-        
-        # Calculate average transaction with proper handling
+
+        reservations = Reservations.objects.filter(
+            date__range=[start_date, end_date],
+            status='completed',
+            fee__isnull=False,
+            fee__gt=0
+        )
+
+        # 3. Compute totals
+        payment_total = payments.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+        reservation_total = reservations.aggregate(total=Sum('fee'))['total'] or Decimal('0')
+        total_revenue = payment_total + reservation_total
+
+        total_transactions = payments.count() + reservations.count()
+
         if total_transactions > 0:
-            avg_transaction = total_revenue / total_transactions
-            # Round to 2 decimal places to avoid precision issues
-            avg_transaction = round(float(avg_transaction), 2)
+            avg_transaction = round(float(total_revenue) / total_transactions, 2)
         else:
             avg_transaction = 0.0
-        
-        # Find peak hour using Django ORM functions
+
+        # 4. Peak hour from Payment (we assume Reservations are handled via checkout, so peak is only for Payments)
         try:
             peak_hour_data = payments.annotate(
                 hour=Extract('created_at', 'hour')
             ).values('hour').annotate(
                 count=Count('recieptNo')
             ).order_by('-count').first()
-            
-            peak_hour = f"{int(peak_hour_data['hour'])}:00" if peak_hour_data else "N/A"
+
+            peak_hour = f"{int(peak_hour_data['hour']):02d}:00" if peak_hour_data else "N/A"
         except Exception as e:
-            print(f"Peak hour calculation error: {e}")
+            print(f"Peak hour calc failed: {e}")
             peak_hour = "N/A"
-        
-        # Generate daily data for chart
+
+        # 5. Daily revenue: combine both
         daily_data = []
         current_date = start_date
         while current_date <= end_date:
-            day_payments = payments.filter(date=current_date)
-            day_revenue = day_payments.aggregate(total=Sum('amount'))['total'] or Decimal('0')
-            
+            day_payment_total = payments.filter(date=current_date).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+            day_reservation_total = reservations.filter(date=current_date).aggregate(total=Sum('fee'))['total'] or Decimal('0')
             daily_data.append({
                 'name': current_date.strftime('%a'),
-                'revenue': float(day_revenue),
+                'revenue': float(day_payment_total + day_reservation_total),
                 'date': current_date.isoformat()
             })
             current_date += timedelta(days=1)
-        
-        # Prepare response data
-        report_data = {
+
+        # 6. Response
+        return Response({
             'totalRevenue': float(total_revenue),
             'transactions': total_transactions,
             'avgTransaction': avg_transaction,
             'peakHour': peak_hour,
             'dailyData': daily_data
-        }
-        
-        print(f"Report data: {report_data}")
-        
-        # Return data directly without serializer validation to avoid decimal precision issues
-        return Response(report_data, status=status.HTTP_200_OK)
-            
+        }, status=status.HTTP_200_OK)
+
     except Exception as e:
-        print(f"Payment reports error: {str(e)}")
+        print(f"Error in payment_reports: {str(e)}")
         return Response({
             'error': f'Failed to fetch payment reports: {str(e)}'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 # Available Slots for Customer View
 @api_view(['GET'])
