@@ -104,7 +104,7 @@ const UpdateSlots = () => {
       setShowPlateModal(true)
       setPlateNumber("")
     } else if (slot.status === "occupied") {
-      alert(`go to checkout page to release slot ${getSlotDisplayId(slot)}`)
+      alert(`Please go to "Checkout Page" to the release slot ${getSlotDisplayId(slot)}`)
     }
   }
 
