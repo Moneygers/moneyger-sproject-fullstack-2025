@@ -198,6 +198,7 @@ class ParkSlotViewSet(viewsets.ModelViewSet):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             payment_method = serializer.validated_data['payment_method']
+            print(payment_method)
             print_receipt = serializer.validated_data.get('print_receipt', False)
 
             # Calculate parking duration and fee
@@ -218,7 +219,7 @@ class ParkSlotViewSet(viewsets.ModelViewSet):
 
             # Update payment record
             payment.amount = total_fee
-            payment.mode_of_payment = payment_method
+            payment.mode_of_payment = payment_method.lower()
             payment.save()
 
             # Update slot status
@@ -233,6 +234,8 @@ class ParkSlotViewSet(viewsets.ModelViewSet):
 
             if reservation:
                 reservation.status = 'completed'
+                reservation.mode_of_payment = payment_method.lower()
+                reservation.fee = total_fee
                 reservation.save()
 
             # Prepare response data
@@ -255,7 +258,7 @@ class ParkSlotViewSet(viewsets.ModelViewSet):
             return Response({
                 'error': f'Failed to checkout vehicle: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+
     @action(detail=True, methods=['post'])
     def release(self, request, pk=None):
         """Release a parking slot"""
