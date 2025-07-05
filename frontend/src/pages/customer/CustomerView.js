@@ -441,7 +441,7 @@ const CustomerView = () => {
                   className={`modal-input ${formErrors.plateNumber ? "error" : ""}`}
                   value={reservationForm.plateNumber}
                   onChange={(e) => handleInputChange("plateNumber", e.target.value)}
-                  maxLength={10}
+                  maxLength={8}
                 />
                 {formErrors.plateNumber && <div className="error-message">{formErrors.plateNumber}</div>}
               </div>

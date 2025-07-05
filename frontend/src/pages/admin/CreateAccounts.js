@@ -191,6 +191,7 @@ const CreateAccounts = () => {
                     <input
                       type="tel"
                       name="phone_number"
+                      maxLength={11}
                       value={formData.phone_number}
                       onChange={handleInputChange}
                       className="form-input"
