@@ -552,12 +552,32 @@
   box-sizing: border-box;
   background-color: #0a0a0a;
   color: #f1f1f1;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .modal-input:focus {
   outline: none;
   box-shadow: 0 0 0 2px #00fff7;
   border-color: #00fff7;
+}
+
+.modal-input.error {
+  border-color: #ff0033;
+  box-shadow: 0 0 0 2px rgba(255, 0, 51, 0.2);
+}
+
+.error-message {
+  color: #ff0033;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+.input-hint {
+  color: #a0a0a0;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  font-style: italic;
 }
 
 .modal-actions {

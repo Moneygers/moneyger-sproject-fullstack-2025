@@ -18,9 +18,7 @@ const AdminNavBar = () => {
       <div className="admin-navbar-container">
         <div className="admin-navbar-content">
           <div className="admin-navbar-brand">
-            <span className="admin-brand-icon">
-              <img src="/favicon2.png" alt="Park Moneyger Logo" className="logo-image" />
-            </span>
+            <span className="admin-brand-icon">🏢</span>
             <h1 className="admin-brand-title">Admin Panel</h1>
           </div>
 
@@ -32,10 +30,6 @@ const AdminNavBar = () => {
               </span>
               <span className="admin-user-role">ADMINISTRATOR</span>
             </div>
-
-            <button className="admin-settings-button">
-              <span className="admin-settings-icon">⚙️</span>
-            </button>
 
             <button onClick={handleLogout} className="admin-logout-button">
               <span className="admin-logout-icon">🚪</span>

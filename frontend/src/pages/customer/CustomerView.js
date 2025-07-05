@@ -16,6 +16,7 @@ const CustomerView = () => {
     plateNumber: "",
     contactNumber: "",
   })
+  const [formErrors, setFormErrors] = useState({})
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -87,12 +88,104 @@ const CustomerView = () => {
     if (slot.status === "available") {
       setSelectedSlot(slot)
       setShowReservationModal(true)
+      // Reset form and errors when opening modal
+      setReservationForm({ name: "", plateNumber: "", contactNumber: "" })
+      setFormErrors({})
     }
   }
 
+  // Validation functions
+  const validateName = (name) => {
+    // Allow letters, spaces, and periods (for middle initials like "John M. Doe")
+    const nameRegex = /^[a-zA-Z\s.]+$/
+    if (!name.trim()) {
+      return "Full name is required"
+    }
+    if (!nameRegex.test(name.trim())) {
+      return "Name should contain only letters, spaces, and periods"
+    }
+    if (name.trim().length < 2) {
+      return "Name must be at least 2 characters long"
+    }
+    // Check for excessive periods (more than 3 periods might be suspicious)
+    const periodCount = (name.match(/\./g) || []).length
+    if (periodCount > 3) {
+      return "Too many periods in name"
+    }
+    return ""
+  }
+
+  const validatePlateNumber = (plateNumber) => {
+    if (!plateNumber.trim()) {
+      return "Plate number is required"
+    }
+    if (plateNumber.trim().length < 3) {
+      return "Plate number must be at least 3 characters long"
+    }
+    return ""
+  }
+
+  const validateContactNumber = (contactNumber) => {
+    const phoneRegex = /^09\d{9}$/
+    if (!contactNumber.trim()) {
+      return "Contact number is required"
+    }
+    if (!phoneRegex.test(contactNumber.trim())) {
+      return "Please enter a valid Philippine mobile number (09XXXXXXXXX)"
+    }
+    return ""
+  }
+
+  const handleInputChange = (field, value) => {
+    let processedValue = value
+
+    // Process input based on field type
+    if (field === "name") {
+      // Allow only letters, spaces, and periods for name (for middle initials)
+      processedValue = value.replace(/[^a-zA-Z\s.]/g, "")
+    } else if (field === "contactNumber") {
+      // Allow only numbers for contact number
+      processedValue = value.replace(/[^0-9]/g, "")
+      // Limit to 11 digits
+      if (processedValue.length > 11) {
+        processedValue = processedValue.slice(0, 11)
+      }
+    } else if (field === "plateNumber") {
+      // Convert to uppercase for plate number
+      processedValue = value.toUpperCase()
+    }
+
+    setReservationForm((prev) => ({ ...prev, [field]: processedValue }))
+
+    // Clear error for this field when user starts typing
+    if (formErrors[field]) {
+      setFormErrors((prev) => ({ ...prev, [field]: "" }))
+    }
+  }
+
+  const validateForm = () => {
+    const errors = {}
+
+    const nameError = validateName(reservationForm.name)
+    if (nameError) errors.name = nameError
+
+    const plateError = validatePlateNumber(reservationForm.plateNumber)
+    if (plateError) errors.plateNumber = plateError
+
+    const contactError = validateContactNumber(reservationForm.contactNumber)
+    if (contactError) errors.contactNumber = contactError
+
+    setFormErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
   const handleReservationSubmit = async () => {
-    if (!selectedSlot || !reservationForm.name || !reservationForm.plateNumber || !reservationForm.contactNumber) {
-      alert("Please fill in all fields")
+    if (!validateForm()) {
+      return
+    }
+
+    if (!selectedSlot) {
+      alert("No slot selected")
       return
     }
 
@@ -104,9 +197,9 @@ const CustomerView = () => {
         },
         body: JSON.stringify({
           park_slot: selectedSlot.id,
-          name: reservationForm.name,
-          plate_no: reservationForm.plateNumber,
-          mobileNo: reservationForm.contactNumber,
+          name: reservationForm.name.trim(),
+          plate_no: reservationForm.plateNumber.trim(),
+          mobileNo: reservationForm.contactNumber.trim(),
           date: new Date().toISOString().split("T")[0], // Today's date in YYYY-MM-DD format
         }),
       })
@@ -118,6 +211,7 @@ const CustomerView = () => {
         )
         setShowReservationModal(false)
         setReservationForm({ name: "", plateNumber: "", contactNumber: "" })
+        setFormErrors({})
         setSelectedSlot(null)
         fetchAvailableSlots() // Refresh slots
       } else {
@@ -128,6 +222,13 @@ const CustomerView = () => {
       console.error("Error creating reservation:", error)
       alert("Failed to create reservation")
     }
+  }
+
+  const closeModal = () => {
+    setShowReservationModal(false)
+    setReservationForm({ name: "", plateNumber: "", contactNumber: "" })
+    setFormErrors({})
+    setSelectedSlot(null)
   }
 
   if (loading) {
@@ -298,14 +399,7 @@ const CustomerView = () => {
                 Reserve Slot{" "}
                 {`F${Number.parseInt(selectedSlot.structure.replace("FLOOR", ""))}-${selectedSlot.section}-${selectedSlot.slotNo}`}
               </h3>
-              <button
-                onClick={() => {
-                  setShowReservationModal(false)
-                  setReservationForm({ name: "", plateNumber: "", contactNumber: "" })
-                  setSelectedSlot(null)
-                }}
-                className="modal-close"
-              >
+              <button onClick={closeModal} className="modal-close">
                 ✕
               </button>
             </div>
@@ -329,11 +423,14 @@ const CustomerView = () => {
                 <label className="modal-label">Full Name *</label>
                 <input
                   type="text"
-                  placeholder="Enter your full name"
-                  className="modal-input"
+                  placeholder="Enter your full name (e.g., John M. Doe)"
+                  className={`modal-input ${formErrors.name ? "error" : ""}`}
                   value={reservationForm.name}
-                  onChange={(e) => setReservationForm((prev) => ({ ...prev, name: e.target.value }))}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
+                  maxLength={50}
                 />
+                {formErrors.name && <div className="error-message">{formErrors.name}</div>}
+                <div className="input-hint">Letters, spaces, and periods only (for middle initials)</div>
               </div>
 
               <div className="modal-form-group">
@@ -341,12 +438,12 @@ const CustomerView = () => {
                 <input
                   type="text"
                   placeholder="ABC-1234"
-                  className="modal-input"
+                  className={`modal-input ${formErrors.plateNumber ? "error" : ""}`}
                   value={reservationForm.plateNumber}
-                  onChange={(e) =>
-                    setReservationForm((prev) => ({ ...prev, plateNumber: e.target.value.toUpperCase() }))
-                  }
+                  onChange={(e) => handleInputChange("plateNumber", e.target.value)}
+                  maxLength={10}
                 />
+                {formErrors.plateNumber && <div className="error-message">{formErrors.plateNumber}</div>}
               </div>
 
               <div className="modal-form-group">
@@ -354,22 +451,18 @@ const CustomerView = () => {
                 <input
                   type="tel"
                   placeholder="09123456789"
-                  className="modal-input"
+                  className={`modal-input ${formErrors.contactNumber ? "error" : ""}`}
                   value={reservationForm.contactNumber}
-                  onChange={(e) => setReservationForm((prev) => ({ ...prev, contactNumber: e.target.value }))}
+                  onChange={(e) => handleInputChange("contactNumber", e.target.value)}
+                  maxLength={11}
                 />
+                {formErrors.contactNumber && <div className="error-message">{formErrors.contactNumber}</div>}
+                <div className="input-hint">Philippine mobile number format (09XXXXXXXXX)</div>
               </div>
             </div>
 
             <div className="modal-actions">
-              <button
-                onClick={() => {
-                  setShowReservationModal(false)
-                  setReservationForm({ name: "", plateNumber: "", contactNumber: "" })
-                  setSelectedSlot(null)
-                }}
-                className="modal-cancel"
-              >
+              <button onClick={closeModal} className="modal-cancel">
                 Cancel
               </button>
               <button

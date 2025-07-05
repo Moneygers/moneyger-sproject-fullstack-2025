@@ -18,10 +18,8 @@ const NavBar = () => {
       <div className="navbar-container">
         <div className="navbar-content">
           <div className="navbar-brand">
-            <span className="brand-icon">
-              <img src="/favicon2.png" alt="Park Moneyger Logo" className="logo-image" />
-            </span>
-            <h1 className="brand-title">ParkMoneyger</h1>
+            <span className="brand-icon">🚗</span>
+            <h1 className="brand-title">ParkManager</h1>
           </div>
 
           <div className="navbar-actions">
@@ -32,10 +30,6 @@ const NavBar = () => {
               </span>
               <span className="user-role">{user?.role?.toUpperCase()}</span>
             </div>
-
-            <button className="settings-button">
-              <span className="settings-icon">⚙️</span>
-            </button>
 
             <button onClick={handleLogout} className="logout-button">
               <span className="logout-icon">🚪</span>

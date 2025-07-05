@@ -19,7 +19,7 @@ const CheckoutVehicle = () => {
 
   const fetchOccupiedSlots = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/slots/occupied-detailed/", {
+      const response = await fetch("http://localhost:8000/api/slots/?status=occupied", {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -119,7 +119,7 @@ const CheckoutVehicle = () => {
           <div class="header">🏢 ParkManager</div>
           <div>Parking Receipt</div>
           
-          <div class="info"><strong>Slot:</strong> ${selectedSlot.display_id || selectedSlot.id}</div>
+          <div class="info"><strong>Slot:</strong> ${getSlotDisplayId(selectedSlot)}</div>
           <div class="info"><strong>License Plate:</strong> ${selectedSlot.current_allocation?.license_plate}</div>
           <div class="info"><strong>Entry Time:</strong> ${new Date(selectedSlot.current_allocation?.start_time || "").toLocaleString()}</div>
           <div class="info"><strong>Exit Time:</strong> ${new Date().toLocaleString()}</div>
@@ -185,6 +185,28 @@ const CheckoutVehicle = () => {
     return `F${floor}-${slot.section}-${slot.slotNo}`
   }
 
+  const getSlotTypeIcon = (slotType) => {
+    switch (slotType) {
+      case "vip":
+        return "⭐"
+      case "disabled":
+        return "♿"
+      default:
+        return "🅿️"
+    }
+  }
+
+  const getSlotTypeBadge = (slotType) => {
+    switch (slotType) {
+      case "vip":
+        return "slot-type-vip"
+      case "disabled":
+        return "slot-type-disabled"
+      default:
+        return "slot-type-regular"
+    }
+  }
+
   const filteredSlots = occupiedSlots.filter(
     (slot) =>
       getSlotDisplayId(slot)?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -209,7 +231,7 @@ const CheckoutVehicle = () => {
       <div className="checkout-vehicle-container">
         <div className="checkout-vehicle-header">
           <div className="header-content">
-            <h1 className="main-title">Checkout & Payment</h1>
+            <h1 className="main-title">Vehicle Checkout & Payment</h1>
             <p className="subtitle">Process vehicle checkout, payment, and print receipts</p>
           </div>
           <div className="search-wrapper">
@@ -226,6 +248,9 @@ const CheckoutVehicle = () => {
         <div className="occupied-slots-section">
           <div className="section-header">
             <h2 className="section-title">Occupied Slots ({filteredSlots.length})</h2>
+            <button onClick={fetchOccupiedSlots} className="refresh-button">
+              🔄 Refresh
+            </button>
           </div>
 
           {filteredSlots.length === 0 ? (
@@ -239,67 +264,79 @@ const CheckoutVehicle = () => {
               </p>
             </div>
           ) : (
-            <div className="slots-list">
+            <div className="slots-grid">
               {filteredSlots.map((slot) => (
-                <div key={slot.id} className="slot-item">
-                  <div className="slot-content">
-                    <div className="slot-info">
-                      <div className="slot-icon">🚗</div>
-                      <div className="slot-details">
-                        <div className="slot-header">
-                          <h3 className="slot-id">{getSlotDisplayId(slot)}</h3>
-                          <span className={`slot-type ${slot.slot_type}`}>{slot.slot_type?.toUpperCase()}</span>
-                        </div>
-                        <p className="slot-location">
-                          Floor {slot.floor || (slot.structure ? slot.structure.replace("FLOOR", "") : "1")} • Section{" "}
-                          {slot.section}
-                        </p>
+                <div key={slot.id} className="slot-card">
+                  <div className="slot-card-header">
+                    <div className="slot-info-section">
+                      <div className="slot-id-badge">
+                        <span className="slot-icon">{getSlotTypeIcon(slot.slot_type)}</span>
+                        <span className="slot-id">{getSlotDisplayId(slot)}</span>
+                      </div>
+                      <div className={`slot-type-badge ${getSlotTypeBadge(slot.slot_type)}`}>
+                        {slot.slot_type?.toUpperCase() || "REGULAR"}
                       </div>
                     </div>
+                    <div className="slot-location">
+                      Floor {slot.floor || (slot.structure ? slot.structure.replace("FLOOR", "") : "1")} • Section{" "}
+                      {slot.section}
+                    </div>
+                  </div>
 
-                    <div className="checkout-info">
-                      <div className="info-grid">
-                        <div className="info-item">
-                          <div className="info-label">
-                            <span className="info-icon">🚗</span>
-                            License Plate
-                          </div>
-                          <div className="info-value">{slot.current_allocation?.license_plate || "N/A"}</div>
-                        </div>
-
+                  <div className="vehicle-info-section">
+                    <div className="vehicle-header">
+                      <div className="vehicle-icon">🚗</div>
+                      <div className="vehicle-details">
+                        <div className="license-plate">{slot.current_allocation?.license_plate || "N/A"}</div>
                         {slot.current_allocation?.customer_name && (
-                          <div className="info-item">
-                            <div className="info-label">
-                              <span className="info-icon">👤</span>
-                              Customer
-                            </div>
-                            <div className="info-value">{slot.current_allocation.customer_name}</div>
-                          </div>
+                          <div className="customer-name">{slot.current_allocation.customer_name}</div>
                         )}
+                      </div>
+                    </div>
+                  </div>
 
-                        <div className="info-item">
-                          <div className="info-label">
-                            <span className="info-icon">⏰</span>
-                            Duration
-                          </div>
-                          <div className="info-value">{calculateDuration(slot.current_allocation?.start_time)}</div>
+                  <div className="parking-details-section">
+                    <div className="detail-row">
+                      <div className="detail-item">
+                        <div className="detail-label">
+                          <span className="detail-icon">⏰</span>
+                          Entry Time
                         </div>
-
-                        <div className="info-item">
-                          <div className="info-label">
-                            <span className="info-icon">💳</span>
-                            Fee
-                          </div>
-                          <div className="info-value fee">
-                            ₱{calculateFee(slot.current_allocation?.start_time, slot.slot_type)}
-                          </div>
+                        <div className="detail-value">
+                          {slot.current_allocation?.start_time
+                            ? new Date(slot.current_allocation.start_time).toLocaleString()
+                            : "N/A"}
                         </div>
                       </div>
-
-                      <button onClick={() => handleCheckout(slot)} className="checkout-button">
-                        Checkout
-                      </button>
                     </div>
+
+                    <div className="detail-row">
+                      <div className="detail-item">
+                        <div className="detail-label">
+                          <span className="detail-icon">⏱️</span>
+                          Duration
+                        </div>
+                        <div className="detail-value duration">
+                          {calculateDuration(slot.current_allocation?.start_time)}
+                        </div>
+                      </div>
+                      <div className="detail-item">
+                        <div className="detail-label">
+                          <span className="detail-icon">💰</span>
+                          Total Fee
+                        </div>
+                        <div className="detail-value fee">
+                          ₱{calculateFee(slot.current_allocation?.start_time, slot.slot_type)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="card-actions">
+                    <button onClick={() => handleCheckout(slot)} className="checkout-button">
+                      <span className="button-icon">💳</span>
+                      <span>Process Checkout</span>
+                    </button>
                   </div>
                 </div>
               ))}
@@ -342,11 +379,6 @@ const CheckoutVehicle = () => {
                 <button onClick={() => processPayment("Cash")} className="payment-method-button">
                   <span className="payment-icon">💵</span>
                   <span>Cash Payment</span>
-                </button>
-
-                <button onClick={() => processPayment("Card")} className="payment-method-button">
-                  <span className="payment-icon">💳</span>
-                  <span>Card Payment</span>
                 </button>
 
                 <button onClick={() => processPayment("GCash")} className="payment-method-button">
