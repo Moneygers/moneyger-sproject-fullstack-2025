@@ -651,8 +651,23 @@ def dashboard_stats(request):
         
         # Calculate today's revenue
         today = timezone.now().date()
+
+        # Payments made today
         today_payments = Payment.objects.filter(date=today)
-        today_revenue = sum(payment.amount for payment in today_payments if payment.amount)
+        payment_total = today_payments.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
+        # Completed reservations today
+        today_reservations = Reservations.objects.filter(
+            date=today,
+            status='completed',
+            fee__isnull=False,
+            fee__gt=0
+        )
+        reservation_total = today_reservations.aggregate(total=Sum('fee'))['total'] or Decimal('0')
+
+        # Combined revenue
+        today_revenue = payment_total + reservation_total
+
         
         # Prepare data in the format expected by frontend
         stats_data = {
