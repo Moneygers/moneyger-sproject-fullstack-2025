@@ -29,4 +29,8 @@ urlpatterns = [
     
     # Include router URLs
     path('', include(router.urls)),
+    
+    path('test-sms/', views.test_sms, name='test-sms'),  # SMS testing endpoint
+    path('textbee-info/', views.textbee_service_info, name='textbee-info'),  # TextBee service info
+
 ]

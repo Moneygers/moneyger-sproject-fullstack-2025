@@ -22,6 +22,11 @@ from .serializers import (
     CheckoutSerializer,
     PaymentReportsSerializer
 )
+from .services import sms_service
+import logging
+import threading
+
+logger = logging.getLogger(__name__)
 
 # System Settings Storage (In production, this would be in database)
 SYSTEM_SETTINGS = {
@@ -138,7 +143,6 @@ class ParkSlotViewSet(viewsets.ModelViewSet):
             slot_data = ParkSlotSerializer(slot).data
             
             return Response({
-                'message': f'Vehicle {license_plate} assigned to slot',
                 'slot': slot_data,
                 'payment': {
                     'id': payment.recieptNo,
@@ -240,7 +244,6 @@ class ParkSlotViewSet(viewsets.ModelViewSet):
 
             # Prepare response data
             response_data = {
-                'message': 'Vehicle checked out successfully',
                 'slot_id': slot.id,
                 'license_plate': payment.plate_no,
                 'duration': f"{duration_hours}h {int((duration.total_seconds() % 3600) / 60)}m",
@@ -278,7 +281,6 @@ class ParkSlotViewSet(viewsets.ModelViewSet):
             slot_data = ParkSlotSerializer(slot).data
             
             return Response({
-                'message': f'Slot has been released',
                 'slot': slot_data
             }, status=status.HTTP_200_OK)
             
@@ -420,7 +422,7 @@ class UserViewSet(viewsets.ModelViewSet):
             username = instance.username
             self.perform_destroy(instance)
             return Response({
-                'message': f'User {username} deleted successfully'
+                'success': True
             }, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({
@@ -439,6 +441,18 @@ class UserViewSet(viewsets.ModelViewSet):
         
         kwargs['partial'] = True
         return self.update(request, *args, **kwargs)
+
+def send_sms_async(reservation, sms_type):
+    """Send SMS in background thread to avoid blocking the response"""
+    try:
+        if sms_type == 'approved':
+            sms_service.send_reservation_approved_sms(reservation)
+        elif sms_type == 'rejected':
+            sms_service.send_reservation_rejected_sms(reservation)
+        elif sms_type == 'arrival':
+            sms_service.send_arrival_confirmation_sms(reservation)
+    except Exception as e:
+        logger.error(f"Background SMS error for reservation {reservation.id}: {str(e)}")
 
 # Reservations ViewSet
 class ReservationsViewSet(viewsets.ModelViewSet):
@@ -502,21 +516,23 @@ class ReservationsViewSet(viewsets.ModelViewSet):
                 park_slot.status = 'reserved'
                 park_slot.save()
                 
+                logger.info(f"New reservation created: ID {reservation.id}, Phone: {reservation.mobileNo}")
+                
                 return Response({
-                    'message': 'Reservation created successfully',
                     'reservation': ReservationsSerializer(reservation).data
                 }, status=status.HTTP_201_CREATED)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                 
         except Exception as e:
+            logger.error(f"Failed to create reservation: {str(e)}")
             return Response({
                 'error': f'Failed to create reservation: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
-        """Approve a reservation"""
+        """Approve a reservation and send SMS notification"""
         try:
             reservation = self.get_object()
             
@@ -525,22 +541,32 @@ class ReservationsViewSet(viewsets.ModelViewSet):
                     'error': 'Only pending reservations can be approved'
                 }, status=status.HTTP_400_BAD_REQUEST)
             
+            # Update reservation status first
             reservation.status = 'approved'
             reservation.save()
             
-            return Response({
+            # Send immediate success response
+            response_data = {
                 'message': 'Reservation approved successfully',
                 'reservation': ReservationsSerializer(reservation).data
-            }, status=status.HTTP_200_OK)
+            }
+            
+            # Send SMS in background thread to avoid blocking
+            sms_thread = threading.Thread(target=send_sms_async, args=(reservation, 'approved'))
+            sms_thread.daemon = True
+            sms_thread.start()
+            
+            return Response(response_data, status=status.HTTP_200_OK)
             
         except Exception as e:
+            logger.error(f"Failed to approve reservation {pk}: {str(e)}")
             return Response({
                 'error': f'Failed to approve reservation: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):
-        """Reject a reservation"""
+        """Reject a reservation and send SMS notification"""
         try:
             reservation = self.get_object()
             
@@ -549,6 +575,7 @@ class ReservationsViewSet(viewsets.ModelViewSet):
                     'error': 'Only pending reservations can be rejected'
                 }, status=status.HTTP_400_BAD_REQUEST)
             
+            # Update reservation status first
             reservation.status = 'rejected'
             reservation.save()
             
@@ -557,12 +584,21 @@ class ReservationsViewSet(viewsets.ModelViewSet):
                 reservation.park_slot.status = 'available'
                 reservation.park_slot.save()
             
-            return Response({
+            # Send immediate success response
+            response_data = {
                 'message': 'Reservation rejected successfully',
                 'reservation': ReservationsSerializer(reservation).data
-            }, status=status.HTTP_200_OK)
+            }
+            
+            # Send SMS in background thread to avoid blocking
+            sms_thread = threading.Thread(target=send_sms_async, args=(reservation, 'rejected'))
+            sms_thread.daemon = True
+            sms_thread.start()
+            
+            return Response(response_data, status=status.HTTP_200_OK)
             
         except Exception as e:
+            logger.error(f"Failed to reject reservation {pk}: {str(e)}")
             return Response({
                 'error': f'Failed to reject reservation: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -586,7 +622,6 @@ class ReservationsViewSet(viewsets.ModelViewSet):
             reservation.park_slot.save()
             
             return Response({
-                'message': 'Reservation completed successfully',
                 'reservation': ReservationsSerializer(reservation).data
             }, status=status.HTTP_200_OK)
             
@@ -597,7 +632,7 @@ class ReservationsViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def arrival(self, request, pk=None):
-        """Record customer arrival and assign fee"""
+        """Record customer arrival, assign fee, and send SMS confirmation"""
         try:
             reservation = self.get_object()
 
@@ -624,12 +659,21 @@ class ReservationsViewSet(viewsets.ModelViewSet):
             reservation.park_slot.status = 'occupied'
             reservation.park_slot.save()
 
-            return Response({
+            # Send immediate success response
+            response_data = {
                 'message': 'Customer arrival recorded successfully',
                 'reservation': ReservationsSerializer(reservation).data
-            }, status=status.HTTP_200_OK)
+            }
+            
+            # Send SMS in background thread to avoid blocking
+            sms_thread = threading.Thread(target=send_sms_async, args=(reservation, 'arrival'))
+            sms_thread.daemon = True
+            sms_thread.start()
+
+            return Response(response_data, status=status.HTTP_200_OK)
 
         except Exception as e:
+            logger.error(f"Failed to record arrival for reservation {pk}: {str(e)}")
             return Response({
                 'error': f'Failed to record arrival: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -784,3 +828,80 @@ def available_slots(request):
     
     serializer = ParkSlotSerializer(available_slots, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+# Test SMS endpoint for debugging
+@api_view(['POST'])
+def test_sms(request):
+    """Test endpoint to send SMS via TextBee with enhanced error reporting"""
+    try:
+        phone_number = request.data.get('phone_number')
+        message = request.data.get('message', 'Test message from MoneyGers Parking System via TextBee! 🚗📱')
+        
+        if not phone_number:
+            return Response({
+                'error': 'phone_number is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        logger.info(f"🧪 Testing SMS via TextBee to {phone_number}")
+        
+        # Get service status first
+        service_status = sms_service.get_service_status()
+        
+        # Send test SMS
+        success = sms_service.send_sms(phone_number, message)
+        
+        return Response({
+            'success': success,
+            'message': 'SMS sent successfully via TextBee! Check your phone.' if success else 'Failed to send SMS via TextBee. Check logs for details.',
+            'phone_number': phone_number,
+            'formatted_number': sms_service.format_phone_number(phone_number),
+            'service_status': service_status,
+            'sms_service': 'TextBee',
+            'troubleshooting': {
+                'api_key_note': 'Make sure TEXTBEE_API_KEY is set correctly',
+                'device_id_note': 'Make sure TEXTBEE_DEVICE_ID is set correctly',
+                'device_status_note': 'Check if your TextBee device is online and connected',
+                'common_issues': [
+                    'Invalid API key or Device ID',
+                    'TextBee device is offline',
+                    'Insufficient credits in TextBee account',
+                    'Network connectivity issues'
+                ]
+            }
+        }, status=status.HTTP_200_OK if success else status.HTTP_400_BAD_REQUEST)
+        
+    except Exception as e:
+        logger.error(f"Test SMS error: {str(e)}")
+        return Response({
+            'error': f'Failed to send test SMS: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# TextBee service info endpoint
+@api_view(['GET'])
+def textbee_service_info(request):
+    """Get TextBee service information for debugging"""
+    try:
+        service_status = sms_service.get_service_status()
+        
+        return Response({
+            'service_status': service_status,
+            'configuration_help': {
+                'step_1': 'Set TEXTBEE_API_KEY in your environment variables',
+                'step_2': 'Set TEXTBEE_DEVICE_ID in your environment variables',
+                'step_3': 'Make sure your TextBee device is online',
+                'step_4': 'Test SMS using the test-sms endpoint',
+                'step_5': 'Check TextBee dashboard for device status and credits'
+            },
+            'common_401_fixes': [
+                'Verify API key is correct (check TextBee dashboard)',
+                'Verify Device ID is correct (check TextBee dashboard)',
+                'Ensure device is online and connected',
+                'Check if API key has proper permissions',
+                'Verify account has sufficient credits'
+            ]
+        })
+            
+    except Exception as e:
+        return Response({
+            'error': f'Failed to get service info: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
