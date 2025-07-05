@@ -57,7 +57,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #9f00ff 0%, #00fff7 100%);
+  background: #00fff7;
   color: #000000;
   border-radius: 0.5rem;
   border: none;
@@ -67,9 +67,9 @@
 }
 
 .update-slots-container .refresh-button:hover {
-  background: linear-gradient(135deg, #00fff7 0%, #9f00ff 100%);
+  background: #ffffff;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 255, 247, 0.3);
+  box-shadow: 0 4px 12px rgba(136, 0, 255, 0.3);
 }
 
 .update-slots-container .refresh-icon {
@@ -155,8 +155,9 @@
 
 .update-slots-container .clear-filters-button {
   padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #9f00ff 0%, #00fff7 100%);
-  color: #000000;
+  background: #000000;
+  color: #ffffff;
+  box-shadow: 0 4px 6px rgb(239, 239, 239);
   border-radius: 0.375rem;
   border: none;
   cursor: pointer;
@@ -168,9 +169,9 @@
 }
 
 .update-slots-container .clear-filters-button:hover {
-  background: linear-gradient(135deg, #00fff7 0%, #9f00ff 100%);
+  background: #000000;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 255, 247, 0.3);
+  box-shadow: 0 4px 6px rgba(136, 0, 255, 0.3);
 }
 
 .update-slots-container .slots-section {
@@ -211,56 +212,50 @@
 }
 
 .update-slots-container .slot-item.clickable:hover {
-  box-shadow: 0 4px 12px rgba(0, 255, 247, 0.4);
-  border-color: #00fff7;
+  border-color: #000000;
 }
 
 .update-slots-container .slot-item.disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
+  cursor: pointer;
 }
 
 .update-slots-container .slot-available {
-  background: linear-gradient(135deg, #00ff00 0%, #32cd32 100%);
+  background: linear-gradient(135deg, #30fe30ac 0%, #0e8a0e 100%);
   color: #000000;
-  border: 2px solid #00ff00;
 }
 
 .update-slots-container .slot-available.clickable:hover {
-  background: linear-gradient(135deg, #32cd32 0%, #00ff00 100%);
+  background: linear-gradient(135deg, #20f420 0%, #01b001 100%);
   color: #000000;
-  box-shadow: 0 4px 12px rgba(0, 255, 0, 0.5);
+  border: 2px solid #e40303;
 }
 
 .update-slots-container .slot-occupied {
-  background: linear-gradient(135deg, #ff0000 0%, #dc143c 100%);
+  background: linear-gradient(135deg, #c70505b1 0%, #dc143c9e 100%);
+  color: #ffffff;
+}
+
+.update-slots-container .slot-occupied.clickable:hover {
+  background: linear-gradient(135deg, #de0934 0%, #b70303db 100%);
   color: #ffffff;
   border: 2px solid #ff0000;
 }
 
-.update-slots-container .slot-occupied.clickable:hover {
-  background: linear-gradient(135deg, #dc143c 0%, #ff0000 100%);
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(255, 0, 0, 0.5);
-}
-
 .update-slots-container .slot-reserved {
-  background: linear-gradient(135deg, #0066ff 0%, #4da6ff 100%);
+  background: linear-gradient(135deg, #0066ffa0 0%, #3371afc4 100%);
   color: #000000;
-  border: 2px solid #0066ff;
 }
 
 .update-slots-container .slot-reserved.clickable:hover {
-  background: linear-gradient(135deg, #4da6ff 0%, #0066ff 100%);
+  background: linear-gradient(135deg, #2288ef 0%, #0066ff 100%);
   color: #000000;
-  box-shadow: 0 4px 12px rgba(0, 102, 255, 0.5);
+  border: 2px solid #e40303;
 }
 
 .update-slots-container .slot-vip {
-  background: linear-gradient(135deg, #ffff00 0%, #ffd700 100%);
+  background: linear-gradient(135deg, #ffff2ca7 0%, #fae318 100%);
   color: #000000;
   position: relative;
-  border: 2px solid #ffff00;
 }
 
 .update-slots-container .slot-vip::before {
@@ -273,9 +268,9 @@
 }
 
 .update-slots-container .slot-vip.clickable:hover {
-  background: linear-gradient(135deg, #ffd700 0%, #ffff00 100%);
+  background: linear-gradient(135deg, #ffff00 0%, #fefe10e5 100%);
   color: #000000;
-  box-shadow: 0 4px 12px rgba(255, 255, 0, 0.5);
+  border: 2px solid #e40303;
 }
 
 .update-slots-container .slot-disabled {
@@ -285,19 +280,17 @@
   border: 2px solid #808080;
 }
 
-.update-slots-container .slot-disabled::before {
-  content: "♿";
-  position: absolute;
-  top: 0.25rem;
-  right: 0.25rem;
-  font-size: 0.75rem;
+.update-slots-container .slot-disabled:hover {
+  background: linear-gradient(135deg, #808080 0%, #a9a9a9 100%);
+  color: #ffffff;
+  border: 2px solid #e40303;
 }
 
 .update-slots-container .slot-id {
-  font-size: 0.65rem;
+  font-size: 0.95rem;
   font-weight: 700;
   margin-bottom: 0.25rem;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  color: #000000;
   line-height: 1;
 }
 
@@ -315,7 +308,7 @@
 }
 
 .update-slots-container .slot-plate {
-  font-size: 0.5rem;
+  font-size: 0.7rem;
   font-family: "Courier New", monospace;
   font-weight: 700;
   background: rgba(0, 0, 0, 0.3);
@@ -568,7 +561,7 @@
 
 .update-slots-container .modal-assign:disabled {
   opacity: 0.5;
-  cursor: not-allowed;
+  cursor: pointer;
   transform: none;
   box-shadow: 0 4px 12px rgba(0, 255, 247, 0.2);
 }

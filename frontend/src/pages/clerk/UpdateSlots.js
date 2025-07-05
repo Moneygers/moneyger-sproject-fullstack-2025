@@ -99,7 +99,7 @@ const UpdateSlots = () => {
   }
 
   const handleSlotClick = (slot) => {
-    if (slot.status === "available" && slot.slot_type !== "disabled") {
+    if (slot.status === "available" && slot.slot_type == "disabled") {
       setSelectedSlot(slot)
       setShowPlateModal(true)
       setPlateNumber("")
@@ -286,7 +286,7 @@ const UpdateSlots = () => {
           {filteredSlots.length === 0 && (
             <div className="no-slots">
               <div className="no-slots-icon">🚗</div>
-              <h3 className="no-slots-title">No slots found</h3>
+              <h3 className="no-slots-title">NO SLOTS FOUND!</h3>
               <p className="no-slots-text">Try adjusting your search or filter criteria.</p>
             </div>
           )}
@@ -306,11 +306,15 @@ const UpdateSlots = () => {
             </div>
             <div className="legend-item">
               <div className="legend-color slot-reserved"></div>
-              <span className="legend-text">VIP/Reserved</span>
+              <span className="legend-text">Reserved</span>
+            </div>
+            <div className="legend-item">
+              <div className="legend-color slot-vip"></div>
+              <span className="legend-text">VIP</span>
             </div>
             <div className="legend-item">
               <div className="legend-color slot-disabled"></div>
-              <span className="legend-text">Disabled Access</span>
+              <span className="legend-text">PWD Slot</span>
             </div>
             <div className="legend-instruction">Click available slots to assign • Click occupied to release</div>
           </div>

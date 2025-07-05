@@ -337,7 +337,7 @@ const CustomerView = () => {
                         <div className="customer-slot-id">{`F${Number.parseInt(slot.structure.replace("FLOOR", ""))}-${slot.section}-${slot.slotNo}`}</div>
                         <div className="customer-slot-icon">{getSlotIcon(slot)}</div>
                         <div className="customer-slot-type">
-                          {slot.slot_type === "vip" ? "VIP" : slot.slot_type === "disabled" ? "DISABLED" : "AVAILABLE"}
+                          {slot.slot_type === "vip" ? "VIP" : slot.slot_type === "disabled" ? "PWD" : "AVAILABLE"}
                         </div>
                       </div>
                     ))}
@@ -362,7 +362,7 @@ const CustomerView = () => {
             </div>
             <div className="legend-item">
               <div className="legend-color customer-slot-disabled"></div>
-              <span className="legend-text">Disabled Access</span>
+              <span className="legend-text">PWD Slot</span>
             </div>
             <div className="legend-item">
               <div className="legend-color customer-slot-occupied"></div>
@@ -413,7 +413,7 @@ const CustomerView = () => {
                 {selectedSlot.slot_type === "vip"
                   ? " VIP Slot"
                   : selectedSlot.slot_type === "disabled"
-                    ? " Disabled Access"
+                    ? " PWD Slot"
                     : " Regular Slot"}
               </div>
             </div>

@@ -106,8 +106,9 @@
 }
 
 .approve-reservations-container .refresh-button:hover {
-  background: #9f00ff;
-  color: #ffffff;
+  background: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(136, 0, 255, 0.3);
 }
 
 .approve-reservations-container .summary-card {
@@ -221,7 +222,7 @@
 
 .approve-reservations-container .slot-id {
   font-weight: 600;
-  color: #9f00ff;
+  color: #00fff7;
 }
 
 .approve-reservations-container .customer-info {
@@ -248,6 +249,7 @@
 .approve-reservations-container .reservation-details {
   display: flex;
   flex-direction: column;
+  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
   gap: 0.25rem;
 }
 
@@ -261,11 +263,14 @@
   font-size: 0.75rem;
   color: #a0a0a0;
   font-weight: 500;
+  margin-top: 0.5rem;
 }
 
 .approve-reservations-container .detail-value {
   font-size: 0.875rem;
-  color: #f1f1f1;
+  color: #ffffff;
+  margin-top: -0.7rem;
+  font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 }
 
 .approve-reservations-container .status-badge {
@@ -318,7 +323,7 @@
 }
 
 .approve-reservations-container .reject-button:hover {
-  background: #666666;
+  background: #3e0505dd;
 }
 
 @media (max-width: 768px) {

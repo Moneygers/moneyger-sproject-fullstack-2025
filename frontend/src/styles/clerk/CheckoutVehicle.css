@@ -100,21 +100,23 @@
 }
 
 .refresh-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #9f00ff 0%, #00fff7 100%);
+  background: #00fff7;
   color: #000000;
-  border-radius: 0.375rem;
+  border-radius: 0.5rem;
   border: none;
   cursor: pointer;
+  transition: all 0.2s;
   font-weight: 600;
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
 }
 
 .refresh-button:hover {
-  background: linear-gradient(135deg, #00fff7 0%, #9f00ff 100%);
+  background: #ffffff;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 255, 247, 0.3);
+  box-shadow: 0 4px 12px rgba(136, 0, 255, 0.3);
 }
 
 .no-slots {
@@ -212,12 +214,12 @@
 }
 
 .slot-type-disabled {
-  background: linear-gradient(135deg, #808080 0%, #a9a9a9 100%);
-  color: #ffffff;
+  background: linear-gradient(135deg, #6f89ba 0%, #029aff 100%);
+  color: #000000;
 }
 
 .slot-type-regular {
-  background: linear-gradient(135deg, #00fff7 0%, #9f00ff 100%);
+  background: linear-gradient(135deg, #ffffffac 0%, #ffffff 100%);
   color: #000000;
 }
 
@@ -230,7 +232,7 @@
 .vehicle-info-section {
   padding: 1rem 1.25rem;
   border-bottom: 1px solid #333333;
-  background: linear-gradient(135deg, rgba(159, 0, 255, 0.05) 0%, rgba(0, 255, 247, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(77, 76, 76, 0.571) 0%, rgba(2, 6, 5, 0.818) 100%);
 }
 
 .vehicle-header {
@@ -255,7 +257,7 @@
 .license-plate {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #00fff7;
+  color: #ffffff;
   font-family: "Courier New", monospace;
   letter-spacing: 1px;
   margin-bottom: 0.25rem;
@@ -306,17 +308,19 @@
 .detail-value {
   font-size: 0.875rem;
   font-weight: 600;
+  font-family: 'Courier New', Courier, monospace;
   color: #f1f1f1;
   word-break: break-word;
 }
 
 .detail-value.duration {
   color: #ffef00;
+  font-family: 'Courier New', Courier, monospace;
   font-weight: 700;
 }
 
 .detail-value.fee {
-  color: #00fff7;
+  color: #ffffff;
   font-size: 1.125rem;
   font-weight: 800;
 }
@@ -334,7 +338,7 @@
   justify-content: center;
   gap: 0.75rem;
   padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, #9f00ff 0%, #00fff7 100%);
+  background-color: #ffffffad;
   color: #000000;
   border-radius: 0.5rem;
   border: none;
@@ -346,7 +350,7 @@
 }
 
 .checkout-button:hover {
-  background: linear-gradient(135deg, #00fff7 0%, #9f00ff 100%);
+  background-color: #ffffff;
   box-shadow: 0 6px 20px rgba(0, 255, 247, 0.4);
   transform: translateY(-2px);
 }
@@ -435,7 +439,7 @@
 }
 
 .summary-value.fee {
-  color: #00fff7;
+  color: #ffffff;
   font-size: 1.125rem;
   font-weight: 700;
 }

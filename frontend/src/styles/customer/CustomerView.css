@@ -304,30 +304,27 @@
 .customer-slot.clickable:hover {
   transform: scale(1.05);
   box-shadow: 0 4px 12px rgba(0, 255, 247, 0.4);
+  border: 2px solid #e40303;
 }
 
 .customer-slot-available {
-  background: linear-gradient(135deg, #00ff00 0%, #32cd32 100%);
+  background: linear-gradient(135deg, #30fe30ac 0%, #0e8a0e 100%);
   color: #000000;
-  border: 2px solid #00ff00;
 }
 
 .customer-slot-vip {
-  background: linear-gradient(135deg, #ffff00 0%, #ffd700 100%);
+  background: linear-gradient(135deg, #ffff2ca7 0%, #fae318 100%);
   color: #000000;
-  border: 2px solid #ffff00;
 }
 
 .customer-slot-disabled {
   background: linear-gradient(135deg, #808080 0%, #a9a9a9 100%);
   color: #ffffff;
-  border: 2px solid #808080;
 }
 
 .customer-slot-occupied {
-  background: linear-gradient(135deg, #ff0000 0%, #dc143c 100%);
+  background: linear-gradient(135deg, #c70505b1 0%, #dc143c9e 100%);
   color: #ffffff;
-  border: 2px solid #ff0000;
 }
 
 .customer-slot-reserved {
@@ -337,9 +334,10 @@
 }
 
 .customer-slot-id {
-  font-size: 0.65rem;
+  font-size: 0.90rem;
   font-weight: 700;
   margin-bottom: 0.25rem;
+  color: #000000;
   text-align: center;
   line-height: 1;
 }
@@ -352,6 +350,7 @@
 .customer-slot-type {
   font-size: 0.6rem;
   text-align: center;
+  color: #000000;
   font-weight: 700;
   line-height: 1;
 }
@@ -368,7 +367,7 @@
 .legend-title {
   font-size: 1.125rem;
   font-weight: 500;
-  color: #f1f1f1;
+  color: #ffffff;
   margin: 0 0 1rem 0;
 }
 
@@ -392,11 +391,11 @@
 }
 
 .legend-color.customer-slot-available {
-  background: linear-gradient(135deg, #00ff00 0%, #32cd32 100%);
+  background: linear-gradient(135deg, #30fe30ac 0%, #0e8a0e 100%);
 }
 
 .legend-color.customer-slot-vip {
-  background: linear-gradient(135deg, #ffff00 0%, #ffd700 100%);
+  background: linear-gradient(135deg, #ffff2ca7 0%, #fae318 100%);
 }
 
 .legend-color.customer-slot-disabled {
@@ -404,16 +403,17 @@
 }
 
 .legend-color.customer-slot-occupied {
-  background: linear-gradient(135deg, #ff0000 0%, #dc143c 100%);
+  background: linear-gradient(135deg, #c70505b1 0%, #dc143c9e 100%);
 }
 
 .legend-color.customer-slot-reserved {
-  background: linear-gradient(135deg, #0066ff 0%, #4da6ff 100%);
+  background: linear-gradient(135deg, #2288ef 0%, #0066ff 100%);
 }
 
 .legend-text {
-  font-size: 0.875rem;
-  color: #f1f1f1;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #ffffff;
 }
 
 .customer-info-card {
@@ -521,7 +521,7 @@
 
 .slot-details-info {
   font-size: 0.875rem;
-  color: #f1f1f1;
+  color: #ffffff;
 }
 
 .modal-form {
@@ -539,7 +539,7 @@
   display: block;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #a0a0a0;
+  color: #ffffff;
   margin-bottom: 0.25rem;
 }
 
@@ -598,15 +598,15 @@
 }
 
 .modal-cancel:hover {
-  background-color: #1a1a1a;
-  color: #f1f1f1;
+  background-color: #3e0505;
+  color: #ffffff;
 }
 
 .modal-submit {
   flex: 1;
   padding: 0.5rem 1rem;
-  background: linear-gradient(135deg, #9f00ff 0%, #00fff7 100%);
-  color: #000000;
+  background: linear-gradient(135deg, #9d00ffa4 10%, #23fff8e5 100%);
+  color: #ffffff;
   border-radius: 0.375rem;
   border: none;
   cursor: pointer;
@@ -615,7 +615,7 @@
 }
 
 .modal-submit:hover:not(:disabled) {
-  background: linear-gradient(135deg, #00fff7 0%, #9f00ff 100%);
+  background: linear-gradient(135deg, #23fff8e5 0%, #9d00ffa4 100%);
 }
 
 .modal-submit:disabled {
