@@ -105,6 +105,12 @@ const ReviewTransactions = () => {
   }
 
   const filteredTransactions = transactions.filter((transaction) => {
+    // Exclude transactions with null or empty mode_of_payment
+    if (!transaction.mode_of_payment) return false;
+
+    // If reservation, only show if status is 'completed'
+    if (transaction.type === 'reservation' && transaction.status?.toLowerCase() !== 'completed') return false;
+
     // Search filter
     const slotId = getSlotDisplayId(transaction)
     const search = searchTerm.toLowerCase()
