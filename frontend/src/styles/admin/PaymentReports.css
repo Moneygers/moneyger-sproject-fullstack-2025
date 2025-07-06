@@ -155,7 +155,7 @@
 }
 
 .chart-bar {
-  background: linear-gradient(180deg, #00fff7 0%, #9f00ff 100%);
+  background: #b9f3f1;
   width: 100%;
   border-radius: 0.25rem 0.25rem 0 0;
   min-height: 20px;

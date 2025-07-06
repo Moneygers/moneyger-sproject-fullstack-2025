@@ -96,7 +96,7 @@
 
 .approve-reservations-container .refresh-button {
   padding: 0.5rem 1rem;
-  background: #00fff7;
+  background: #bdfffd;
   color: #000000;
   border-radius: 0.25rem;
   border: none;
@@ -106,7 +106,7 @@
 }
 
 .approve-reservations-container .refresh-button:hover {
-  background: #ffffff;
+  background: #dca5ff;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(136, 0, 255, 0.3);
 }
