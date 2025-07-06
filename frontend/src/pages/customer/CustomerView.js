@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import { useAuth } from "../../contexts/AuthContext"
 import Footer from "../../components/Footer"
 import "../../styles/customer/CustomerView.css"
 
@@ -10,6 +11,7 @@ const CustomerView = () => {
   const [loading, setLoading] = useState(true)
   const [selectedFloor, setSelectedFloor] = useState(1)
   const [showReservationModal, setShowReservationModal] = useState(false)
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const [selectedSlot, setSelectedSlot] = useState(null)
   const [reservationForm, setReservationForm] = useState({
     name: "",
@@ -18,10 +20,22 @@ const CustomerView = () => {
   })
   const [formErrors, setFormErrors] = useState({})
   const navigate = useNavigate()
+  const { user, isAuthenticated, logout } = useAuth()
 
   useEffect(() => {
     fetchAvailableSlots()
   }, [])
+
+  // Add this useEffect after the existing useEffect
+  useEffect(() => {
+    if (user && isAuthenticated && user.role === "customer") {
+      setReservationForm((prev) => ({
+        ...prev,
+        name: `${user.first_name || ""} ${user.last_name || ""}`.trim() || user.username || "",
+        contactNumber: user.phone_no || "",
+      }))
+    }
+  }, [user, isAuthenticated])
 
   const fetchAvailableSlots = async () => {
     try {
@@ -86,12 +100,33 @@ const CustomerView = () => {
 
   const handleSlotClick = (slot) => {
     if (slot.status === "available") {
+      // Check if user is authenticated and has customer role
+      if (!isAuthenticated || !user || user.role !== "customer") {
+        setSelectedSlot(slot)
+        setShowLoginPrompt(true)
+        return
+      }
+
+      // User is authenticated as customer, proceed with reservation
       setSelectedSlot(slot)
       setShowReservationModal(true)
-      // Reset form and errors when opening modal
-      setReservationForm({ name: "", plateNumber: "", contactNumber: "" })
+      // Auto-populate form with user data and reset only plate number
+      setReservationForm({
+        name: `${user.first_name || ""} ${user.last_name || ""}`.trim() || user.username || "",
+        plateNumber: "",
+        contactNumber: user.phone_no || "",
+      })
       setFormErrors({})
     }
+  }
+
+  const handleLoginRedirect = () => {
+    navigate("/login")
+  }
+
+  const closeLoginPrompt = () => {
+    setShowLoginPrompt(false)
+    setSelectedSlot(null)
   }
 
   // Validation functions
@@ -166,14 +201,8 @@ const CustomerView = () => {
   const validateForm = () => {
     const errors = {}
 
-    const nameError = validateName(reservationForm.name)
-    if (nameError) errors.name = nameError
-
     const plateError = validatePlateNumber(reservationForm.plateNumber)
     if (plateError) errors.plateNumber = plateError
-
-    const contactError = validateContactNumber(reservationForm.contactNumber)
-    if (contactError) errors.contactNumber = contactError
 
     setFormErrors(errors)
     return Object.keys(errors).length === 0
@@ -251,10 +280,23 @@ const CustomerView = () => {
       <div className="customer-header">
         <div className="customer-header-content">
           <div className="header-left">
-            <button onClick={() => navigate("/login")} className="back-to-login">
-              <span className="back-icon">←</span>
-              <span>Back to Login</span>
-            </button>
+            {isAuthenticated && user?.role === "customer" ? (
+              <button
+                onClick={() => {
+                  logout()
+                  navigate("/login")
+                }}
+                className="back-to-login"
+              >
+                <span className="back-icon">←</span>
+                <span>Logout</span>
+              </button>
+            ) : (
+              <button onClick={() => navigate("/login")} className="back-to-login">
+                <span className="back-icon">←</span>
+                <span>Back to Login</span>
+              </button>
+            )}
             <div className="header-divider"></div>
             <div className="brand-section">
               <div className="brand-icon">
@@ -262,7 +304,11 @@ const CustomerView = () => {
               </div>
               <div className="brand-info">
                 <h1 className="brand-title">ParkMoneyger</h1>
-                <p className="brand-subtitle">Customer View - Available Parking Slots</p>
+                <p className="brand-subtitle">
+                  {isAuthenticated && user?.role === "customer"
+                    ? `Welcome, ${user.first_name || user.username}! - Available Parking Slots`
+                    : "Customer View - Available Parking Slots (Guest Mode)"}
+                </p>
               </div>
             </div>
           </div>
@@ -307,7 +353,11 @@ const CustomerView = () => {
             <p className="floor-layout-subtitle">
               {availableCount} available slots out of {currentFloorSlots.length} total
             </p>
-            <p className="click-instruction">Click on any available slot to make a reservation</p>
+            <p className="click-instruction">
+              {isAuthenticated && user?.role === "customer"
+                ? "Click on any available slot to make a reservation"
+                : "Login as a customer to make reservations"}
+            </p>
           </div>
 
           {Object.keys(sectionedSlots).length === 0 ? (
@@ -348,7 +398,6 @@ const CustomerView = () => {
           )}
         </div>
 
-
         {/* Info Card */}
         <div className="customer-info-card">
           <div className="info-card-content">
@@ -356,7 +405,9 @@ const CustomerView = () => {
             <div className="info-text">
               <h3 className="info-title">Need to Park?</h3>
               <p className="info-description">
-                Click on any available slot above to make a reservation, or visit our front desk for immediate parking.
+                {isAuthenticated && user?.role === "customer"
+                  ? "Click on any available slot above to make a reservation, or visit our front desk for immediate parking."
+                  : "Login as a customer to make reservations, or visit our front desk for immediate parking."}
               </p>
               <div className="info-details">
                 <p>• Payment accepted: Cash, GCash</p>
@@ -367,6 +418,40 @@ const CustomerView = () => {
           </div>
         </div>
       </div>
+
+      {/* Login Prompt Modal */}
+      {showLoginPrompt && selectedSlot && (
+        <div className="modal-overlay">
+          <div className="reservation-modal">
+            <div className="modal-header">
+              <h3 className="modal-title">Login Required</h3>
+              <button onClick={closeLoginPrompt} className="modal-close">
+                ✕
+              </button>
+            </div>
+
+            <div className="login-prompt-content">
+              <div className="login-prompt-icon">🔒</div>
+              <h4>Customer Login Required</h4>
+              <p>
+                To reserve slot{" "}
+                {`F${Number.parseInt(selectedSlot.structure.replace("FLOOR", ""))}-${selectedSlot.section}-${selectedSlot.slotNo}`}
+                , you need to login as a customer.
+              </p>
+              <p>Don't have an account? You can create one on the login page.</p>
+            </div>
+
+            <div className="modal-actions">
+              <button onClick={closeLoginPrompt} className="modal-cancel">
+                Cancel
+              </button>
+              <button onClick={handleLoginRedirect} className="modal-submit">
+                Login / Sign Up
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Reservation Modal */}
       {showReservationModal && selectedSlot && (
@@ -398,17 +483,27 @@ const CustomerView = () => {
 
             <div className="modal-form">
               <div className="modal-form-group">
-                <label className="modal-label">Full Name *</label>
+                <label className="modal-label">Full Name</label>
                 <input
                   type="text"
-                  placeholder="Enter your full name (e.g., John M. Doe)"
-                  className={`modal-input ${formErrors.name ? "error" : ""}`}
+                  className="modal-input readonly"
                   value={reservationForm.name}
-                  onChange={(e) => handleInputChange("name", e.target.value)}
-                  maxLength={50}
+                  readOnly
+                  style={{ backgroundColor: "#f5f5f5", cursor: "not-allowed" }}
                 />
-                {formErrors.name && <div className="error-message">{formErrors.name}</div>}
-                <div className="input-hint">Letters, spaces, and periods only (for middle initials)</div>
+                <div className="input-hint">Auto-filled from your account</div>
+              </div>
+
+              <div className="modal-form-group">
+                <label className="modal-label">Contact Number</label>
+                <input
+                  type="tel"
+                  className="modal-input readonly"
+                  value={reservationForm.contactNumber}
+                  readOnly
+                  style={{ backgroundColor: "#f5f5f5", cursor: "not-allowed" }}
+                />
+                <div className="input-hint">Auto-filled from your account</div>
               </div>
 
               <div className="modal-form-group">
@@ -422,20 +517,7 @@ const CustomerView = () => {
                   maxLength={8}
                 />
                 {formErrors.plateNumber && <div className="error-message">{formErrors.plateNumber}</div>}
-              </div>
-
-              <div className="modal-form-group">
-                <label className="modal-label">Contact Number *</label>
-                <input
-                  type="tel"
-                  placeholder="09123456789"
-                  className={`modal-input ${formErrors.contactNumber ? "error" : ""}`}
-                  value={reservationForm.contactNumber}
-                  onChange={(e) => handleInputChange("contactNumber", e.target.value)}
-                  maxLength={11}
-                />
-                {formErrors.contactNumber && <div className="error-message">{formErrors.contactNumber}</div>}
-                <div className="input-hint">Philippine mobile number format (09XXXXXXXXX)</div>
+                <div className="input-hint">Enter your vehicle's license plate number</div>
               </div>
             </div>
 
@@ -445,7 +527,7 @@ const CustomerView = () => {
               </button>
               <button
                 onClick={handleReservationSubmit}
-                disabled={!reservationForm.name || !reservationForm.plateNumber || !reservationForm.contactNumber}
+                disabled={!reservationForm.plateNumber}
                 className="modal-submit"
               >
                 Reserve Slot

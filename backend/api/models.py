@@ -59,6 +59,7 @@ class User(models.Model):
     ROLE_CHOICES = [
         ('admin', 'Admin'),
         ('clerk', 'Clerk'),
+        ('customer', 'Customer'),
     ]
 
     id = models.AutoField(primary_key=True)
@@ -77,6 +78,7 @@ class Reservations(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('approved', 'Approved'),
+        ('cancelled', 'Cancelled'),
         ('completed', 'Completed'),
         ('rejected', 'Rejected'),
         ('arrived', 'Arrived'),
