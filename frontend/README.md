@@ -1,70 +1,22 @@
-# Getting Started with Create React App
+moneyger-sproject-fullstack-2025
+A fullstack web application built with React (JavaScript) and Django REST Framework.
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+ParkMoneyger — Parking Slot Management System
 
-## Available Scripts
+ParkMoneyger is a web-based parking management system designed to streamline the process of assigning parking slots within large-scale facilities such as malls. Built using ReactJS, CSS, and Django, the system enables parking clerks to manually but efficiently assign slots to incoming vehicles, while also providing real-time parking availability to motorists and reporting tools to administrators.
 
-In the project directory, you can run:
+This project aims to replace outdated and error-prone LED indicator systems by offering a centralized, user-friendly solution that supports:
 
-### `npm start`
+Selective Manual Slot Allocation for parking clerks
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Real-Time Slot Monitoring for motorists
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Search-by-Plate Functionality to help users locate their assigned slot
 
-### `npm test`
+Parking Ticket Printing with slot info and computed fee
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Admin Dashboard and Reporting Tools
 
-### `npm run build`
+On-site Payment Support (Cash and GCash only)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+ParkMoneyger is tailored for facilities that need organized, software-based improvements without the need for sensors or hardware upgrades, focusing on usability, efficiency, and practical implementation.
