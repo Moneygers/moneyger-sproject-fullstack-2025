@@ -258,7 +258,7 @@ const CustomerView = () => {
             <div className="header-divider"></div>
             <div className="brand-section">
               <div className="brand-icon">
-                <img src="/favicon.png" alt="Park Moneyger Logo" className="logo-image" />
+                <img src="/favicon2.png" alt="Park Moneyger Logo" className="logo-image" />
               </div>
               <div className="brand-info">
                 <h1 className="brand-title">ParkMoneyger</h1>

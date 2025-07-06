@@ -1,5 +1,5 @@
 .admin-navbar {
-  background: linear-gradient(135deg, #9f00ff 0%, #00fff7 100%);
+  background: linear-gradient(135deg, #ff92a8 0%, #ffef00 100%);
   border-bottom: 1px solid #1a1a1a;
   position: sticky;
   top: 0;
@@ -34,7 +34,7 @@
 .admin-brand-title {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #ffffff;
+  color: #000000;
   margin: 0;
 }
 
@@ -69,7 +69,7 @@
   font-size: 0.75rem;
   color: #000000;
   font-weight: 600;
-  background: rgba(0, 0, 0, 0.2);
+  background: rgba(216, 57, 228, 0.241);
   padding: 0.125rem 0.5rem;
   border-radius: 0.25rem;
 }
@@ -103,7 +103,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: rgba(255, 0, 51, 0.9);
+  background: rgba(255, 0, 51, 0.742);
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -113,7 +113,7 @@
 }
 
 .admin-logout-button:hover {
-  background: rgba(255, 0, 51, 1);
+  background: rgb(255, 0, 51);
   transform: translateY(-1px);
 }
 

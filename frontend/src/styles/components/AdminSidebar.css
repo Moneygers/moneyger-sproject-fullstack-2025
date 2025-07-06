@@ -36,13 +36,13 @@
 
 .admin-sidebar-header > * {
   position: relative;
-  z-index: 1; 
+  z-index: 1;  
 }
 
 .admin-sidebar-avatar {
   width: 3rem;
   height: 3rem;
-  background: linear-gradient(135deg, #9f00ff 0%, #00fff7 100%);
+  background: linear-gradient(135deg, #bdfffd 0%, #9f00ff 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -101,15 +101,15 @@
 }
 
 .admin-sidebar-link:hover {
-  background: rgba(159, 0, 255, 0.1);
+  background: #ffe2e86b;
   color: #f1f1f1;
-  border-left-color: #9f00ff;
+  border-left-color: #ff92a8;
 }
 
 .admin-sidebar-link.active {
-  background: rgba(159, 0, 255, 0.2);
+  background: #ff92a86b;
   color: #f1f1f1;
-  border-left-color: #9f00ff;
+  border-left-color: #ff92a8;
 }
 
 .admin-sidebar-link.active::before {
@@ -120,7 +120,7 @@
   transform: translateY(-50%);
   width: 0.5rem;
   height: 0.5rem;
-  background: #9f00ff;
+  background: #ff92a8;
   border-radius: 50%;
 }
 

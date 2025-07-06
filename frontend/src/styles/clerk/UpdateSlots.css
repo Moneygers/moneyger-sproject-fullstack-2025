@@ -57,7 +57,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: #00fff7;
+  background: #bdfffd;
   color: #000000;
   border-radius: 0.5rem;
   border: none;
@@ -67,7 +67,7 @@
 }
 
 .update-slots-container .refresh-button:hover {
-  background: #ffffff;
+  background: #dca5ff;
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(136, 0, 255, 0.3);
 }
@@ -154,9 +154,9 @@
 }
 
 .update-slots-container .clear-filters-button {
-  padding: 0.5rem 1rem;
-  background: #00fff748;
-  color: #ffffff;
+  padding: 0.55rem 6.5rem;
+  background: #bdfffd;
+  color: #000000;
   border-radius: 0.375rem;
   border: none;
   cursor: pointer;
@@ -165,10 +165,11 @@
   height: fit-content;
   justify-self: center;
   align-self: center;
+  margin-bottom: 0.1rem;
 }
 
 .update-slots-container .clear-filters-button:hover {
-  background: #000000;
+  background: #dca5ff;
   transform: translateY(-1px);
   box-shadow: 0 4px 6px rgba(136, 0, 255, 0.3);
 }

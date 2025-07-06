@@ -184,7 +184,7 @@
   white-space: nowrap;
   color: white;
   justify-content: center;
-  background: linear-gradient(90deg, #9f00ff 0%, #00fff7 100%);
+  background: linear-gradient(90deg, #dca5ff 0%, #bdfffd 100%);
   transition: width 0.6s ease;
 }
 
@@ -228,7 +228,7 @@
 }
 
 .action-button:hover {
-  background: linear-gradient(135deg, #9f00ff 0%, #00fff7 100%);
+  background: linear-gradient(135deg, #dca5ff 0%, #bdfffd 100%);
   border-color: #00fff7;
   transform: translateY(-1px);
   color: #000000;
