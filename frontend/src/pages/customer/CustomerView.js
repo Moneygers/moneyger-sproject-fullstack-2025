@@ -13,6 +13,7 @@ const CustomerView = () => {
   const [selectedFloor, setSelectedFloor] = useState(1)
   const [showReservationModal, setShowReservationModal] = useState(false)
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const [showActiveReservationModal, setShowActiveReservationModal] = useState(false)
   const [selectedSlot, setSelectedSlot] = useState(null)
   const [reservationForm, setReservationForm] = useState({
     name: "",
@@ -23,9 +24,16 @@ const CustomerView = () => {
   const navigate = useNavigate()
   const { user, isAuthenticated, logout } = useAuth()
 
+  const [showPendingModal, setShowPendingModal] = useState(false)
+  const [pendingReservation, setPendingReservation] = useState(null)
+  const [loadingPending, setLoadingPending] = useState(false)
+
   useEffect(() => {
     fetchAvailableSlots()
-  }, [])
+    if (isAuthenticated && user && user.role === "customer") {
+      fetchPendingReservation()
+    }
+  }, [isAuthenticated, user])
 
   // Add this useEffect after the existing useEffect
   useEffect(() => {
@@ -53,6 +61,97 @@ const CustomerView = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const fetchPendingReservation = async () => {
+    if (!isAuthenticated || !user || user.role !== "customer") {
+      return
+    }
+
+    setLoadingPending(true)
+    try {
+      const response = await fetch("http://localhost:8000/api/reservations/")
+
+      if (response.ok) {
+        const data = await response.json()
+        // Find the user's pending reservation (assuming there's only one active reservation per user)
+        const userReservation = data.find(
+          (reservation) =>
+            reservation.name.toLowerCase().includes(user.first_name?.toLowerCase() || user.username?.toLowerCase()) &&
+            (reservation.status === "pending" || reservation.status === "approved"),
+        )
+        setPendingReservation(userReservation || null)
+      } else {
+        console.error("Failed to fetch reservations")
+      }
+    } catch (error) {
+      console.error("Error fetching pending reservation:", error)
+    } finally {
+      setLoadingPending(false)
+    }
+  }
+
+  const checkForActiveReservation = async () => {
+    if (!isAuthenticated || !user || user.role !== "customer") {
+      return null
+    }
+
+    try {
+      const response = await fetch("http://localhost:8000/api/reservations/")
+      if (response.ok) {
+        const data = await response.json()
+        // Find the user's active reservation
+        const activeReservation = data.find(
+          (reservation) =>
+            reservation.name.toLowerCase().includes(user.first_name?.toLowerCase() || user.username?.toLowerCase()) &&
+            (reservation.status === "pending" || reservation.status === "approved"),
+        )
+        return activeReservation || null
+      }
+    } catch (error) {
+      console.error("Error checking for active reservation:", error)
+    }
+    return null
+  }
+
+  const handleCancelReservation = async () => {
+    if (!pendingReservation) return
+
+    const confirmCancel = window.confirm("Are you sure you want to cancel this reservation?")
+    if (!confirmCancel) return
+
+    try {
+      const response = await fetch(`http://localhost:8000/api/reservations/${pendingReservation.id}/cancel/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        alert("Reservation cancelled successfully")
+        setShowPendingModal(false)
+        setPendingReservation(null)
+        fetchAvailableSlots() // Refresh slots
+      } else {
+        const errorData = await response.json()
+        alert(`Failed to cancel reservation: ${errorData.error || "Unknown error"}`)
+      }
+    } catch (error) {
+      console.error("Error cancelling reservation:", error)
+      alert("Failed to cancel reservation")
+    }
+  }
+
+  const handleViewPendingReservation = () => {
+    if (!isAuthenticated || !user || user.role !== "customer") {
+      setShowLoginPrompt(true)
+      return
+    }
+
+    fetchPendingReservation()
+    setShowPendingModal(true)
   }
 
   const getFloorSlots = (floor) => {
@@ -99,7 +198,7 @@ const CustomerView = () => {
     return sectionMap[section] || section
   }
 
-  const handleSlotClick = (slot) => {
+  const handleSlotClick = async (slot) => {
     if (slot.status === "available") {
       // Check if user is authenticated and has customer role
       if (!isAuthenticated || !user || user.role !== "customer") {
@@ -108,7 +207,15 @@ const CustomerView = () => {
         return
       }
 
-      // User is authenticated as customer, proceed with reservation
+      // Check if user already has an active reservation
+      const activeReservation = await checkForActiveReservation()
+      if (activeReservation) {
+        setSelectedSlot(slot)
+        setShowActiveReservationModal(true)
+        return
+      }
+
+      // User is authenticated as customer and has no active reservation, proceed with reservation
       setSelectedSlot(slot)
       setShowReservationModal(true)
       // Auto-populate form with user data and reset only plate number
@@ -127,6 +234,11 @@ const CustomerView = () => {
 
   const closeLoginPrompt = () => {
     setShowLoginPrompt(false)
+    setSelectedSlot(null)
+  }
+
+  const closeActiveReservationModal = () => {
+    setShowActiveReservationModal(false)
     setSelectedSlot(null)
   }
 
@@ -244,6 +356,7 @@ const CustomerView = () => {
         setFormErrors({})
         setSelectedSlot(null)
         fetchAvailableSlots() // Refresh slots
+        fetchPendingReservation() // Refresh pending reservation
       } else {
         const errorData = await response.json()
         alert(`Failed to create reservation: ${errorData.detail || "Unknown error"}`)
@@ -344,6 +457,12 @@ const CustomerView = () => {
                 </div>
               </button>
             ))}
+            {isAuthenticated && user?.role === "customer" && (
+              <button onClick={handleViewPendingReservation} className="view-pending-button" disabled={loadingPending}>
+                <span className="pending-icon">📋</span>
+                <span>{loadingPending ? "Loading..." : "View Pending Reservation"}</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -461,6 +580,50 @@ const CustomerView = () => {
         </div>
       )}
 
+      {/* Active Reservation Modal */}
+      {showActiveReservationModal && selectedSlot && (
+        <div className="modal-overlay">
+          <div className="reservation-modal">
+            <div className="modal-header">
+              <h3 className="modal-title">Reservation Limit Reached</h3>
+              <button onClick={closeActiveReservationModal} className="modal-close">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="login-prompt-content">
+              <div className="login-prompt-icon">⚠️</div>
+              <h4>Only One Reservation Allowed</h4>
+              <p>You already have an active reservation. Only one reservation can be made at a time.</p>
+              <p>
+                You tried to reserve slot{" "}
+                {`F${Number.parseInt(selectedSlot.structure.replace("FLOOR", ""))}-${selectedSlot.section}-${selectedSlot.slotNo}`}
+                , but you need to cancel your current reservation first.
+              </p>
+              <p>
+                You can view and manage your current reservation by clicking the "View Pending Reservation" button
+                above.
+              </p>
+            </div>
+
+            <div className="modal-actions">
+              <button onClick={closeActiveReservationModal} className="modal-cancel">
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  closeActiveReservationModal()
+                  handleViewPendingReservation()
+                }}
+                className="modal-submit"
+              >
+                View My Reservation
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Reservation Modal */}
       {showReservationModal && selectedSlot && (
         <div className="modal-overlay">
@@ -541,6 +704,93 @@ const CustomerView = () => {
                 Reserve Slot
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pending Reservation Modal */}
+      {showPendingModal && (
+        <div className="modal-overlay">
+          <div className="reservation-modal">
+            <div className="modal-header">
+              <h3 className="modal-title">Your Pending Reservation</h3>
+              <button onClick={() => setShowPendingModal(false)} className="modal-close">
+                <X size={20} />
+              </button>
+            </div>
+
+            {loadingPending ? (
+              <div className="loading-content">
+                <div className="spinner"></div>
+                <p>Loading your reservation...</p>
+              </div>
+            ) : pendingReservation ? (
+              <>
+                <div className="slot-details">
+                  <div className="slot-details-title">
+                    <strong>Reservation Details:</strong>
+                  </div>
+                  <div className="slot-details-info">
+                    Slot:{" "}
+                    {pendingReservation.park_slot_details
+                      ? `F${Number.parseInt(pendingReservation.park_slot_details.structure.replace("FLOOR", ""))}-${pendingReservation.park_slot_details.section}-${pendingReservation.park_slot_details.slotNo}`
+                      : "N/A"}{" "}
+                    • Status:{" "}
+                    <span className={`status-badge status-${pendingReservation.status}`}>
+                      {pendingReservation.status.toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="reservation-info">
+                  <div className="info-row">
+                    <span className="info-label">Name:</span>
+                    <span className="info-value">{pendingReservation.name}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Plate Number:</span>
+                    <span className="info-value">{pendingReservation.plate_no}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Contact:</span>
+                    <span className="info-value">{pendingReservation.mobileNo}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Date:</span>
+                    <span className="info-value">{new Date(pendingReservation.date).toLocaleDateString()}</span>
+                  </div>
+                  {pendingReservation.arrival_time && (
+                    <div className="info-row">
+                      <span className="info-label">Arrival Time:</span>
+                      <span className="info-value">{new Date(pendingReservation.arrival_time).toLocaleString()}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="modal-actions">
+                  <button onClick={() => setShowPendingModal(false)} className="modal-cancel">
+                    Close
+                  </button>
+                  {(pendingReservation.status === "pending" || pendingReservation.status === "approved") && (
+                    <button onClick={handleCancelReservation} className="modal-delete">
+                      Cancel Reservation
+                    </button>
+                  )}
+
+                </div>
+              </>
+            ) : (
+              <div className="no-reservation-content">
+                <div className="no-reservation-icon">📋</div>
+                <h4>No Pending Reservations</h4>
+                <p>You don't have any pending reservations at the moment.</p>
+                <div className="modal-actions">
+                  <button onClick={() => setShowPendingModal(false)} className="modal-submit">
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

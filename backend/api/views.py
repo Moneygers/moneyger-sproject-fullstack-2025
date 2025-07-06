@@ -678,6 +678,37 @@ class ReservationsViewSet(viewsets.ModelViewSet):
                 'error': f'Failed to record arrival: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @action(detail=True, methods=['post'])
+    def cancel(self, request, pk=None):
+        """Cancel a reservation and make slot available again"""
+        try:
+            reservation = self.get_object()
+            
+            if reservation.status not in ['pending', 'approved']:
+                return Response({
+                    'error': 'Only pending or approved reservations can be cancelled'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Update reservation status
+            reservation.status = 'cancelled'
+            reservation.save()
+            
+            # Make slot available again
+            if reservation.park_slot.status == 'reserved':
+                reservation.park_slot.status = 'available'
+                reservation.park_slot.save()
+            
+            return Response({
+                'message': 'Reservation cancelled successfully',
+                'reservation': ReservationsSerializer(reservation).data
+            }, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Failed to cancel reservation {pk}: {str(e)}")
+            return Response({
+                'error': f'Failed to cancel reservation: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 # Dashboard Stats View
 @api_view(['GET'])
@@ -908,27 +939,108 @@ def textbee_service_info(request):
             'error': f'Failed to get service info: {str(e)}'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-# Review Transactions Endpoint
+# Review Transactions Endpoint - Only completed reservations and payments with mode_of_payment
 @api_view(['GET'])
 def transaction_reports(request):
     """
-    Return a combined list of all payments and reservations.
+    Return only completed transactions:
+    - Reservations with status='completed' 
+    - Payments with mode_of_payment set (not null/empty)
     """
-    payments = Payment.objects.all().order_by('-created_at')
-    reservations = Reservations.objects.all().order_by('-created_at')
+    try:
+        # Apply date filters if provided
+        date_filter = request.query_params.get('date_filter', 'all')
+        type_filter = request.query_params.get('type_filter', 'all')
+        
+        # Calculate date range based on filter
+        today = timezone.now().date()
+        if date_filter == 'today':
+            start_date = today
+            end_date = today
+        elif date_filter == 'week':
+            start_date = today - timedelta(days=7)
+            end_date = today
+        elif date_filter == 'month':
+            start_date = today - timedelta(days=30)
+            end_date = today
+        else:
+            start_date = None
+            end_date = None
 
-    payment_data = PaymentSerializer(payments, many=True).data
-    for p in payment_data:
-        p['type'] = 'payment'
+        # Fetch only payments with mode_of_payment set (completed transactions)
+        payments_query = Payment.objects.select_related('slot').filter(
+            mode_of_payment__isnull=False
+        ).exclude(mode_of_payment='')
+        
+        if start_date and end_date:
+            payments_query = payments_query.filter(date__range=[start_date, end_date])
+        
+        # Fetch only completed reservations
+        reservations_query = Reservations.objects.select_related('park_slot').filter(
+            status='completed'
+        )
+        if start_date and end_date:
+            reservations_query = reservations_query.filter(date__range=[start_date, end_date])
 
-    reservation_data = ReservationsSerializer(reservations, many=True).data
-    for r in reservation_data:
-        r['type'] = 'reservation'
+        # Convert to list format expected by frontend
+        transactions = []
+        
+        # Process payments (only those with payment method set)
+        if type_filter in ['all', 'parking_fee']:
+            for payment in payments_query:
+                # Calculate duration if possible
+                duration = "N/A"
+                if hasattr(payment, 'created_at'):
+                    # This is a simplified duration calculation
+                    duration = "1h+"  # Default since we don't track end time in payments
+                
+                transactions.append({
+                    'id': f"payment_{payment.recieptNo}",
+                    'receipt_number': f"PAY-{payment.recieptNo}",
+                    'transaction_type': 'parking_fee',
+                    'payment_method': payment.mode_of_payment,
+                    'amount': float(payment.amount) if payment.amount else 0.0,
+                    'license_plate': payment.plate_no,
+                    'duration': duration,
+                    'status': 'Completed',
+                    'created_at': payment.created_at.isoformat() if hasattr(payment, 'created_at') else payment.date.isoformat(),
+                    'slot_info': f"F{payment.slot.structure.replace('FLOOR', '') if payment.slot.structure else '1'}-{payment.slot.section}-{payment.slot.slotNo}" if payment.slot else "N/A"
+                })
 
-    # Combine and sort by created_at (if present)
-    combined = payment_data + reservation_data
-    def get_created_at(x):
-        return x.get('created_at', '')
-    combined.sort(key=get_created_at, reverse=True)
+        # Process completed reservations only
+        if type_filter in ['all', 'reservation_fee']:
+            for reservation in reservations_query:
+                # Calculate duration if arrival_time exists
+                duration = "N/A"
+                if reservation.arrival_time:
+                    # Calculate duration from arrival to completion (simplified)
+                    duration = "2h+"  # Default duration
+                
+                # Only include reservations with fees
+                if reservation.fee and reservation.fee > 0:
+                    transactions.append({
+                        'id': f"reservation_{reservation.id}",
+                        'receipt_number': f"RES-{reservation.id}",
+                        'transaction_type': 'reservation_fee',
+                        'payment_method': reservation.mode_of_payment or 'cash',
+                        'amount': float(reservation.fee),
+                        'license_plate': reservation.plate_no,
+                        'duration': duration,
+                        'status': 'Completed',
+                        'created_at': reservation.created_at.isoformat(),
+                        'slot_info': f"F{reservation.park_slot.structure.replace('FLOOR', '') if reservation.park_slot.structure else '1'}-{reservation.park_slot.section}-{reservation.park_slot.slotNo}" if reservation.park_slot else "N/A",
+                        'customer_name': reservation.name
+                    })
 
-    return Response(combined, status=status.HTTP_200_OK)
+        # Sort by created_at (most recent first)
+        transactions.sort(key=lambda x: x['created_at'], reverse=True)
+
+        logger.info(f"Transaction reports: Found {len(transactions)} completed transactions")
+
+        return Response(transactions, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        logger.error(f"Error in transaction_reports: {str(e)}")
+        return Response({
+            'error': f'Failed to fetch transaction reports: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

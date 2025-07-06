@@ -8,6 +8,7 @@ import "../../styles/admin/ReviewTransactions.css"
 const ReviewTransactions = () => {
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [dateFilter, setDateFilter] = useState("today")
   const [typeFilter, setTypeFilter] = useState("all")
@@ -18,25 +19,36 @@ const ReviewTransactions = () => {
 
   const fetchTransactions = async () => {
     try {
+      setLoading(true)
+      setError(null)
+
       const params = new URLSearchParams({
         date_filter: dateFilter,
         type_filter: typeFilter,
       })
 
-      const response = await fetch(`/api/transactions/?${params}`, {
+      const response = await fetch(`http://localhost:8000/api/reports/transactions/?${params}`, {
+        method: "GET",
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       })
 
       if (response.ok) {
         const data = await response.json()
-        setTransactions(data)
+        console.log("Fetched transactions:", data) // Debug log
+        setTransactions(Array.isArray(data) ? data : [])
       } else {
-        console.error("Failed to fetch transactions")
+        const errorData = await response.json()
+        console.error("Failed to fetch transactions:", errorData)
+        setError(errorData.error || "Failed to fetch transactions")
+        setTransactions([])
       }
     } catch (error) {
       console.error("Error fetching transactions:", error)
+      setError("Network error occurred while fetching transactions")
+      setTransactions([])
     } finally {
       setLoading(false)
     }
@@ -45,13 +57,15 @@ const ReviewTransactions = () => {
   const filteredTransactions = transactions.filter((transaction) => {
     const matchesSearch =
       transaction.receipt_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.payment_method?.toLowerCase().includes(searchTerm.toLowerCase())
+      transaction.payment_method?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.license_plate?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      transaction.customer_name?.toLowerCase().includes(searchTerm.toLowerCase())
 
     return matchesSearch
   })
 
   const getPaymentMethodIcon = (method) => {
-    switch (method) {
+    switch (method?.toLowerCase()) {
       case "cash":
         return <Banknote size={32} />
       case "card":
@@ -74,12 +88,42 @@ const ReviewTransactions = () => {
     }
   }
 
+  const getStatusClass = (status) => {
+    switch (status?.toLowerCase()) {
+      case "completed":
+        return "status-completed"
+      case "pending":
+        return "status-pending"
+      case "cancelled":
+        return "status-cancelled"
+      default:
+        return "status-default"
+    }
+  }
+
   if (loading) {
     return (
       <AdminLayout>
         <div className="review-transactions-container">
           <div className="loading-spinner">
             <div className="spinner"></div>
+            <p>Loading transactions...</p>
+          </div>
+        </div>
+      </AdminLayout>
+    )
+  }
+
+  if (error) {
+    return (
+      <AdminLayout>
+        <div className="review-transactions-container">
+          <div className="error-message">
+            <h3>Error Loading Transactions</h3>
+            <p>{error}</p>
+            <button onClick={fetchTransactions} className="retry-button">
+              Retry
+            </button>
           </div>
         </div>
       </AdminLayout>
@@ -152,7 +196,7 @@ const ReviewTransactions = () => {
               <div className="search-input-container">
                 <input
                   type="text"
-                  placeholder="Receipt number or payment method..."
+                  placeholder="Receipt number, payment method, or license plate..."
                   className="search-input"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -210,7 +254,11 @@ const ReviewTransactions = () => {
                 <Receipt size={48} />
               </div>
               <h3 className="no-transactions-title">No transactions found</h3>
-              <p className="no-transactions-text">Try adjusting your search criteria.</p>
+              <p className="no-transactions-text">
+                {transactions.length === 0
+                  ? "No transactions available for the selected period."
+                  : "Try adjusting your search criteria."}
+              </p>
             </div>
           ) : (
             <div className="transactions-list">
@@ -231,6 +279,9 @@ const ReviewTransactions = () => {
                           payment
                         </p>
                         <p className="transaction-time">{new Date(transaction.created_at).toLocaleString()}</p>
+                        {transaction.customer_name && (
+                          <p className="customer-name">Customer: {transaction.customer_name}</p>
+                        )}
                       </div>
                     </div>
 
@@ -241,13 +292,20 @@ const ReviewTransactions = () => {
                       </div>
 
                       <div className="meta-item">
+                        <div className="meta-label">Slot</div>
+                        <div className="meta-value">{transaction.slot_info || "N/A"}</div>
+                      </div>
+
+                      <div className="meta-item">
                         <div className="meta-label">Duration</div>
                         <div className="meta-value">{transaction.duration || "N/A"}</div>
                       </div>
 
                       <div className="meta-item amount">
                         <div className="amount-value">₱{transaction.amount?.toFixed(2) || "0.00"}</div>
-                        <div className="amount-status">{transaction.status || "Completed"}</div>
+                        <div className={`amount-status ${getStatusClass(transaction.status)}`}>
+                          {transaction.status || "Completed"}
+                        </div>
                       </div>
                     </div>
                   </div>
