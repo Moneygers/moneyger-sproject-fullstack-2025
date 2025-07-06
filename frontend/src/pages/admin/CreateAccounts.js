@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import AdminLayout from "../../components/AdminLayout"
+import { UserPlus, Save, RotateCcw, Eye, EyeOff } from "lucide-react"
 import "../../styles/admin/CreateAccounts.css"
 
 const CreateAccounts = () => {
@@ -119,7 +120,7 @@ const CreateAccounts = () => {
         <div className="form-container">
           <div className="form-card">
             <div className="form-header">
-              <span className="form-icon">👥</span>
+              <UserPlus className="form-icon" size={24} />
               <h2 className="form-title">New User Account</h2>
             </div>
 
@@ -225,7 +226,7 @@ const CreateAccounts = () => {
                         placeholder="Enter password"
                       />
                       <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
-                        {showPassword ? "🙈" : "👁️"}
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
                     {errors.password && <p className="error-message">{errors.password}</p>}
@@ -247,7 +248,7 @@ const CreateAccounts = () => {
                         className="password-toggle"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       >
-                        {showConfirmPassword ? "🙈" : "👁️"}
+                        {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
                     {errors.confirmPassword && <p className="error-message">{errors.confirmPassword}</p>}
@@ -274,10 +275,11 @@ const CreateAccounts = () => {
                   }}
                   className="clear-button"
                 >
+                  <RotateCcw className="button-icon" size={16} />
                   Clear Form
                 </button>
                 <button type="submit" disabled={loading} className="submit-button">
-                  <span className="button-icon">💾</span>
+                  <Save className="button-icon" size={16} />
                   <span>{loading ? "Creating..." : "Create Account"}</span>
                 </button>
               </div>

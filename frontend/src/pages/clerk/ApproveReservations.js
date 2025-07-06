@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { Clock, CheckCircle, AlertTriangle, RotateCcw } from "lucide-react"
 import Layout from "../../components/Layout"
 import "../../styles/clerk/ApproveReservations.css"
 
@@ -100,7 +101,9 @@ const ApproveReservations = () => {
       <Layout>
         <div className="approve-reservations-container">
           <div className="error-message">
-            <div className="error-icon">⚠️</div>
+            <div className="error-icon">
+              <AlertTriangle size={48} />
+            </div>
             <h3>Error Loading Reservations</h3>
             <p>{error}</p>
             <button onClick={fetchPendingReservations} className="retry-button">
@@ -119,14 +122,16 @@ const ApproveReservations = () => {
           <h1 className="main-title">Approve Parking Reservations</h1>
           <p className="subtitle">Review and approve pending parking reservations</p>
           <button onClick={fetchPendingReservations} className="refresh-button">
-            🔄 Refresh
+            <RotateCcw size={16} /> Refresh
           </button>
         </div>
 
         {/* Summary */}
         <div className="summary-card">
           <div className="summary-content">
-            <div className="summary-icon">⏰</div>
+            <div className="summary-icon">
+              <Clock size={24} />
+            </div>
             <div className="summary-info">
               <div className="summary-label">Pending Approvals</div>
               <div className="summary-value">{pendingReservations.length}</div>
@@ -142,7 +147,9 @@ const ApproveReservations = () => {
 
           {pendingReservations.length === 0 ? (
             <div className="no-reservations">
-              <div className="no-reservations-icon">✅</div>
+              <div className="no-reservations-icon">
+                <CheckCircle size={48} />
+              </div>
               <h3 className="no-reservations-title">No pending reservations</h3>
               <p className="no-reservations-text">All reservations have been processed.</p>
             </div>

@@ -2,17 +2,43 @@
 
 import { NavLink } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
+import { BarChart3, Receipt, UserPlus, Users, Settings } from "lucide-react"
 import "../styles/components/AdminSidebar.css"
 
 const AdminSidebar = () => {
   const { user } = useAuth()
 
   const adminNavItems = [
-    { name: "Payment Reports", href: "/admin/payment-reports", icon: "📊", description: "View revenue analytics" },
-    { name: "Review Transactions", href: "/admin/review-transactions", icon: "🧾", description: "Monitor payments" },
-    { name: "Create Accounts", href: "/admin/create-accounts", icon: "👥", description: "Add new users" },
-    { name: "Manage Users", href: "/admin/manage-users", icon: "👤", description: "Edit user accounts" },
-    { name: "System Settings", href: "/admin/system-settings", icon: "⚙️", description: "Configure system" },
+    {
+      name: "Payment Reports",
+      href: "/admin/payment-reports",
+      icon: BarChart3,
+      description: "View revenue analytics",
+    },
+    {
+      name: "Review Transactions",
+      href: "/admin/review-transactions",
+      icon: Receipt,
+      description: "Monitor payments",
+    },
+    {
+      name: "Create Accounts",
+      href: "/admin/create-accounts",
+      icon: UserPlus,
+      description: "Add new users",
+    },
+    {
+      name: "Manage Users",
+      href: "/admin/manage-users",
+      icon: Users,
+      description: "Edit user accounts",
+    },
+    {
+      name: "System Settings",
+      href: "/admin/system-settings",
+      icon: Settings,
+      description: "Configure system",
+    },
   ]
 
   return (
@@ -35,19 +61,22 @@ const AdminSidebar = () => {
       <nav className="admin-sidebar-nav">
         <div className="admin-nav-section">
           <h3 className="admin-nav-section-title">Administration</h3>
-          {adminNavItems.map((item) => (
-            <NavLink
-              key={item.name}
-              to={item.href}
-              className={({ isActive }) => `admin-sidebar-link ${isActive ? "active" : ""}`}
-            >
-              <span className="admin-sidebar-icon">{item.icon}</span>
-              <div className="admin-sidebar-link-content">
-                <span className="admin-sidebar-text">{item.name}</span>
-                <span className="admin-sidebar-description">{item.description}</span>
-              </div>
-            </NavLink>
-          ))}
+          {adminNavItems.map((item) => {
+            const IconComponent = item.icon
+            return (
+              <NavLink
+                key={item.name}
+                to={item.href}
+                className={({ isActive }) => `admin-sidebar-link ${isActive ? "active" : ""}`}
+              >
+                <IconComponent className="admin-sidebar-icon" size={20} />
+                <div className="admin-sidebar-link-content">
+                  <span className="admin-sidebar-text">{item.name}</span>
+                  <span className="admin-sidebar-description">{item.description}</span>
+                </div>
+              </NavLink>
+            )
+          })}
         </div>
       </nav>
     </div>

@@ -1,6 +1,18 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import {
+  Car,
+  CreditCard,
+  Smartphone,
+  Printer,
+  DollarSign,
+  Clock,
+  RotateCcw,
+  CheckCircle,
+  Star,
+  Accessibility,
+} from "lucide-react"
 import "../../styles/clerk/CheckoutVehicle.css"
 import Layout from "../../components/Layout"
 
@@ -188,11 +200,11 @@ const CheckoutVehicle = () => {
   const getSlotTypeIcon = (slotType) => {
     switch (slotType) {
       case "vip":
-        return "⭐"
+        return <Star size={16} />
       case "disabled":
-        return "♿"
+        return <Accessibility size={16} />
       default:
-        return "🅿️"
+        return <Car size={16} />
     }
   }
 
@@ -249,13 +261,15 @@ const CheckoutVehicle = () => {
           <div className="section-header">
             <h2 className="section-title">Occupied Slots ({filteredSlots.length})</h2>
             <button onClick={fetchOccupiedSlots} className="refresh-button">
-              🔄 Refresh
+              <RotateCcw size={16} /> Refresh
             </button>
           </div>
 
           {filteredSlots.length === 0 ? (
             <div className="no-slots">
-              <div className="no-slots-icon">🚗</div>
+              <div className="no-slots-icon">
+                <Car size={48} />
+              </div>
               <h3 className="no-slots-title">No occupied slots found</h3>
               <p className="no-slots-text">
                 {occupiedSlots.length === 0
@@ -285,7 +299,9 @@ const CheckoutVehicle = () => {
 
                   <div className="vehicle-info-section">
                     <div className="vehicle-header">
-                      <div className="vehicle-icon">🚗</div>
+                      <div className="vehicle-icon">
+                        <Car size={20} />
+                      </div>
                       <div className="vehicle-details">
                         <div className="license-plate">{slot.current_allocation?.license_plate || "N/A"}</div>
                         {slot.current_allocation?.customer_name && (
@@ -299,7 +315,9 @@ const CheckoutVehicle = () => {
                     <div className="detail-row">
                       <div className="detail-item">
                         <div className="detail-label">
-                          <span className="detail-icon">⏰</span>
+                          <span className="detail-icon">
+                            <Clock size={16} />
+                          </span>
                           Entry Time
                         </div>
                         <div className="detail-value">
@@ -313,7 +331,9 @@ const CheckoutVehicle = () => {
                     <div className="detail-row">
                       <div className="detail-item">
                         <div className="detail-label">
-                          <span className="detail-icon">⏱️</span>
+                          <span className="detail-icon">
+                            <Clock size={16} />
+                          </span>
                           Duration
                         </div>
                         <div className="detail-value duration">
@@ -322,7 +342,9 @@ const CheckoutVehicle = () => {
                       </div>
                       <div className="detail-item">
                         <div className="detail-label">
-                          <span className="detail-icon">💰</span>
+                          <span className="detail-icon">
+                            <DollarSign size={16} />
+                          </span>
                           Total Fee
                         </div>
                         <div className="detail-value fee">
@@ -334,7 +356,9 @@ const CheckoutVehicle = () => {
 
                   <div className="card-actions">
                     <button onClick={() => handleCheckout(slot)} className="checkout-button">
-                      <span className="button-icon">💳</span>
+                      <span className="button-icon">
+                        <CreditCard size={16} />
+                      </span>
                       <span>Process Checkout</span>
                     </button>
                   </div>
@@ -377,12 +401,16 @@ const CheckoutVehicle = () => {
                 <h4 className="payment-methods-title">Select Payment Method:</h4>
 
                 <button onClick={() => processPayment("Cash")} className="payment-method-button">
-                  <span className="payment-icon">💵</span>
+                  <span className="payment-icon">
+                    <DollarSign size={20} />
+                  </span>
                   <span>Cash Payment</span>
                 </button>
 
                 <button onClick={() => processPayment("GCash")} className="payment-method-button">
-                  <span className="payment-icon">📱</span>
+                  <span className="payment-icon">
+                    <Smartphone size={20} />
+                  </span>
                   <span>GCash Payment</span>
                 </button>
 
@@ -401,7 +429,9 @@ const CheckoutVehicle = () => {
               <h3 className="modal-title">Payment Successful!</h3>
 
               <div className="success-content">
-                <div className="success-icon">✅</div>
+                <div className="success-icon">
+                  <CheckCircle size={48} />
+                </div>
                 <p className="success-text">
                   Payment of ₱{calculateFee(selectedSlot.current_allocation?.start_time, selectedSlot.slot_type)}{" "}
                   processed successfully via {paymentMethod}
@@ -410,7 +440,9 @@ const CheckoutVehicle = () => {
 
               <div className="print-actions">
                 <button onClick={() => completeCheckout(true)} className="print-receipt-button">
-                  <span className="button-icon">🖨️</span>
+                  <span className="button-icon">
+                    <Printer size={16} />
+                  </span>
                   <span>Print Receipt & Complete</span>
                 </button>
 

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import AdminLayout from "../../components/AdminLayout"
+import { Users, Shield, UserCheck, Search, Filter, Edit, Trash2, Eye, EyeOff, AlertTriangle, X } from "lucide-react"
 import "../../styles/admin/ManageUsers.css"
 
 const ManageUsers = () => {
@@ -156,6 +157,17 @@ const ManageUsers = () => {
         return "role-badge clerk"
       default:
         return "role-badge default"
+    }
+  }
+
+  const getRoleIcon = (role) => {
+    switch (role) {
+      case "admin":
+        return Shield
+      case "clerk":
+        return UserCheck
+      default:
+        return Users
     }
   }
 
@@ -337,7 +349,7 @@ const ManageUsers = () => {
                       placeholder="Leave blank to keep current password"
                     />
                     <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
-                      {showPassword ? "🙈" : "👁️"}
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
                   {errors.password && <p className="error-message">{errors.password}</p>}
@@ -359,7 +371,7 @@ const ManageUsers = () => {
                       className="password-toggle"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
-                      {showConfirmPassword ? "🙈" : "👁️"}
+                      {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
                   {errors.confirmPassword && <p className="error-message">{errors.confirmPassword}</p>}
@@ -387,7 +399,9 @@ const ManageUsers = () => {
       <div className="modal-content">
         <h3 className="modal-title">Confirm Delete</h3>
         <div className="delete-confirmation">
-          <div className="warning-icon">⚠️</div>
+          <div className="warning-icon">
+            <AlertTriangle size={48} color="#ff0033" />
+          </div>
           <p>Are you sure you want to delete the user:</p>
           <div className="user-details">
             <strong>
@@ -436,7 +450,9 @@ const ManageUsers = () => {
         <div className="summary-grid">
           <div className="summary-card">
             <div className="summary-content">
-              <div className="summary-icon admin">🔴</div>
+              <div className="summary-icon admin">
+                <Shield size={20} />
+              </div>
               <div className="summary-info">
                 <div className="summary-label">Administrators</div>
                 <div className="summary-value">{users.filter((u) => u.role === "admin").length}</div>
@@ -446,7 +462,9 @@ const ManageUsers = () => {
 
           <div className="summary-card">
             <div className="summary-content">
-              <div className="summary-icon clerk">🔵</div>
+              <div className="summary-icon clerk">
+                <UserCheck size={20} />
+              </div>
               <div className="summary-info">
                 <div className="summary-label">Clerks</div>
                 <div className="summary-value">{users.filter((u) => u.role === "clerk").length}</div>
@@ -456,7 +474,9 @@ const ManageUsers = () => {
 
           <div className="summary-card">
             <div className="summary-content">
-              <div className="summary-icon total">🟢</div>
+              <div className="summary-icon total">
+                <Users size={20} />
+              </div>
               <div className="summary-info">
                 <div className="summary-label">Total Users</div>
                 <div className="summary-value">{users.length}</div>
@@ -469,7 +489,10 @@ const ManageUsers = () => {
         <div className="filters-section">
           <div className="filters-grid">
             <div className="filter-group">
-              <label className="filter-label">Search Users</label>
+              <label className="filter-label">
+                <Search size={16} style={{ marginRight: "8px" }} />
+                Search Users
+              </label>
               <input
                 type="text"
                 placeholder="Search by name, username, or email..."
@@ -480,7 +503,10 @@ const ManageUsers = () => {
             </div>
 
             <div className="filter-group">
-              <label className="filter-label">Filter by Role</label>
+              <label className="filter-label">
+                <Filter size={16} style={{ marginRight: "8px" }} />
+                Filter by Role
+              </label>
               <select className="filter-select" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
                 <option value="all">All Roles</option>
                 <option value="admin">Admin</option>
@@ -496,6 +522,7 @@ const ManageUsers = () => {
                 }}
                 className="clear-filters-button"
               >
+                <X size={16} style={{ marginRight: "8px" }} />
                 Clear Filters
               </button>
             </div>
@@ -510,7 +537,9 @@ const ManageUsers = () => {
 
           {filteredUsers.length === 0 ? (
             <div className="no-users">
-              <div className="no-users-icon">👥</div>
+              <div className="no-users-icon">
+                <Users size={48} />
+              </div>
               <h3 className="no-users-title">No users found</h3>
               <p className="no-users-text">Try adjusting your search criteria.</p>
             </div>
@@ -524,35 +553,43 @@ const ManageUsers = () => {
                 <div className="table-cell">Actions</div>
               </div>
               <div className="table-body">
-                {filteredUsers.map((user) => (
-                  <div key={user.id} className="table-row">
-                    <div className="table-cell user-cell">
-                      <div className="user-avatar">
-                        {user.first_name?.charAt(0) || ""}
-                        {user.last_name?.charAt(0) || ""}
-                      </div>
-                      <div className="user-info">
-                        <div className="user-name">
-                          {user.first_name} {user.last_name}
+                {filteredUsers.map((user) => {
+                  const RoleIcon = getRoleIcon(user.role)
+                  return (
+                    <div key={user.id} className="table-row">
+                      <div className="table-cell user-cell">
+                        <div className="user-avatar">
+                          {user.first_name?.charAt(0) || ""}
+                          {user.last_name?.charAt(0) || ""}
                         </div>
-                        <div className="user-id">ID: {user.id}</div>
+                        <div className="user-info">
+                          <div className="user-name">
+                            {user.first_name} {user.last_name}
+                          </div>
+                          <div className="user-id">ID: {user.id}</div>
+                        </div>
+                      </div>
+                      <div className="table-cell">
+                        <span className={getRoleClass(user.role)}>
+                          <RoleIcon size={14} style={{ marginRight: "4px" }} />
+                          {user.role?.toUpperCase()}
+                        </span>
+                      </div>
+                      <div className="table-cell">{user.email}</div>
+                      <div className="table-cell">{user.username}</div>
+                      <div className="table-cell actions-cell">
+                        <button onClick={() => handleEdit(user)} className="edit-button">
+                          <Edit size={14} style={{ marginRight: "4px" }} />
+                          Edit
+                        </button>
+                        <button onClick={() => handleDeleteClick(user)} className="delete-button">
+                          <Trash2 size={14} style={{ marginRight: "4px" }} />
+                          Delete
+                        </button>
                       </div>
                     </div>
-                    <div className="table-cell">
-                      <span className={getRoleClass(user.role)}>{user.role?.toUpperCase()}</span>
-                    </div>
-                    <div className="table-cell">{user.email}</div>
-                    <div className="table-cell">{user.username}</div>
-                    <div className="table-cell actions-cell">
-                      <button onClick={() => handleEdit(user)} className="edit-button">
-                        ✏️ Edit
-                      </button>
-                      <button onClick={() => handleDeleteClick(user)} className="delete-button">
-                        🗑️ Delete
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </div>
           )}

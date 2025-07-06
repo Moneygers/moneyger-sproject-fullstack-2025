@@ -2,6 +2,19 @@
 
 import { NavLink, useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
+import {
+  Eye,
+  Calendar,
+  BarChart3,
+  CheckCircle,
+  Car,
+  LogOut,
+  Receipt,
+  FileText,
+  UserPlus,
+  Users,
+  Settings,
+} from "lucide-react"
 import "../styles/components/Sidebar.css"
 
 const Sidebar = () => {
@@ -25,14 +38,14 @@ const Sidebar = () => {
         {
           name: "Monitor Parking",
           href: "/monitor-availability",
-          icon: "👁️",
+          icon: Eye,
           description: "View available slots",
           roles: ["customer"],
         },
         {
           name: "Make Reservations",
           href: "/make-reservation",
-          icon: "📅",
+          icon: Calendar,
           description: "Reserve parking slots",
           roles: ["customer"],
         },
@@ -42,32 +55,38 @@ const Sidebar = () => {
     // Parking Clerk access
     if (isClerk && !isAdmin) {
       items.push(
-        { name: "Dashboard", href: "/dashboard", icon: "📊", description: "Overview and stats", roles: ["clerk"] },
+        {
+          name: "Dashboard",
+          href: "/dashboard",
+          icon: BarChart3,
+          description: "Overview and stats",
+          roles: ["clerk"],
+        },
         {
           name: "Monitor Reservations",
           href: "/clerk/monitor-reservations",
-          icon: "📅",
+          icon: Calendar,
           description: "Track reservations",
           roles: ["clerk"],
         },
         {
           name: "Approve Reservations",
           href: "/clerk/approve-reservations",
-          icon: "✅",
+          icon: CheckCircle,
           description: "Review requests",
           roles: ["clerk"],
         },
         {
           name: "Update Slot Availability",
           href: "/clerk/update-slots",
-          icon: "🚗",
+          icon: Car,
           description: "Manage parking slots",
           roles: ["clerk"],
         },
         {
           name: "Check-out Vehicle",
           href: "/clerk/checkout-vehicle",
-          icon: "🚪",
+          icon: LogOut,
           description: "Process payments",
           roles: ["clerk"],
         },
@@ -77,67 +96,73 @@ const Sidebar = () => {
     // Owner/Admin access (has access to everything)
     if (isAdmin) {
       items.push(
-        { name: "Dashboard", href: "/dashboard", icon: "📊", description: "System overview", roles: ["admin"] },
+        {
+          name: "Dashboard",
+          href: "/dashboard",
+          icon: BarChart3,
+          description: "System overview",
+          roles: ["admin"],
+        },
         {
           name: "Monitor Reservations",
           href: "/clerk/monitor-reservations",
-          icon: "📅",
+          icon: Calendar,
           description: "Track all reservations",
           roles: ["admin"],
         },
         {
           name: "Approve Reservations",
           href: "/clerk/approve-reservations",
-          icon: "✅",
+          icon: CheckCircle,
           description: "Review requests",
           roles: ["admin"],
         },
         {
           name: "Update Slot Availability",
           href: "/clerk/update-slots",
-          icon: "🚗",
+          icon: Car,
           description: "Manage parking slots",
           roles: ["admin"],
         },
         {
           name: "Check-out Vehicle",
           href: "/clerk/checkout-vehicle",
-          icon: "🚪",
+          icon: LogOut,
           description: "Process payments",
           roles: ["admin"],
         },
         {
           name: "Review Transactions",
           href: "/admin/review-transactions",
-          icon: "🧾",
+          icon: Receipt,
           description: "Monitor payments",
           roles: ["admin"],
         },
         {
           name: "Payment Reports",
           href: "/admin/payment-reports",
-          icon: "📄",
+          icon: FileText,
           description: "View revenue analytics",
           roles: ["admin"],
         },
         {
           name: "Create Accounts",
           href: "/admin/create-accounts",
-          icon: "👥",
+          icon: UserPlus,
           description: "Add new users",
           roles: ["admin"],
         },
         {
           name: "Manage Users",
           href: "/admin/manage-users",
-          icon: "👤",
+          icon: Users,
           description: "Edit user accounts",
           roles: ["admin"],
         },
         {
           name: "System Settings",
           href: "/admin/system-settings",
-          icon: "⚙️",
+          icon: Settings,
           description: "Configure system",
           roles: ["admin"],
         },
@@ -199,19 +224,22 @@ const Sidebar = () => {
         {Object.entries(groupedItems).map(([groupName, items]) => (
           <div key={groupName} className="nav-section">
             <h3 className="nav-section-title">{groupName}</h3>
-            {items.map((item) => (
-              <NavLink
-                key={item.name}
-                to={item.href}
-                className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
-              >
-                <span className="sidebar-icon">{item.icon}</span>
-                <div className="sidebar-link-content">
-                  <span className="sidebar-text">{item.name}</span>
-                  <span className="sidebar-description">{item.description}</span>
-                </div>
-              </NavLink>
-            ))}
+            {items.map((item) => {
+              const IconComponent = item.icon
+              return (
+                <NavLink
+                  key={item.name}
+                  to={item.href}
+                  className={({ isActive }) => `sidebar-link ${isActive ? "active" : ""}`}
+                >
+                  <IconComponent className="sidebar-icon" size={20} />
+                  <div className="sidebar-link-content">
+                    <span className="sidebar-text">{item.name}</span>
+                    <span className="sidebar-description">{item.description}</span>
+                  </div>
+                </NavLink>
+              )
+            })}
           </div>
         ))}
       </nav>

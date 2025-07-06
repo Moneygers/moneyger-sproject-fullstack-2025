@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { Car, Calendar, DollarSign, BarChart3 } from "lucide-react"
 import Layout from "../../components/Layout"
 import "../../styles/clerk/Dashboard.css"
 
@@ -67,7 +68,9 @@ const Dashboard = () => {
           <div className="stat-card">
             <div className="stat-content">
               <div className="stat-icon available">
-                <span className="icon">🚗</span>
+                <span className="icon">
+                  <Car size={24} />
+                </span>
               </div>
               <div className="stat-info">
                 <div className="stat-label">Available Slots</div>
@@ -81,7 +84,9 @@ const Dashboard = () => {
           <div className="stat-card">
             <div className="stat-content">
               <div className="stat-icon occupied">
-                <span className="icon">🚗</span>
+                <span className="icon">
+                  <Car size={24} />
+                </span>
               </div>
               <div className="stat-info">
                 <div className="stat-label">Occupied Slots</div>
@@ -93,7 +98,9 @@ const Dashboard = () => {
           <div className="stat-card">
             <div className="stat-content">
               <div className="stat-icon reservations">
-                <span className="icon">📅</span>
+                <span className="icon">
+                  <Calendar size={24} />
+                </span>
               </div>
               <div className="stat-info">
                 <div className="stat-label">Active Reservations</div>
@@ -105,7 +112,9 @@ const Dashboard = () => {
           <div className="stat-card">
             <div className="stat-content">
               <div className="stat-icon revenue">
-                <span className="icon">💰</span>
+                <span className="icon">
+                  <DollarSign size={24} />
+                </span>
               </div>
               <div className="stat-info">
                 <div className="stat-label">Today's Revenue</div>
@@ -137,19 +146,27 @@ const Dashboard = () => {
             <h3 className="actions-title">Quick Actions</h3>
             <div className="actions-grid">
               <button className="action-button" onClick={() => (window.location.href = "/clerk/update-slots")}>
-                <span className="action-icon">🚗</span>
+                <span className="action-icon">
+                  <Car size={20} />
+                </span>
                 <span className="action-text">Update Slots</span>
               </button>
               <button className="action-button" onClick={() => (window.location.href = "/clerk/monitor-reservations")}>
-                <span className="action-icon">📅</span>
+                <span className="action-icon">
+                  <Calendar size={20} />
+                </span>
                 <span className="action-text">Monitor Reservations</span>
               </button>
               <button className="action-button" onClick={() => (window.location.href = "/clerk/checkout-vehicle")}>
-                <span className="action-icon">💳</span>
+                <span className="action-icon">
+                  <BarChart3 size={20} />
+                </span>
                 <span className="action-text">Checkout Vehicle</span>
               </button>
               <button className="action-button" onClick={() => (window.location.href = "/clerk/approve-reservations")}>
-                <span className="action-icon">✅</span>
+                <span className="action-icon">
+                  <Calendar size={20} />
+                </span>
                 <span className="action-text">Approve Reservations</span>
               </button>
             </div>

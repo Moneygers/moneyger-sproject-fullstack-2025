@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import AdminLayout from "../../components/AdminLayout"
+import { DollarSign, RotateCcw, Save } from "lucide-react"
 import "../../styles/admin/SystemSettings.css"
 
 const SystemSettings = () => {
@@ -121,11 +122,11 @@ const SystemSettings = () => {
           </div>
           <div className="header-actions">
             <button onClick={resetToDefaults} className="reset-button">
-              <span className="button-icon">🔄</span>
+              <RotateCcw className="button-icon" size={16} />
               <span>Reset to Defaults</span>
             </button>
             <button onClick={handleSave} disabled={saving} className="save-button">
-              <span className="button-icon">💾</span>
+              <Save className="button-icon" size={16} />
               <span>{saving ? "Saving..." : "Save Settings"}</span>
             </button>
           </div>
@@ -135,7 +136,7 @@ const SystemSettings = () => {
           {/* Parking Settings */}
           <div className="settings-card">
             <div className="settings-header">
-              <span className="settings-icon">💰</span>
+              <DollarSign className="settings-icon" size={20} />
               <h2 className="settings-title">Parking Configuration</h2>
             </div>
 

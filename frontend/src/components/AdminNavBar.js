@@ -2,6 +2,7 @@
 
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
+import { User, Shield, LogOut } from "lucide-react"
 import "../styles/components/AdminNavBar.css"
 
 const AdminNavBar = () => {
@@ -26,15 +27,18 @@ const AdminNavBar = () => {
 
           <div className="admin-navbar-actions">
             <div className="admin-user-info">
-              <span className="admin-user-icon">👤</span>
+              <User className="admin-user-icon" size={20} />
               <span className="admin-user-name">
                 {user?.first_name} {user?.last_name}
               </span>
-              <span className="admin-user-role">ADMINISTRATOR</span>
+              <span className="admin-user-role">
+                <Shield size={14} style={{ marginRight: "4px" }} />
+                ADMINISTRATOR
+              </span>
             </div>
 
             <button onClick={handleLogout} className="admin-logout-button">
-              <span className="admin-logout-icon">🚪</span>
+              <LogOut className="admin-logout-icon" size={16} />
               <span>Logout</span>
             </button>
           </div>

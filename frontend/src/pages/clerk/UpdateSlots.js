@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { Car, RotateCcw, Star, Accessibility } from "lucide-react"
 import "../../styles/clerk/UpdateSlots.css"
 import Layout from "../../components/Layout"
 
@@ -155,9 +156,9 @@ const UpdateSlots = () => {
   }
 
   const getSlotIcon = (status, slotType) => {
-    if (slotType === "disabled") return "♿"
-    if (slotType === "vip") return "⭐"
-    return status === "occupied" ? "🚗" : "🅿️"
+    if (slotType === "disabled") return <Accessibility size={20} />
+    if (slotType === "vip") return <Star size={20} />
+    return status === "occupied" ? <Car size={20} /> : <Car size={20} />
   }
 
   if (loading) {
@@ -179,7 +180,9 @@ const UpdateSlots = () => {
             <p className="subtitle">Click available slots to assign vehicles, click occupied slots to release</p>
           </div>
           <button onClick={fetchSlots} className="refresh-button">
-            <span className="refresh-icon">🔄</span>
+            <span className="refresh-icon">
+              <RotateCcw size={16} />
+            </span>
             <span>Refresh</span>
           </button>
         </div>
@@ -257,7 +260,9 @@ const UpdateSlots = () => {
 
           {filteredSlots.length === 0 && (
             <div className="no-slots">
-              <div className="no-slots-icon">🚗</div>
+              <div className="no-slots-icon">
+                <Car size={48} />
+              </div>
               <h3 className="no-slots-title">NO SLOTS FOUND!</h3>
               <p className="no-slots-text">Try adjusting your search or filter criteria.</p>
             </div>

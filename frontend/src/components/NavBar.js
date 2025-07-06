@@ -2,6 +2,7 @@
 
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
+import { User, LogOut } from "lucide-react"
 import "../styles/components/NavBar.css"
 
 const NavBar = () => {
@@ -26,7 +27,7 @@ const NavBar = () => {
 
           <div className="navbar-actions">
             <div className="user-info">
-              <span className="user-icon">👤</span>
+              <User className="user-icon" size={20} />
               <span className="user-name">
                 {user?.first_name} {user?.last_name}
               </span>
@@ -34,7 +35,7 @@ const NavBar = () => {
             </div>
 
             <button onClick={handleLogout} className="logout-button">
-              <span className="logout-icon">🚪</span>
+              <LogOut className="logout-icon" size={16} />
               <span>Logout</span>
             </button>
           </div>

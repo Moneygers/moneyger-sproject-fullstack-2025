@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import AdminLayout from "../../components/AdminLayout"
+import { DollarSign, TrendingUp, BarChart3 } from "lucide-react"
 import "../../styles/admin/PaymentReports.css"
 
 const PaymentReports = () => {
@@ -67,7 +68,9 @@ const PaymentReports = () => {
         <div className="summary-grid">
           <div className="summary-card">
             <div className="summary-content">
-              <div className="summary-icon green">💰</div>
+              <div className="summary-icon green">
+                <DollarSign size={24} />
+              </div>
               <div className="summary-info">
                 <div className="summary-label">Total Revenue</div>
                 <div className="summary-value">₱{reportData.totalRevenue?.toLocaleString() || "0"}</div>
@@ -77,7 +80,9 @@ const PaymentReports = () => {
 
           <div className="summary-card">
             <div className="summary-content">
-              <div className="summary-icon blue">📈</div>
+              <div className="summary-icon blue">
+                <TrendingUp size={24} />
+              </div>
               <div className="summary-info">
                 <div className="summary-label">Transactions</div>
                 <div className="summary-value">{reportData.transactions || 0}</div>
@@ -87,7 +92,9 @@ const PaymentReports = () => {
 
           <div className="summary-card">
             <div className="summary-content">
-              <div className="summary-icon purple">📊</div>
+              <div className="summary-icon purple">
+                <BarChart3 size={24} />
+              </div>
               <div className="summary-info">
                 <div className="summary-label">Avg. Transaction</div>
                 <div className="summary-value">₱{reportData.avgTransaction?.toLocaleString() || 0}</div>

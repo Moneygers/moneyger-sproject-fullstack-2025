@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { Calendar, Car, CheckCircle, XCircle, Clock, AlertTriangle } from "lucide-react"
 import "../../styles/clerk/MonitorReservations.css"
 import Layout from "../../components/Layout"
 
@@ -132,17 +133,17 @@ const MonitorReservations = () => {
   const getStatusIcon = (status) => {
     switch (status) {
       case "approved":
-        return "⏰"
+        return <Clock size={16} />
       case "arrived":
-        return "🚗"
+        return <Car size={16} />
       case "completed":
-        return "✅"
+        return <CheckCircle size={16} />
       case "rejected":
-        return "❌"
+        return <XCircle size={16} />
       case "pending":
-        return "⏳"
+        return <AlertTriangle size={16} />
       default:
-        return "📅"
+        return <Calendar size={16} />
     }
   }
 
@@ -177,7 +178,9 @@ const MonitorReservations = () => {
         <div className="summary-grid">
           <div className="summary-card">
             <div className="summary-content">
-              <div className="summary-icon">📅</div>
+              <div className="summary-icon">
+                <Calendar size={24} />
+              </div>
               <div className="summary-info">
                 <div className="summary-label">Active Reservations</div>
                 <div className="summary-value">{activeReservations}</div>
@@ -187,7 +190,9 @@ const MonitorReservations = () => {
 
           <div className="summary-card">
             <div className="summary-content">
-              <div className="summary-icon">🚗</div>
+              <div className="summary-icon">
+                <Car size={24} />
+              </div>
               <div className="summary-info">
                 <div className="summary-label">Arrived</div>
                 <div className="summary-value">{arrivedReservations}</div>
@@ -246,7 +251,9 @@ const MonitorReservations = () => {
 
           {filteredReservations.length === 0 ? (
             <div className="no-reservations">
-              <div className="no-reservations-icon">📅</div>
+              <div className="no-reservations-icon">
+                <Calendar size={48} />
+              </div>
               <h3 className="no-reservations-title">No reservations found</h3>
               <p className="no-reservations-text">Try adjusting your search criteria.</p>
             </div>
@@ -296,9 +303,17 @@ const MonitorReservations = () => {
                             </button>
                           )}
 
-                          {reservation.status === "completed" && <span className="completed-text">✓ Completed</span>}
+                          {reservation.status === "completed" && (
+                            <span className="completed-text">
+                              <CheckCircle size={16} /> Completed
+                            </span>
+                          )}
 
-                          {reservation.status === "rejected" && <span className="cancelled-text">✗ Cancelled</span>}
+                          {reservation.status === "rejected" && (
+                            <span className="cancelled-text">
+                              <XCircle size={16} /> Cancelled
+                            </span>
+                          )}
                         </div>
                       </td>
                     </tr>
