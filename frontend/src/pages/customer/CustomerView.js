@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
+import { ArrowLeft, Building2, Car, MapPin, Star, Accessibility, Sun, X } from "lucide-react"
 import Footer from "../../components/Footer"
 import "../../styles/customer/CustomerView.css"
 
@@ -84,9 +85,9 @@ const CustomerView = () => {
   }
 
   const getSlotIcon = (slot) => {
-    if (slot.slot_type === "disabled") return "♿"
-    if (slot.slot_type === "vip") return "⭐"
-    return "🅿️"
+    if (slot.slot_type === "disabled") return <Accessibility size={16} />
+    if (slot.slot_type === "vip") return <Star size={16} />
+    return <Car size={16} />
   }
 
   const getSectionTitle = (section) => {
@@ -293,14 +294,14 @@ const CustomerView = () => {
               </button>
             ) : (
               <button onClick={() => navigate("/login")} className="back-to-login">
-                <span className="back-icon">←</span>
+                <ArrowLeft size={20} className="back-icon" />
                 <span>Back to Login</span>
               </button>
             )}
             <div className="header-divider"></div>
             <div className="brand-section">
               <div className="brand-icon">
-                <img src="/favicon2.png" alt="Park Moneyger Logo" className="logo-image" />
+                <img src="/favicon.png" alt="Park Moneyger Logo" className="logo-image" />
               </div>
               <div className="brand-info">
                 <h1 className="brand-title">ParkMoneyger</h1>
@@ -331,7 +332,9 @@ const CustomerView = () => {
                 className={`customer-floor-button ${selectedFloor === floor ? "active" : ""}`}
               >
                 <div className="floor-button-content">
-                  <span className="floor-icon">{floor === 1 ? "🏢" : floor === 4 ? "☀️" : "🅿️"}</span>
+                  <span className="floor-icon">
+                    {floor === 1 ? <Building2 size={20} /> : floor === 4 ? <Sun size={20} /> : <Car size={20} />}
+                  </span>
                   <span className="floor-name">
                     {floor === 1 ? "Floor 1" : floor === 4 ? "Floor 4" : `Floor ${floor}`}
                   </span>
@@ -348,7 +351,8 @@ const CustomerView = () => {
         <div className="customer-floor-layout">
           <div className="floor-layout-header">
             <h2 className="floor-layout-title">
-              {selectedFloor === 1 ? "🏢 Floor 1" : selectedFloor === 4 ? "🏢 Floor 4" : `🏢 Floor ${selectedFloor}`}
+              <Building2 size={24} style={{ marginRight: "8px", display: "inline" }} />
+              {selectedFloor === 1 ? "Floor 1" : selectedFloor === 4 ? "Floor 4" : `Floor ${selectedFloor}`}
             </h2>
             <p className="floor-layout-subtitle">
               {availableCount} available slots out of {currentFloorSlots.length} total
@@ -362,7 +366,9 @@ const CustomerView = () => {
 
           {Object.keys(sectionedSlots).length === 0 ? (
             <div className="no-available-slots">
-              <div className="no-slots-icon">🚗</div>
+              <div className="no-slots-icon">
+                <Car size={48} />
+              </div>
               <h3 className="no-slots-title">No Available Slots</h3>
               <p className="no-slots-text">All slots on this floor are currently occupied.</p>
             </div>
@@ -401,7 +407,9 @@ const CustomerView = () => {
         {/* Info Card */}
         <div className="customer-info-card">
           <div className="info-card-content">
-            <div className="info-icon">📍</div>
+            <div className="info-icon">
+              <MapPin size={32} />
+            </div>
             <div className="info-text">
               <h3 className="info-title">Need to Park?</h3>
               <p className="info-description">
@@ -463,7 +471,7 @@ const CustomerView = () => {
                 {`F${Number.parseInt(selectedSlot.structure.replace("FLOOR", ""))}-${selectedSlot.section}-${selectedSlot.slotNo}`}
               </h3>
               <button onClick={closeModal} className="modal-close">
-                ✕
+                <X size={20} />
               </button>
             </div>
 
