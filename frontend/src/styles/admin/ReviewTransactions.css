@@ -395,3 +395,198 @@
     justify-content: space-between;
   }
 }
+
+/* Dark Mode Transactions Table Styles */
+.transactions-table-container {
+  background: #000000;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  border: 1px solid #333333;
+}
+
+.transactions-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.transactions-table thead {
+  background: #1a1a1a;
+  border-bottom: 2px solid #333333;
+}
+
+.transactions-table th {
+  padding: 16px 20px;
+  text-align: left;
+  font-weight: 600;
+  color: #cccccc;
+  font-size: 14px;
+  letter-spacing: 0.025em;
+  text-transform: uppercase;
+  border-bottom: 1px solid #333333;
+}
+
+.transactions-table td {
+  padding: 16px 20px;
+  vertical-align: middle;
+  border-bottom: 1px solid #333333;
+  color: #cccccc;
+}
+
+.transaction-row:hover {
+  background-color: #1a1a1a;
+}
+
+.transaction-row:last-child td {
+  border-bottom: none;
+}
+
+/* Column-specific styles */
+.slot-cell {
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.slot-number {
+  color: #07f2ee;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.plate-cell {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: #cccccc;
+}
+
+.fee-cell {
+  font-weight: 600;
+  color: #10b981;
+  font-size: 16px;
+}
+
+.payment-cell .payment-method {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.payment-icon {
+  font-size: 18px;
+  color: #888888;
+}
+
+.payment-text {
+  color: #cccccc;
+  font-weight: 500;
+}
+
+.date-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.transaction-date {
+  color: #cccccc;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.transaction-time {
+  color: #888888;
+  font-size: 12px;
+}
+
+.type-cell .transaction-type {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.transaction-type.parking-fee {
+  background: #1a4d1a;
+  color: #4ade80;
+}
+
+.transaction-type.reservation-fee {
+  background: #4d2d1a;
+  color: #fbbf24;
+}
+
+.transaction-type.default {
+  background: #333333;
+  color: #cccccc;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .transactions-table-container {
+    overflow-x: auto;
+  }
+  
+  .transactions-table {
+    min-width: 600px;
+  }
+  
+  .transactions-table th,
+  .transactions-table td {
+    padding: 12px 16px;
+  }
+  
+  .transactions-table th {
+    font-size: 12px;
+  }
+}
+
+/* Loading and empty states */
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #333333;
+  border-top: 4px solid #07f2ee;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Optional: Auto dark mode based on system preference */
+@media (prefers-color-scheme: dark) {
+  .transactions-table-container {
+    background: #000000;
+    border: 1px solid #333333;
+  }
+  
+  .transactions-table thead {
+    background: #1a1a1a;
+    border-bottom: 2px solid #333333;
+  }
+  
+  .transactions-table th {
+    color: #cccccc;
+    border-bottom: 1px solid #333333;
+  }
+  
+  .transactions-table td {
+    border-bottom: 1px solid #333333;
+    color: #cccccc;
+  }
+  
+  .transaction-row:hover {
+    background-color: #1a1a1a;
+  }
+}

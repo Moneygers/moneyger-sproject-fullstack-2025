@@ -19,6 +19,7 @@ urlpatterns = [
     
     # Reports
     path('reports/payments/', views.payment_reports, name='payment_reports'),
+    path('reports/transactions/', views.transaction_reports, name='transaction_reports'),
     
     # System Settings
     path('settings/', views.system_settings_view, name='system_settings'),

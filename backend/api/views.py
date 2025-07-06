@@ -907,3 +907,28 @@ def textbee_service_info(request):
         return Response({
             'error': f'Failed to get service info: {str(e)}'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# Review Transactions Endpoint
+@api_view(['GET'])
+def transaction_reports(request):
+    """
+    Return a combined list of all payments and reservations.
+    """
+    payments = Payment.objects.all().order_by('-created_at')
+    reservations = Reservations.objects.all().order_by('-created_at')
+
+    payment_data = PaymentSerializer(payments, many=True).data
+    for p in payment_data:
+        p['type'] = 'payment'
+
+    reservation_data = ReservationsSerializer(reservations, many=True).data
+    for r in reservation_data:
+        r['type'] = 'reservation'
+
+    # Combine and sort by created_at (if present)
+    combined = payment_data + reservation_data
+    def get_created_at(x):
+        return x.get('created_at', '')
+    combined.sort(key=get_created_at, reverse=True)
+
+    return Response(combined, status=status.HTTP_200_OK)
