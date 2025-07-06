@@ -803,6 +803,8 @@ def payment_reports(request):
 
         # 6. Response
         return Response({
+            'totalPayment': float(payment_total),
+            'totalReservation': float(reservation_total),
             'totalRevenue': float(total_revenue),
             'transactions': total_transactions,
             'avgTransaction': avg_transaction,

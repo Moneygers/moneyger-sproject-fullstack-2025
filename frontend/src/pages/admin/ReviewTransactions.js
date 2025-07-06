@@ -10,6 +10,39 @@ const ReviewTransactions = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [dateFilter, setDateFilter] = useState("today")
   const [typeFilter, setTypeFilter] = useState("all")
+  const [reportData, setReportData] = useState({
+    totalPayment: 0,
+    totalReservation: 0,
+    totalRevenue: 0,})
+
+  useEffect(() => {
+    fetchReportData()
+  }, [])
+
+  const fetchReportData = async () => {
+    try {
+      const response = await fetch("http://localhost:8000/api/reports/payments/", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+        },
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        console.log("Payment reports data:", data)
+        setReportData(data)
+      } else {
+        console.error("Failed to fetch payment reports:", response.status, response.statusText)
+        const errorText = await response.text()
+        console.error("Error response:", errorText)
+      }
+    } catch (error) {
+      console.error("Error fetching payment reports:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
     fetchTransactions()
@@ -108,7 +141,7 @@ const ReviewTransactions = () => {
               <div className="summary-icon green">💰</div>
               <div className="summary-info">
                 <div className="summary-label">Total Revenue</div>
-                <div className="summary-value">₱{totalRevenue.toFixed(2)}</div>
+                <div className="summary-value">₱{reportData.totalRevenue?.toLocaleString() || "0"}</div>
               </div>
             </div>
           </div>
@@ -118,7 +151,7 @@ const ReviewTransactions = () => {
               <div className="summary-icon blue">🧾</div>
               <div className="summary-info">
                 <div className="summary-label">Parking Fees</div>
-                <div className="summary-value">₱{parkingFees.toFixed(2)}</div>
+                <div className="summary-value">₱{reportData.totalPayment?.toLocaleString() || "0"}</div>
               </div>
             </div>
           </div>
@@ -128,7 +161,7 @@ const ReviewTransactions = () => {
               <div className="summary-icon purple">📈</div>
               <div className="summary-info">
                 <div className="summary-label">Reservation Fees</div>
-                <div className="summary-value">₱{reservationFees.toFixed(2)}</div>
+                <div className="summary-value">₱{reportData.totalReservation?.toLocaleString() || "0"}</div>
               </div>
             </div>
           </div>
