@@ -175,27 +175,6 @@ const SystemSettings = () => {
                   />
                 </div>
 
-                <div className="setting-group">
-                  <label className="setting-label">Maximum Parking Hours</label>
-                  <input
-                    type="number"
-                    name="maxParkingHours"
-                    value={settings.maxParkingHours}
-                    onChange={handleInputChange}
-                    className="setting-input"
-                  />
-                </div>
-
-                <div className="setting-group">
-                  <label className="setting-label">Maximum Reservation Days</label>
-                  <input
-                    type="number"
-                    name="maxReservationDays"
-                    value={settings.maxReservationDays}
-                    onChange={handleInputChange}
-                    className="setting-input"
-                  />
-                </div>
               </div>
 
               <div className="checkbox-settings">

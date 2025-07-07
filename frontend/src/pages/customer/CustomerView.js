@@ -74,10 +74,10 @@ const CustomerView = () => {
 
       if (response.ok) {
         const data = await response.json()
-        // Find the user's pending reservation (assuming there's only one active reservation per user)
+        // Find the user's pending reservation by user ID
         const userReservation = data.find(
           (reservation) =>
-            reservation.name.toLowerCase().includes(user.first_name?.toLowerCase() || user.username?.toLowerCase()) &&
+            reservation.user === user.id &&
             (reservation.status === "pending" || reservation.status === "approved" || reservation.status === "arrived"),
         )
         setPendingReservation(userReservation || null)
@@ -100,10 +100,10 @@ const CustomerView = () => {
       const response = await fetch("http://localhost:8000/api/reservations/")
       if (response.ok) {
         const data = await response.json()
-        // Find the user's active reservation
+        // Find the user's active reservation by user ID
         const activeReservation = data.find(
           (reservation) =>
-            reservation.name.toLowerCase().includes(user.first_name?.toLowerCase() || user.username?.toLowerCase()) &&
+            reservation.user === user.id &&
             (reservation.status === "pending" || reservation.status === "approved" || reservation.status === "arrived"),
         )
         return activeReservation || null
@@ -339,6 +339,7 @@ const CustomerView = () => {
         },
         body: JSON.stringify({
           park_slot: selectedSlot.id,
+          user: user.id, // Add this line to associate reservation with user
           name: reservationForm.name.trim(),
           plate_no: reservationForm.plateNumber.trim(),
           mobileNo: reservationForm.contactNumber.trim(),
@@ -776,7 +777,6 @@ const CustomerView = () => {
                       Cancel Reservation
                     </button>
                   )}
-
                 </div>
               </>
             ) : (

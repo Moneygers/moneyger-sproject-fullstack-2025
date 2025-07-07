@@ -1,5 +1,17 @@
 from django.db import models
 
+class ParkFee(models.Model):
+    id = models.AutoField(primary_key=True)
+    regular_hourly_rate = models.DecimalField(max_digits=6, decimal_places=2)
+    vip_hourly_rate = models.DecimalField(max_digits=6, decimal_places=2)
+    disabled_hourly_rate = models.DecimalField(max_digits=6, decimal_places=2)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Rates - Regular: ₱{self.regular_hourly_rate}, VIP: ₱{self.vip_hourly_rate}, Disabled: ₱{self.disabled_hourly_rate}"
+
+
+
 class ParkSlot(models.Model):
     SLOT_STRUCTURE_CHOICES = [
         ('FLOOR1', 'FLOOR1'),
@@ -85,6 +97,7 @@ class Reservations(models.Model):
     ]
 
     id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     park_slot = models.ForeignKey(ParkSlot, on_delete=models.CASCADE)
     plate_no = models.CharField(max_length=20)
     name = models.CharField(max_length=100)

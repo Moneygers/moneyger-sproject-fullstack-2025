@@ -11,7 +11,7 @@ const UpdateSlots = () => {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
-  const [floorFilter, setFloorFilter] = useState("all")
+  const [floorFilter, setFloorFilter] = useState("1")
   const [showPlateModal, setShowPlateModal] = useState(false)
   const [selectedSlot, setSelectedSlot] = useState(null)
   const [plateNumber, setPlateNumber] = useState("")
@@ -135,7 +135,7 @@ const UpdateSlots = () => {
         setPlateNumber("")
 
         alert(
-          `Slot ${getSlotDisplayId(selectedSlot)} assigned to vehicle ${plateNumber}.\nPayment record created with amount ₱${result.payment.amount}`,
+          `Slot ${getSlotDisplayId(selectedSlot)} assigned to vehicle ${plateNumber}.`,
         )
       } else {
         const errorData = await response.json()

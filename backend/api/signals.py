@@ -2,38 +2,74 @@ from django.db.models.signals import post_migrate
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
-from .models import ParkSlot, User
+from .models import ParkSlot, User, ParkFee  # Include ParkFee import
 
 
 @receiver(post_migrate)
 def initialize_data(sender, **kwargs):
     from django.contrib.auth.hashers import make_password
     from django.contrib.auth import get_user_model
-    from .models import ParkSlot, User
+    from .models import ParkSlot, User, ParkFee
 
-    # --- Create ParkSlots in correct visual grouping ---
+    # --- Create ParkSlots with correct type and section ---
     if not ParkSlot.objects.exists():
         structures = ['FLOOR1', 'FLOOR2', 'FLOOR3', 'FLOOR4']
-        sections = ['A', 'B']
-        slot_types = ['regular', 'vip', 'disabled']
         slots = []
 
         for structure in structures:
-            for section in sections:
-                for slot_type in slot_types:  # loop by type first
-                    for i in range(1, 6):  # 1 to 5
-                        slots.append(ParkSlot(
-                            slotNo=str(i),
-                            slot_type=slot_type,
-                            section=section,
-                            status='available',
-                            structure=structure
-                        ))
+            slot_no = 1
+
+            # Regular slots (1–10)
+            for section in ['A', 'B']:
+                for _ in range(10):  # 5 per section
+                    slots.append(ParkSlot(
+                        slotNo=str(slot_no),
+                        slot_type='regular',
+                        section=section,
+                        status='available',
+                        structure=structure
+                    ))
+                    slot_no += 1
+
+            # VIP slots (11–20)
+            for section in ['A', 'B']:
+                for _ in range(10):
+                    slots.append(ParkSlot(
+                        slotNo=str(slot_no),
+                        slot_type='vip',
+                        section=section,
+                        status='available',
+                        structure=structure
+                    ))
+                    slot_no += 1
+
+            # Disabled slots (21–30)
+            for section in ['A', 'B']:
+                for _ in range(10):
+                    slots.append(ParkSlot(
+                        slotNo=str(slot_no),
+                        slot_type='disabled',
+                        section=section,
+                        status='available',
+                        structure=structure
+                    ))
+                    slot_no += 1
 
         ParkSlot.objects.bulk_create(slots)
         print(f"{len(slots)} ParkSlots created.")
     else:
         print("ParkSlots already exist.")
+
+    # --- Create ParkFee default rates ---
+    if not ParkFee.objects.exists():
+        ParkFee.objects.create(
+            regular_hourly_rate=50.00,
+            vip_hourly_rate=100.00,
+            disabled_hourly_rate=25.00
+        )
+        print("Default ParkFee created.")
+    else:
+        print("ParkFee already exists.")
 
     # --- Create Django superuser ---
     DjangoUser = get_user_model()

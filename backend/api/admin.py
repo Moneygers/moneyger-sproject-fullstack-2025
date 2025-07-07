@@ -1,5 +1,22 @@
 from django.contrib import admin
-from .models import ParkSlot, Payment, User, Reservations
+from .models import ParkSlot, Payment, User, Reservations, ParkFee
+
+
+@admin.register(ParkFee)
+class ParkFeeAdmin(admin.ModelAdmin):
+    list_display = ('id','regular_hourly_rate', 'vip_hourly_rate', 'disabled_hourly_rate', 'updated_at')
+    readonly_fields = ('updated_at',)
+    fieldsets = (
+        ('Hourly Rates', {
+            'fields': ('regular_hourly_rate', 'vip_hourly_rate', 'disabled_hourly_rate')
+        }),
+        ('Metadata', {
+            'fields': ('updated_at',),
+            'classes': ('collapse',),
+        }),
+    )
+
+
 
 @admin.register(ParkSlot)
 class ParkSlotAdmin(admin.ModelAdmin):
@@ -81,7 +98,7 @@ class UserAdmin(admin.ModelAdmin):
 
 @admin.register(Reservations)
 class ReservationsAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'plate_no', 'park_slot', 'status', 'fee', 'mode_of_payment', 'date', 'arrival_time', 'created_at')
+    list_display = ('id', 'user_id', 'name', 'plate_no', 'park_slot', 'status', 'fee', 'mode_of_payment', 'date', 'arrival_time', 'created_at')
     list_filter = ('mode_of_payment', 'status', 'date', 'created_at', 'arrival_time')
     search_fields = ('name', 'plate_no', 'mobileNo')
     ordering = ('-created_at',)

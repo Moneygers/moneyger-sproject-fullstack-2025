@@ -9,7 +9,7 @@ from decimal import Decimal
 from datetime import datetime, timedelta
 from django.db.models import Sum, Count, Avg
 from django.db.models.functions import Extract
-from .models import ParkSlot, Payment, User, Reservations
+from .models import ParkSlot, Payment, User, Reservations, ParkFee
 from .serializers import (
     ParkSlotSerializer, 
     PaymentSerializer, 
@@ -31,18 +31,50 @@ from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
-# System Settings Storage (In production, this would be in database)
-SYSTEM_SETTINGS = {
-    'regularHourlyRate': Decimal('50.00'),
-    'vipHourlyRate': Decimal('100.00'),
-    'disabledHourlyRate': Decimal('30.00'),
-    'maxParkingHours': 24,
-    'maxReservationDays': 7,
-    'enableReservations': True,
-    'enableNotifications': True,
-}
-
 # Authentication Views
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import authenticate
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.utils import timezone
+from django.db import transaction
+from decimal import Decimal
+import logging
+from .models import User, ParkSlot, Payment, Reservations, ParkFee
+from .serializers import (
+    ParkSlotSerializer, 
+    PaymentSerializer, 
+    UserSerializer, 
+    ReservationsSerializer,
+    LoginSerializer,
+    SlotAssignmentSerializer,
+    SystemSettingsSerializer,
+    DashboardStatsSerializer,
+    CheckoutSerializer,
+    PaymentReportsSerializer
+)
+
+class AuthViewSet(viewsets.ViewSet):
+    def create(self, request):
+        serializer = LoginSerializer(data=request.data)
+        if serializer.is_valid():
+            username = serializer.validated_data['username']
+            password = serializer.validated_data['password']
+            
+            user = authenticate(username=username, password=password)
+            if user:
+                refresh = RefreshToken.for_user(user)
+                return Response({
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                    'user': UserSerializer(user).data
+                })
+            else:
+                return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 @api_view(['POST'])
 def login_view(request):
     serializer = LoginSerializer(data=request.data)
@@ -60,34 +92,131 @@ def login_view(request):
 def logout_view(request):
     return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
 
-# System Settings Views
+# System Settings Views - Updated to use ParkFee database table
 @api_view(['GET', 'PUT'])
 def system_settings_view(request):
     if request.method == 'GET':
-        return Response(SYSTEM_SETTINGS, status=status.HTTP_200_OK)
+        try:
+            # Get the latest park fee settings from database
+            park_fee = ParkFee.objects.first()
+            if park_fee:
+                settings = {
+                    'regularHourlyRate': float(park_fee.regular_hourly_rate),
+                    'vipHourlyRate': float(park_fee.vip_hourly_rate),
+                    'disabledHourlyRate': float(park_fee.disabled_hourly_rate),
+                    'maxParkingHours': 24,
+                    'maxReservationDays': 7,
+                    'enableReservations': True,
+                    'enableNotifications': True,
+                }
+            else:
+                # Create default settings if none exist
+                park_fee = ParkFee.objects.create(
+                    regular_hourly_rate=50.00,
+                    vip_hourly_rate=100.00,
+                    disabled_hourly_rate=30.00
+                )
+                settings = {
+                    'regularHourlyRate': 50.00,
+                    'vipHourlyRate': 100.00,
+                    'disabledHourlyRate': 30.00,
+                    'maxParkingHours': 24,
+                    'maxReservationDays': 7,
+                    'enableReservations': True,
+                    'enableNotifications': True,
+                }
+            return Response(settings, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     elif request.method == 'PUT':
-        serializer = SystemSettingsSerializer(data=request.data)
-        if serializer.is_valid():
-            # Update global settings
-            SYSTEM_SETTINGS.update(serializer.validated_data)
-            return Response(SYSTEM_SETTINGS, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            serializer = SystemSettingsSerializer(data=request.data)
+            if serializer.is_valid():
+                # Update or create park fee record
+                park_fee, created = ParkFee.objects.get_or_create(
+                    defaults={
+                        'regular_hourly_rate': serializer.validated_data['regularHourlyRate'],
+                        'vip_hourly_rate': serializer.validated_data['vipHourlyRate'],
+                        'disabled_hourly_rate': serializer.validated_data['disabledHourlyRate']
+                    }
+                )
+                
+                if not created:
+                    park_fee.regular_hourly_rate = serializer.validated_data['regularHourlyRate']
+                    park_fee.vip_hourly_rate = serializer.validated_data['vipHourlyRate']
+                    park_fee.disabled_hourly_rate = serializer.validated_data['disabledHourlyRate']
+                    park_fee.save()
+                
+                # Return updated settings
+                updated_settings = {
+                    'regularHourlyRate': float(park_fee.regular_hourly_rate),
+                    'vipHourlyRate': float(park_fee.vip_hourly_rate),
+                    'disabledHourlyRate': float(park_fee.disabled_hourly_rate),
+                    'maxParkingHours': serializer.validated_data.get('maxParkingHours', 24),
+                    'maxReservationDays': serializer.validated_data.get('maxReservationDays', 7),
+                    'enableReservations': serializer.validated_data.get('enableReservations', True),
+                    'enableNotifications': serializer.validated_data.get('enableNotifications', True),
+                }
+                return Response(updated_settings, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
 def reset_system_settings(request):
     """Reset system settings to defaults"""
-    global SYSTEM_SETTINGS
-    SYSTEM_SETTINGS = {
-        'regularHourlyRate': Decimal('50.00'),
-        'vipHourlyRate': Decimal('100.00'),
-        'disabledHourlyRate': Decimal('30.00'),
-        'maxParkingHours': 24,
-        'maxReservationDays': 7,
-        'enableReservations': True,
-        'enableNotifications': True,
-    }
-    return Response(SYSTEM_SETTINGS, status=status.HTTP_200_OK)
+    try:
+        # Update or create park fee record with defaults
+        park_fee, created = ParkFee.objects.get_or_create(
+            defaults={
+                'regular_hourly_rate': 50.00,
+                'vip_hourly_rate': 100.00,
+                'disabled_hourly_rate': 30.00
+            }
+        )
+        
+        if not created:
+            park_fee.regular_hourly_rate = 50.00
+            park_fee.vip_hourly_rate = 100.00
+            park_fee.disabled_hourly_rate = 30.00
+            park_fee.save()
+        
+        default_settings = {
+            'regularHourlyRate': 50.00,
+            'vipHourlyRate': 100.00,
+            'disabledHourlyRate': 30.00,
+            'maxParkingHours': 24,
+            'maxReservationDays': 7,
+            'enableReservations': True,
+            'enableNotifications': True,
+        }
+        return Response(default_settings, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+# Add new endpoint to get current parking rates
+@api_view(['GET'])
+def get_parking_rates(request):
+    """Get current parking rates from database"""
+    try:
+        park_fee = ParkFee.objects.first()
+        if park_fee:
+            rates = {
+                'regular': float(park_fee.regular_hourly_rate),
+                'vip': float(park_fee.vip_hourly_rate),
+                'disabled': float(park_fee.disabled_hourly_rate)
+            }
+        else:
+            # Return default rates if no record exists
+            rates = {
+                'regular': 50.00,
+                'vip': 100.00,
+                'disabled': 30.00
+            }
+        return Response(rates, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 # ParkSlot ViewSet
 class ParkSlotViewSet(viewsets.ModelViewSet):
@@ -107,7 +236,7 @@ class ParkSlotViewSet(viewsets.ModelViewSet):
         if slot_type_filter:
             queryset = queryset.filter(slot_type=slot_type_filter)
             
-        return queryset.order_by('structure', 'section', 'slotNo')
+        return queryset.order_by('id')
     
     @action(detail=True, methods=['post'])
     def assign(self, request, pk=None):
@@ -126,16 +255,26 @@ class ParkSlotViewSet(viewsets.ModelViewSet):
             
             license_plate = serializer.validated_data['license_plate']
             
-            # Get the regular hourly rate from system settings
-            hourly_rate = SYSTEM_SETTINGS['regularHourlyRate']
+            # Get the hourly rate from database based on slot type
+            park_fee = ParkFee.objects.first()
+            if park_fee:
+                if slot.slot_type == 'vip':
+                    hourly_rate = park_fee.vip_hourly_rate
+                elif slot.slot_type == 'disabled':
+                    hourly_rate = park_fee.disabled_hourly_rate
+                else:
+                    hourly_rate = park_fee.regular_hourly_rate
+            else:
+                # Fallback to default rates
+                hourly_rate = Decimal('50.00')
             
-            # Create payment record
+            # Create payment record with initial amount set to 0 (will be calculated on checkout)
             payment = Payment.objects.create(
                 slot=slot,
                 plate_no=license_plate,
-                date=timezone.now().date(),  # This should match the created_at date
-                amount=hourly_rate,
-                mode_of_payment=None  # Will be updated later
+                date=timezone.now().date(),
+                amount=Decimal('0.00'),  # Set to 0, will be calculated on checkout
+                mode_of_payment=None  # Will be updated on checkout
             )
             
             # Update slot status
@@ -151,7 +290,8 @@ class ParkSlotViewSet(viewsets.ModelViewSet):
                     'id': payment.recieptNo,
                     'amount': float(payment.amount),
                     'license_plate': payment.plate_no,
-                    'start_time': payment.created_at.isoformat()
+                    'start_time': payment.created_at.isoformat(),
+                    'hourly_rate': float(hourly_rate)
                 }
             }, status=status.HTTP_200_OK)
             
@@ -162,7 +302,7 @@ class ParkSlotViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def checkout(self, request, pk=None):
-        """Checkout a vehicle from a parking slot"""
+        """Checkout a vehicle from a parking slot - handles both payments and reservations separately"""
         try:
             slot = self.get_object()
 
@@ -171,96 +311,159 @@ class ParkSlotViewSet(viewsets.ModelViewSet):
                     'error': f'Slot is not occupied. Current status: {slot.status}'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            # Get the most recent payment for this slot
-            payment = Payment.objects.filter(slot=slot).order_by('-created_at').first()
-
-            if not payment:
-                # Fallback: Try to find a recent reservation with 'arrived' or 'approved' status
-                reservation = Reservations.objects.filter(
-                    park_slot=slot,
-                    status__in=['arrived', 'approved']
-                ).order_by('-created_at').first()
-
-                if not reservation:
-                    return Response({
-                        'error': 'No payment or valid reservation record found for this slot'
-                    }, status=status.HTTP_400_BAD_REQUEST)
-
-                # Simulate a payment object from reservation (temporary for fee calculation and response)
-                class TempPayment:
-                    plate_no = reservation.plate_no
-                    created_at = reservation.arrival_time or reservation.created_at
-                    recieptNo = None
-                    customer_name = reservation.name
-                    amount = 0
-                    mode_of_payment = None
-                    def save(self): pass  # Do nothing
-
-                payment = TempPayment()
-
-
             # Validate checkout data
             serializer = CheckoutSerializer(data=request.data)
             if not serializer.is_valid():
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             payment_method = serializer.validated_data['payment_method']
-            print(payment_method)
             print_receipt = serializer.validated_data.get('print_receipt', False)
 
-            # Calculate parking duration and fee
-            start_time = payment.created_at
-            end_time = timezone.now()
-            duration = end_time - start_time
-            duration_hours = max(1, int(duration.total_seconds() / 3600))  # Minimum 1 hour
-
-            # Get hourly rate based on slot type
-            if slot.slot_type == 'vip':
-                hourly_rate = SYSTEM_SETTINGS['vipHourlyRate']
-            elif slot.slot_type == 'disabled':
-                hourly_rate = SYSTEM_SETTINGS['disabledHourlyRate']
-            else:
-                hourly_rate = SYSTEM_SETTINGS['regularHourlyRate']
-
-            total_fee = hourly_rate * duration_hours
-
-            # Update payment record
-            payment.amount = total_fee
-            payment.mode_of_payment = payment_method.lower()
-            payment.save()
-
-            # Update slot status
-            slot.status = 'available'
-            slot.save()
-
-            # ✅ Automatically complete reservation if one exists
+            # Check if this is a reservation or direct payment
             reservation = Reservations.objects.filter(
                 park_slot=slot,
-                status__in=['approved', 'arrived']
+                status='arrived'
             ).order_by('-created_at').first()
 
+            # Get hourly rate based on slot type from database
+            park_fee = ParkFee.objects.first()
+            if park_fee:
+                if slot.slot_type == 'vip':
+                    hourly_rate = park_fee.vip_hourly_rate
+                elif slot.slot_type == 'disabled':
+                    hourly_rate = park_fee.disabled_hourly_rate
+                else:
+                    hourly_rate = park_fee.regular_hourly_rate
+            else:
+                # Fallback to default rates if no park fee record exists
+                if slot.slot_type == 'vip':
+                    hourly_rate = Decimal('100.00')
+                elif slot.slot_type == 'disabled':
+                    hourly_rate = Decimal('30.00')
+                else:
+                    hourly_rate = Decimal('50.00')
+
+            # Initial fee should be the same as the hourly rate from database
+            initial_fee = hourly_rate
+
             if reservation:
+                # This is a RESERVATION checkout - update reservation only, no payment record
+                logger.info(f"Processing RESERVATION checkout for slot {slot.id}, reservation {reservation.id}")
+                
+                # Calculate parking duration and fee
+                start_time = reservation.arrival_time
+                end_time = timezone.now()
+                duration = end_time - start_time
+                
+                # Calculate duration in minutes
+                duration_minutes = int(duration.total_seconds() / 60)
+
+                # Calculate total fee: initial fee + (minutes * hourly rate)
+                additional_fee = duration_minutes * hourly_rate
+                total_fee = initial_fee + additional_fee
+
+                logger.info(f"Reservation checkout calculation: Initial fee: ₱{initial_fee} + ({duration_minutes} minutes * ₱{hourly_rate}/min) = ₱{initial_fee} + ₱{additional_fee} = ₱{total_fee}")
+
+                # Update ONLY the reservation record
                 reservation.status = 'completed'
                 reservation.mode_of_payment = payment_method.lower()
                 reservation.fee = total_fee
                 reservation.save()
 
-            # Prepare response data
-            response_data = {
-                'slot_id': slot.id,
-                'license_plate': payment.plate_no,
-                'duration': f"{duration_hours}h {int((duration.total_seconds() % 3600) / 60)}m",
-                'total_fee': float(total_fee),
-                'payment_method': payment_method,
-                'start_time': start_time.isoformat(),
-                'end_time': end_time.isoformat(),
-                'receipt_printed': print_receipt,
-                'reservation_updated': bool(reservation)
-            }
+                # Update slot status
+                slot.status = 'available'
+                slot.save()
 
-            return Response(response_data, status=status.HTTP_200_OK)
+                # Format duration for response
+                duration_hours = duration_minutes // 60
+                duration_mins = duration_minutes % 60
+                duration_formatted = f"{duration_hours}h {duration_mins}m"
+
+                # Prepare response data
+                response_data = {
+                    'slot_id': slot.id,
+                    'license_plate': reservation.plate_no,
+                    'customer_name': reservation.name,
+                    'duration': duration_formatted,
+                    'duration_minutes': duration_minutes,
+                    'initial_fee': float(initial_fee),
+                    'additional_fee': float(additional_fee),
+                    'total_fee': float(total_fee),
+                    'payment_method': payment_method,
+                    'start_time': start_time.isoformat(),
+                    'end_time': end_time.isoformat(),
+                    'receipt_printed': print_receipt,
+                    'reservation_updated': True,
+                    'payment_created': False,
+                    'checkout_type': 'reservation',
+                    'hourly_rate': float(hourly_rate)
+                }
+
+                return Response(response_data, status=status.HTTP_200_OK)
+
+            else:
+                # This is a DIRECT PAYMENT checkout - update payment record only
+                payment = Payment.objects.filter(slot=slot).order_by('-created_at').first()
+
+                if not payment:
+                    return Response({
+                        'error': 'No payment record found for this slot'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+                logger.info(f"Processing PAYMENT checkout for slot {slot.id}, payment {payment.recieptNo}")
+
+                # Calculate parking duration and fee
+                start_time = payment.created_at
+                end_time = timezone.now()
+                duration = end_time - start_time
+                
+                # Calculate duration in minutes
+                duration_minutes = int(duration.total_seconds() / 60)
+
+                # Calculate total fee: initial fee + (minutes * hourly rate)
+                additional_fee = duration_minutes * hourly_rate
+                total_fee = initial_fee + additional_fee
+
+                logger.info(f"Payment checkout calculation: Initial fee: ₱{initial_fee} + ({duration_minutes} minutes * ₱{hourly_rate}/min) = ₱{initial_fee} + ₱{additional_fee} = ₱{total_fee}")
+
+                # Update ONLY the payment record
+                payment.amount = total_fee
+                payment.mode_of_payment = payment_method.lower()
+                payment.save()
+
+                # Update slot status
+                slot.status = 'available'
+                slot.save()
+
+                # Format duration for response
+                duration_hours = duration_minutes // 60
+                duration_mins = duration_minutes % 60
+                duration_formatted = f"{duration_hours}h {duration_mins}m"
+
+                # Prepare response data
+                response_data = {
+                    'slot_id': slot.id,
+                    'license_plate': payment.plate_no,
+                    'customer_name': None,
+                    'duration': duration_formatted,
+                    'duration_minutes': duration_minutes,
+                    'initial_fee': float(initial_fee),
+                    'additional_fee': float(additional_fee),
+                    'total_fee': float(total_fee),
+                    'payment_method': payment_method,
+                    'start_time': start_time.isoformat(),
+                    'end_time': end_time.isoformat(),
+                    'receipt_printed': print_receipt,
+                    'reservation_updated': False,
+                    'payment_created': True,
+                    'checkout_type': 'payment',
+                    'hourly_rate': float(hourly_rate)
+                }
+
+                return Response(response_data, status=status.HTTP_200_OK)
 
         except Exception as e:
+            logger.error(f"Checkout error: {str(e)}")
             return Response({
                 'error': f'Failed to checkout vehicle: {str(e)}'
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -311,7 +514,7 @@ class ParkSlotViewSet(viewsets.ModelViewSet):
         for slot in occupied_slots:
             current_allocation = None
 
-            # Check for active reservation
+            # Check for active reservation first
             reservation = Reservations.objects.filter(
                 park_slot=slot,
                 status='arrived'
@@ -321,7 +524,8 @@ class ParkSlotViewSet(viewsets.ModelViewSet):
                 current_allocation = {
                     'license_plate': reservation.plate_no,
                     'start_time': reservation.arrival_time.isoformat(),
-                    'customer_name': reservation.name
+                    'customer_name': reservation.name,
+                    'source': 'reservation'
                 }
             else:
                 # Fallback to payment record
@@ -330,7 +534,8 @@ class ParkSlotViewSet(viewsets.ModelViewSet):
                     current_allocation = {
                         'license_plate': payment.plate_no,
                         'start_time': payment.created_at.isoformat(),
-                        'customer_name': None
+                        'customer_name': None,
+                        'source': 'payment'
                     }
 
             enriched_slots.append({
@@ -635,7 +840,7 @@ class ReservationsViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def arrival(self, request, pk=None):
-        """Record customer arrival, assign fee, and send SMS confirmation"""
+        """Record customer arrival, assign initial fee, and send SMS confirmation"""
         try:
             reservation = self.get_object()
 
@@ -644,15 +849,24 @@ class ReservationsViewSet(viewsets.ModelViewSet):
                     'error': 'Only approved reservations can record arrival'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            # Get hourly rate
-            hourly_rate = SYSTEM_SETTINGS['regularHourlyRate']
+            # Get initial fee from database based on slot type (same as hourly rate)
+            park_fee = ParkFee.objects.first()
+            if park_fee:
+                if reservation.park_slot.slot_type == 'vip':
+                    initial_fee = park_fee.vip_hourly_rate
+                elif reservation.park_slot.slot_type == 'disabled':
+                    initial_fee = park_fee.disabled_hourly_rate
+                else:
+                    initial_fee = park_fee.regular_hourly_rate
+            else:
+                initial_fee = Decimal('50.00')
 
             # Set arrival time
             arrival_time = timezone.now()
             reservation.arrival_time = arrival_time
 
-            # For now, set fee to 1 hour's rate on arrival — final adjustment can happen on checkout
-            reservation.fee = hourly_rate
+            # Set initial fee on arrival (same as hourly rate)
+            reservation.fee = initial_fee
 
             # Update reservation status
             reservation.status = 'arrived'
@@ -730,8 +944,12 @@ def dashboard_stats(request):
         # Calculate today's revenue
         today = timezone.now().date()
 
-        # Payments made today
-        today_payments = Payment.objects.filter(date=today)
+        # Payments made today (only completed payments with payment method)
+        today_payments = Payment.objects.filter(
+            date=today,
+            mode_of_payment__isnull=False,
+            amount__gt=0
+        ).exclude(mode_of_payment='')
         payment_total = today_payments.aggregate(total=Sum('amount'))['total'] or Decimal('0')
 
         # Completed reservations today
@@ -783,7 +1001,7 @@ def payment_reports(request):
             start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
             end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
 
-        # 2. Fetch valid payments and reservations
+        # 2. Fetch valid payments and reservations separately
         payments = Payment.objects.filter(
             date__range=[start_date, end_date],
             amount__isnull=False,
