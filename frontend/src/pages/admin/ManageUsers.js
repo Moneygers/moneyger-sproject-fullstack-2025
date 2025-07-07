@@ -260,6 +260,24 @@ const ManageUsers = () => {
     return (
       <div className="modal-overlay">
         <div className="modal-content">
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              position: "absolute",
+              top: 18,
+              right: 18,
+              background: "none",
+              border: "none",
+              color: "#a0a0a0",
+              fontSize: 20,
+              cursor: "pointer",
+              zIndex: 2,
+            }}
+            aria-label="Close"
+          >
+            <X size={22} />
+          </button>
           <h3 className="modal-title">Edit User - {user.username}</h3>
 
           <form onSubmit={handleSubmit} className="modal-form">
@@ -346,7 +364,7 @@ const ManageUsers = () => {
                       value={formData.password || ""}
                       onChange={handleInputChange}
                       className={`form-input ${errors.password ? "error" : ""}`}
-                      placeholder="Leave blank to keep current password"
+                      placeholder="New Password"
                     />
                     <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -397,6 +415,24 @@ const ManageUsers = () => {
   const DeleteConfirmModal = ({ user, onClose, onConfirm }) => (
     <div className="modal-overlay">
       <div className="modal-content">
+        <button
+          type="button"
+          onClick={onClose}
+          style={{
+            position: "absolute",
+            top: 18,
+            right: 18,
+            background: "none",
+            border: "none",
+            color: "#a0a0a0",
+            fontSize: 20,
+            cursor: "pointer",
+            zIndex: 2,
+          }}
+          aria-label="Close"
+        >
+          <X size={22} />
+        </button>
         <h3 className="modal-title">Confirm Delete</h3>
         <div className="delete-confirmation">
           <div className="warning-icon">
