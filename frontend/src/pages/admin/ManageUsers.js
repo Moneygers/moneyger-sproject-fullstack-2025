@@ -510,6 +510,18 @@ const ManageUsers = () => {
 
           <div className="summary-card">
             <div className="summary-content">
+              <div className="summary-icon clerk">
+                <UserCheck size={20} />
+              </div>
+              <div className="summary-info">
+                <div className="summary-label">Customers</div>
+                <div className="summary-value">{users.filter((u) => u.role === "customer").length}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="summary-card">
+            <div className="summary-content">
               <div className="summary-icon total">
                 <Users size={20} />
               </div>
@@ -547,6 +559,7 @@ const ManageUsers = () => {
                 <option value="all">All Roles</option>
                 <option value="admin">Admin</option>
                 <option value="clerk">Clerk</option>
+                <option value="customer">Customer</option>
               </select>
             </div>
 
