@@ -78,7 +78,7 @@ const CustomerView = () => {
         const userReservation = data.find(
           (reservation) =>
             reservation.name.toLowerCase().includes(user.first_name?.toLowerCase() || user.username?.toLowerCase()) &&
-            (reservation.status === "pending" || reservation.status === "approved"),
+            (reservation.status === "pending" || reservation.status === "approved" || reservation.status === "arrived"),
         )
         setPendingReservation(userReservation || null)
       } else {
@@ -104,7 +104,7 @@ const CustomerView = () => {
         const activeReservation = data.find(
           (reservation) =>
             reservation.name.toLowerCase().includes(user.first_name?.toLowerCase() || user.username?.toLowerCase()) &&
-            (reservation.status === "pending" || reservation.status === "approved"),
+            (reservation.status === "pending" || reservation.status === "approved" || reservation.status === "arrived"),
         )
         return activeReservation || null
       }
@@ -460,7 +460,7 @@ const CustomerView = () => {
             {isAuthenticated && user?.role === "customer" && (
               <button onClick={handleViewPendingReservation} className="view-pending-button" disabled={loadingPending}>
                 <span className="pending-icon">📋</span>
-                <span>{loadingPending ? "Loading..." : "View Pending Reservation"}</span>
+                <span>{loadingPending ? "Loading..." : "View Active Reservation"}</span>
               </button>
             )}
           </div>
@@ -713,7 +713,7 @@ const CustomerView = () => {
         <div className="modal-overlay">
           <div className="reservation-modal">
             <div className="modal-header">
-              <h3 className="modal-title">Your Pending Reservation</h3>
+              <h3 className="modal-title">Your Active Reservation</h3>
               <button onClick={() => setShowPendingModal(false)} className="modal-close">
                 <X size={20} />
               </button>
@@ -782,8 +782,8 @@ const CustomerView = () => {
             ) : (
               <div className="no-reservation-content">
                 <div className="no-reservation-icon">📋</div>
-                <h4>No Pending Reservations</h4>
-                <p>You don't have any pending reservations at the moment.</p>
+                <h4>No Active Reservations</h4>
+                <p>You don't have any active/pending reservations at the moment.</p>
                 <div className="modal-actions">
                   <button onClick={() => setShowPendingModal(false)} className="modal-submit">
                     Close

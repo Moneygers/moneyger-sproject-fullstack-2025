@@ -130,7 +130,7 @@ class ParkSlotViewSet(viewsets.ModelViewSet):
             payment = Payment.objects.create(
                 slot=slot,
                 plate_no=license_plate,
-                date=timezone.now().date(),
+                date=timezone.now().date(),  # This should match the created_at date
                 amount=hourly_rate,
                 mode_of_payment=None  # Will be updated later
             )
@@ -784,12 +784,13 @@ def payment_reports(request):
         payments = Payment.objects.filter(
             date__range=[start_date, end_date],
             amount__isnull=False,
-            amount__gt=0
-        )
+            amount__gt=0,
+            mode_of_payment__isnull=False  # Only payments with payment method set
+        ).exclude(mode_of_payment='')  # Exclude empty payment methods
 
         reservations = Reservations.objects.filter(
             date__range=[start_date, end_date],
-            status='completed',
+            status='completed',  # Only completed reservations
             fee__isnull=False,
             fee__gt=0
         )
