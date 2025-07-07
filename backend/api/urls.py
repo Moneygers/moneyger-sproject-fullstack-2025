@@ -33,5 +33,7 @@ urlpatterns = [
     
     path('test-sms/', views.test_sms, name='test-sms'),  # SMS testing endpoint
     path('textbee-info/', views.textbee_service_info, name='textbee-info'),  # TextBee service info
+    
+    path('profanity/', views.profanity, name='profanity'),
 
 ]
