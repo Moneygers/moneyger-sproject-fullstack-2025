@@ -16,51 +16,76 @@ const CreateAccounts = () => {
     role: "clerk",
     phone_number: "",
   })
+
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
 
+  // ✅ Profanity check
+  const checkProfanity = async (field, value) => {
+    if (!value.trim()) return
+    try {
+      const res = await fetch("http://localhost:8000/api/profanity/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: value.trim() }),
+      })
+      const data = await res.json()
+      if (data.profanity && data.detected.length > 0) {
+        setErrors((prev) => ({
+          ...prev,
+          [field]: `Inappropriate word detected: ${data.detected.join(", ")}`,
+        }))
+      }
+    } catch (err) {
+      console.error("Profanity check failed:", err)
+    }
+  }
+
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
-
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }))
+    }
+  }
+
+  // ✅ Run profanity check on blur
+  const handleInputBlur = (e) => {
+    const { name, value } = e.target
+    const fieldsToCheck = ["first_name", "last_name", "username", "email"]
+    if (fieldsToCheck.includes(name)) {
+      checkProfanity(name, value)
     }
   }
 
   const validateForm = () => {
     const newErrors = {}
 
+    if (!formData.first_name.trim()) newErrors.first_name = "First name is required"
+    if (!formData.last_name.trim()) newErrors.last_name = "Last name is required"
     if (!formData.username.trim()) newErrors.username = "Username is required"
     if (!formData.email.trim()) newErrors.email = "Email is required"
     if (!formData.password) newErrors.password = "Password is required"
+    if (formData.password.length < 8) newErrors.password = "Password must be at least 8 characters long"
     if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match"
     }
-    if (!formData.first_name.trim()) newErrors.first_name = "First name is required"
-    if (!formData.last_name.trim()) newErrors.last_name = "Last name is required"
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (formData.email && !emailRegex.test(formData.email)) {
       newErrors.email = "Please enter a valid email address"
     }
 
-    // Password strength validation
-    if (formData.password && formData.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters long"
-    }
+    const hasExistingErrors = Object.values(errors).some((e) => e)
+    setErrors((prev) => ({ ...prev, ...newErrors }))
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    return Object.keys(newErrors).length === 0 && !hasExistingErrors
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-
     if (!validateForm()) return
 
     setLoading(true)
@@ -83,10 +108,7 @@ const CreateAccounts = () => {
       })
 
       if (response.ok) {
-        const result = await response.json()
         alert(`${formData.role} account created successfully for ${formData.first_name} ${formData.last_name}`)
-
-        // Reset form
         setFormData({
           username: "",
           email: "",
@@ -97,6 +119,7 @@ const CreateAccounts = () => {
           role: "clerk",
           phone_number: "",
         })
+        setErrors({})
       } else {
         const errorData = await response.json()
         alert(`Failed to create user account: ${errorData.message || "Unknown error"}`)
@@ -136,6 +159,7 @@ const CreateAccounts = () => {
                       name="first_name"
                       value={formData.first_name}
                       onChange={handleInputChange}
+                      onBlur={handleInputBlur}
                       className={`form-input ${errors.first_name ? "error" : ""}`}
                       placeholder="Enter first name"
                     />
@@ -149,6 +173,7 @@ const CreateAccounts = () => {
                       name="last_name"
                       value={formData.last_name}
                       onChange={handleInputChange}
+                      onBlur={handleInputBlur}
                       className={`form-input ${errors.last_name ? "error" : ""}`}
                       placeholder="Enter last name"
                     />
@@ -168,6 +193,7 @@ const CreateAccounts = () => {
                       name="username"
                       value={formData.username}
                       onChange={handleInputChange}
+                      onBlur={handleInputBlur}
                       className={`form-input ${errors.username ? "error" : ""}`}
                       placeholder="Enter username"
                     />
@@ -181,6 +207,7 @@ const CreateAccounts = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleInputChange}
+                      onBlur={handleInputBlur}
                       className={`form-input ${errors.email ? "error" : ""}`}
                       placeholder="Enter email address"
                     />
@@ -256,7 +283,7 @@ const CreateAccounts = () => {
                 </div>
               </div>
 
-              {/* Submit Button */}
+              {/* Submit Buttons */}
               <div className="form-actions">
                 <button
                   type="button"

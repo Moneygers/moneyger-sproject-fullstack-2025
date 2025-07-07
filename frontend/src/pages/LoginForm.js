@@ -23,72 +23,27 @@ const LoginForm = () => {
   const { login } = useAuth()
   const navigate = useNavigate()
 
-  // Validation functions
-  const validateEmail = (email) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
+  // Validation helpers
+  const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  const validatePhoneNumber = (phone) => /^09\d{9}$/.test(phone)
+  const validateName = (name) => /^[a-zA-Z\s.]+$/.test(name) && name.trim().length >= 2
+
+  const checkProfanity = async (text) => {
+    try {
+      const res = await fetch("http://localhost:8000/api/profanity/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      })
+      const data = await res.json()
+      return data.profanity ? data.detected || ["Inappropriate content"] : []
+    } catch (err) {
+      console.error("Profanity check failed:", err)
+      return []
+    }
   }
 
-  const validatePhoneNumber = (phone) => {
-    const phoneRegex = /^09\d{9}$/
-    return phoneRegex.test(phone)
-  }
-
-  const validateName = (name) => {
-    const nameRegex = /^[a-zA-Z\s.]+$/
-    return nameRegex.test(name) && name.trim().length >= 2
-  }
-
-  const validateSignUpForm = () => {
-    const errors = {}
-
-    if (!firstName.trim()) {
-      errors.firstName = "First name is required"
-    } else if (!validateName(firstName)) {
-      errors.firstName = "First name should contain only letters, spaces, and periods"
-    }
-
-    if (!lastName.trim()) {
-      errors.lastName = "Last name is required"
-    } else if (!validateName(lastName)) {
-      errors.lastName = "Last name should contain only letters, spaces, and periods"
-    }
-
-    if (!email.trim()) {
-      errors.email = "Email is required"
-    } else if (!validateEmail(email)) {
-      errors.email = "Please enter a valid email address"
-    }
-
-    if (!phoneNumber.trim()) {
-      errors.phoneNumber = "Phone number is required"
-    } else if (!validatePhoneNumber(phoneNumber)) {
-      errors.phoneNumber = "Please enter a valid Philippine mobile number (09XXXXXXXXX)"
-    }
-
-    if (!username.trim()) {
-      errors.username = "Username is required"
-    } else if (username.trim().length < 3) {
-      errors.username = "Username must be at least 3 characters long"
-    }
-
-    if (!password) {
-      errors.password = "Password is required"
-    } else if (password.length < 6) {
-      errors.password = "Password must be at least 6 characters long"
-    }
-
-    if (!confirmPassword) {
-      errors.confirmPassword = "Please confirm your password"
-    } else if (password !== confirmPassword) {
-      errors.confirmPassword = "Passwords do not match"
-    }
-
-    setFormErrors(errors)
-    return Object.keys(errors).length === 0
-  }
-
-  const handleInputChange = (field, value) => {
+  const handleInputChange = async (field, value) => {
     let processedValue = value
 
     if (field === "firstName" || field === "lastName") {
@@ -100,7 +55,6 @@ const LoginForm = () => {
       }
     }
 
-    // Update the appropriate state
     switch (field) {
       case "firstName":
         setFirstName(processedValue)
@@ -125,28 +79,85 @@ const LoginForm = () => {
         break
     }
 
-    // Clear error for this field when user starts typing
     if (formErrors[field]) {
       setFormErrors((prev) => ({ ...prev, [field]: "" }))
     }
+
+    const fieldsToCheck = ["firstName", "lastName", "email", "username", "password", "confirmPassword"]
+    if (fieldsToCheck.includes(field) && processedValue.trim()) {
+      const detected = await checkProfanity(processedValue.trim())
+      if (detected.length > 0) {
+        setFormErrors((prev) => ({
+          ...prev,
+          [field]: `Inappropriate word detected: ${detected.join(", ")}`,
+        }))
+      }
+    }
   }
+
+  const validateSignUpForm = () => {
+  const errors = {}
+
+  if (!firstName.trim()) {
+    errors.firstName = "First name is required"
+  } else if (!validateName(firstName)) {
+    errors.firstName = "First name should contain only letters, spaces, and periods"
+  }
+
+  if (!lastName.trim()) {
+    errors.lastName = "Last name is required"
+  } else if (!validateName(lastName)) {
+    errors.lastName = "Last name should contain only letters, spaces, and periods"
+  }
+
+  if (!email.trim()) {
+    errors.email = "Email is required"
+  } else if (!validateEmail(email)) {
+    errors.email = "Please enter a valid email address"
+  }
+
+  if (!phoneNumber.trim()) {
+    errors.phoneNumber = "Phone number is required"
+  } else if (!validatePhoneNumber(phoneNumber)) {
+    errors.phoneNumber = "Please enter a valid Philippine mobile number (09XXXXXXXXX)"
+  }
+
+  if (!username.trim()) {
+    errors.username = "Username is required"
+  } else if (username.trim().length < 3) {
+    errors.username = "Username must be at least 3 characters long"
+  }
+
+  if (!password) {
+    errors.password = "Password is required"
+  } else if (password.length < 6) {
+    errors.password = "Password must be at least 6 characters long"
+  }
+
+  if (!confirmPassword) {
+    errors.confirmPassword = "Please confirm your password"
+  } else if (password !== confirmPassword) {
+    errors.confirmPassword = "Passwords do not match"
+  }
+
+  const combinedErrors = { ...formErrors, ...errors }
+
+  setFormErrors(combinedErrors)
+
+  return Object.values(combinedErrors).every((val) => !val)
+}
+
 
   const handleSignUp = async (e) => {
     e.preventDefault()
     setError("")
-
-    if (!validateSignUpForm()) {
-      return
-    }
-
+    if (!validateSignUpForm()) return
     setLoading(true)
 
     try {
-      const response = await fetch("http://localhost:8000/api/users/", {
+      const res = await fetch("http://localhost:8000/api/users/", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           first_name: firstName.trim(),
           last_name: lastName.trim(),
@@ -158,11 +169,9 @@ const LoginForm = () => {
         }),
       })
 
-      const data = await response.json()
-
-      if (response.ok) {
+      const data = await res.json()
+      if (res.ok) {
         alert("Account created successfully! You can now sign in.")
-        // Switch to sign in mode and clear form
         setIsSignUp(false)
         setFirstName("")
         setLastName("")
@@ -173,13 +182,7 @@ const LoginForm = () => {
         setConfirmPassword("")
         setFormErrors({})
       } else {
-        if (data.username) {
-          setError(data.username[0])
-        } else if (data.email) {
-          setError(data.email[0])
-        } else {
-          setError(data.message || "Failed to create account")
-        }
+        setError(data.username?.[0] || data.email?.[0] || data.message || "Failed to create account")
       }
     } catch (err) {
       console.error("Sign up error:", err)
@@ -195,42 +198,28 @@ const LoginForm = () => {
     setLoading(true)
 
     try {
-      const response = await fetch("http://localhost:8000/api/auth/login/", {
+      const res = await fetch("http://localhost:8000/api/auth/login/", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: username,
-          password: password,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
       })
+      const data = await res.json()
 
-      const data = await response.json()
-
-      if (response.ok) {
-        // Store token and user data
+      if (res.ok) {
         localStorage.setItem("token", data.token)
         localStorage.setItem("user", JSON.stringify(data.user))
 
-        // Update auth context
         await login({
-          username: username,
-          password: password,
+          username,
+          password,
           role: data.user.role,
           email: data.user.email,
         })
 
-        // Redirect based on role
-        if (data.user.role === "admin") {
-          navigate("/admin/payment-reports")
-        } else if (data.user.role === "clerk") {
-          navigate("/dashboard")
-        } else if (data.user.role === "customer") {
-          navigate("/")
-        } else {
-          navigate("/customer-view")
-        }
+        if (data.user.role === "admin") navigate("/admin/payment-reports")
+        else if (data.user.role === "clerk") navigate("/dashboard")
+        else if (data.user.role === "customer") navigate("/")
+        else navigate("/customer-view")
       } else {
         setError(data.message || "Invalid username or password")
       }
@@ -242,15 +231,10 @@ const LoginForm = () => {
     }
   }
 
-  const handleCustomerView = () => {
-    navigate("/")
-  }
-
   const toggleMode = () => {
     setIsSignUp(!isSignUp)
     setError("")
     setFormErrors({})
-    // Clear form fields when switching modes
     setUsername("")
     setPassword("")
     setConfirmPassword("")
@@ -259,6 +243,8 @@ const LoginForm = () => {
     setEmail("")
     setPhoneNumber("")
   }
+
+  const handleCustomerView = () => navigate("/")
 
   return (
     <div className="login-page-container">
@@ -275,7 +261,6 @@ const LoginForm = () => {
 
           <form className="login-form" onSubmit={isSignUp ? handleSignUp : handleSignIn}>
             {isSignUp ? (
-              // Sign Up Form
               <>
                 <div className="input-group">
                   <div className="input-row">
@@ -287,7 +272,7 @@ const LoginForm = () => {
                         placeholder="First Name"
                         value={firstName}
                         onChange={(e) => handleInputChange("firstName", e.target.value)}
-                        maxLength={50}
+                        onBlur={(e) => handleInputChange("firstName", e.target.value)}
                       />
                       {formErrors.firstName && <div className="error-message">{formErrors.firstName}</div>}
                     </div>
@@ -299,7 +284,7 @@ const LoginForm = () => {
                         placeholder="Last Name"
                         value={lastName}
                         onChange={(e) => handleInputChange("lastName", e.target.value)}
-                        maxLength={50}
+                        onBlur={(e) => handleInputChange("lastName", e.target.value)}
                       />
                       {formErrors.lastName && <div className="error-message">{formErrors.lastName}</div>}
                     </div>
@@ -338,6 +323,7 @@ const LoginForm = () => {
                       placeholder="Username"
                       value={username}
                       onChange={(e) => handleInputChange("username", e.target.value)}
+                      onBlur={(e) => handleInputChange("username", e.target.value)}
                     />
                     {formErrors.username && <div className="error-message">{formErrors.username}</div>}
                   </div>
@@ -350,6 +336,7 @@ const LoginForm = () => {
                       placeholder="Password"
                       value={password}
                       onChange={(e) => handleInputChange("password", e.target.value)}
+                      onBlur={(e) => handleInputChange("password", e.target.value)}
                     />
                     <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
                       {showPassword ? "👁️‍🗨️" : "👁️"}
@@ -365,6 +352,7 @@ const LoginForm = () => {
                       placeholder="Confirm Password"
                       value={confirmPassword}
                       onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                      onBlur={(e) => handleInputChange("confirmPassword", e.target.value)}
                     />
                     <button
                       type="button"
@@ -378,7 +366,6 @@ const LoginForm = () => {
                 </div>
               </>
             ) : (
-              // Sign In Form
               <div className="input-group">
                 <div className="input-wrapper">
                   <input
@@ -451,8 +438,6 @@ const LoginForm = () => {
           </form>
         </div>
       </div>
-
-      {/* Footer */}
       <Footer />
     </div>
   )
