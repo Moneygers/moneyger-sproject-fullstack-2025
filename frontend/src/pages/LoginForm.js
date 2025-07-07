@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 import Footer from "../components/Footer"
 import "../styles/LoginForm.css"
+import { LogIn, UserPlus, Eye, EyeOff, EyeIcon, EyeOffIcon, Eye as LucideEye, EyeOff as LucideEyeOff, Mail } from "lucide-react"
 
 const LoginForm = () => {
   const [isSignUp, setIsSignUp] = useState(false)
@@ -339,7 +340,7 @@ const LoginForm = () => {
                       onBlur={(e) => handleInputChange("password", e.target.value)}
                     />
                     <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
-                      {showPassword ? "👁️‍🗨️" : "👁️"}
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                     {formErrors.password && <div className="error-message">{formErrors.password}</div>}
                   </div>
@@ -359,7 +360,7 @@ const LoginForm = () => {
                       className="password-toggle"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
-                      {showConfirmPassword ? "👁️‍🗨️" : "👁️"}
+                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                     </button>
                     {formErrors.confirmPassword && <div className="error-message">{formErrors.confirmPassword}</div>}
                   </div>
@@ -387,7 +388,7 @@ const LoginForm = () => {
                     onChange={(e) => setPassword(e.target.value)}
                   />
                   <button type="button" className="password-toggle" onClick={() => setShowPassword(!showPassword)}>
-                    {showPassword ? "👁️‍🗨️" : "👁️"}
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
               </div>
@@ -397,13 +398,14 @@ const LoginForm = () => {
 
             <div className="submit-wrapper">
               <button type="submit" disabled={loading} className="submit-button">
-                {loading ? (isSignUp ? "Creating Account..." : "Signing in...") : isSignUp ? "Sign Up" : "Sign in"}
+                {loading ? (isSignUp ? "Creating Account..." : "Signing in...") : isSignUp ? <><UserPlus size={18} style={{marginRight: 8}} />Sign Up</> : <><LogIn size={18} style={{marginRight: 8}} />Sign in</>}
               </button>
             </div>
 
             {!isSignUp && (
               <div className="submit-wrapper">
                 <button type="button" onClick={toggleMode} className="signup-button">
+                  <UserPlus size={18} className="signup-icon" />
                   Sign Up
                 </button>
               </div>
@@ -411,7 +413,7 @@ const LoginForm = () => {
 
             <div className="submit-wrapper">
               <button type="button" className="google-button" disabled>
-                <span className="google-icon">🔍</span>
+                <span className="google-icon"><Mail size={18} /></span>
                 Continue with Google
               </button>
               <p className="google-note">Coming soon...</p>
