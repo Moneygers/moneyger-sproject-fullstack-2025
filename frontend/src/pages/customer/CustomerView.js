@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
-import { ArrowLeft, Building2, Car, MapPin, Star, Accessibility, Sun, X } from "lucide-react"
+import { ArrowLeft, Building2, Car, CircleAlert, MapPin, Star, Accessibility, Sun, X } from "lucide-react"
 import Footer from "../../components/Footer"
 import "../../styles/customer/CustomerView.css"
 
@@ -552,15 +552,16 @@ const CustomerView = () => {
         <div className="modal-overlay">
           <div className="reservation-modal">
             <div className="modal-header">
-              <h3 className="modal-title">Login Required</h3>
+              <h3 className="modal-title">Login Required!</h3>
               <button onClick={closeLoginPrompt} className="modal-close">
                 ✕
               </button>
             </div>
 
             <div className="login-prompt-content">
-              <div className="login-prompt-icon">🔒</div>
-              <h4>Customer Login Required</h4>
+              <h4><CircleAlert size={20} className="login-prompt-icon"/>
+              Customer Login Required!
+              </h4>
               <p>
                 To reserve slot{" "}
                 {`F${Number.parseInt(selectedSlot.structure.replace("FLOOR", ""))}-${selectedSlot.section}-${selectedSlot.slotNo}`}
