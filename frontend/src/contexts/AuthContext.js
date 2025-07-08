@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect } from "react"
+import BASE_URL from '../config';
 
 const AuthContext = createContext()
 
@@ -36,7 +37,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      const response = await fetch("http://localhost:8000/api/auth/login/", {
+      const response = await fetch(`${BASE_URL}/api/auth/login/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -68,7 +69,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const token = localStorage.getItem("token")
       if (token) {
-        await fetch("http://localhost:8000/api/auth/logout/", {
+        await fetch(`${BASE_URL}/api/auth/logout/`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,

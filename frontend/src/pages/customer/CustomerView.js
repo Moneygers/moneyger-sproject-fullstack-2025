@@ -6,6 +6,7 @@ import { useAuth } from "../../contexts/AuthContext"
 import { ArrowLeft, Building2, Car, CircleAlert, MapPin, Star,TriangleAlert, Accessibility, Sun, X, Eye } from "lucide-react"
 import Footer from "../../components/Footer"
 import "../../styles/customer/CustomerView.css"
+import BASE_URL from '../../config';
 
 const CustomerView = () => {
   const [slots, setSlots] = useState([])
@@ -48,7 +49,7 @@ const CustomerView = () => {
 
   const fetchAvailableSlots = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/slots/")
+      const response = await fetch(`${BASE_URL}/api/slots/`)
 
       if (response.ok) {
         const data = await response.json()
@@ -70,7 +71,7 @@ const CustomerView = () => {
 
     setLoadingPending(true)
     try {
-      const response = await fetch("http://localhost:8000/api/reservations/")
+      const response = await fetch(`${BASE_URL}/api/reservations/`)
 
       if (response.ok) {
         const data = await response.json()
@@ -97,7 +98,7 @@ const CustomerView = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/api/reservations/")
+      const response = await fetch(`${BASE_URL}/api/reservations/`)
       if (response.ok) {
         const data = await response.json()
         // Find the user's active reservation by user ID
@@ -121,7 +122,7 @@ const CustomerView = () => {
     if (!confirmCancel) return
 
     try {
-      const response = await fetch(`http://localhost:8000/api/reservations/${pendingReservation.id}/cancel/`, {
+      const response = await fetch(`${BASE_URL}/api/reservations/${pendingReservation.id}/cancel/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -361,7 +362,7 @@ const CustomerView = () => {
   useEffect(() => {
     const fetchParkingRates = async () => {
       try {
-        const response = await fetch("http://localhost:8000/api/settings/", {
+        const response = await fetch(`${BASE_URL}/api/settings/`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -398,7 +399,7 @@ const CustomerView = () => {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/api/reservations/", {
+      const response = await fetch(`${BASE_URL}/api/reservations/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

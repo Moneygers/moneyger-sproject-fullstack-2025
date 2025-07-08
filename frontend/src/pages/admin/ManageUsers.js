@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import AdminLayout from "../../components/AdminLayout"
 import { Users, Shield, UserCheck, Search, Filter, Edit, Trash2, Eye, EyeOff, AlertTriangle, X } from "lucide-react"
 import "../../styles/admin/ManageUsers.css"
+import BASE_URL from '../../config';
 
 const ManageUsers = () => {
   const [users, setUsers] = useState([])
@@ -21,7 +22,7 @@ const ManageUsers = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/users/", {
+      const response = await fetch(`${BASE_URL}/api/users/`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -56,7 +57,7 @@ const ManageUsers = () => {
     if (!userToDelete) return
 
     try {
-      const response = await fetch(`http://localhost:8000/api/users/${userToDelete.id}/`, {
+      const response = await fetch(`${BASE_URL}/api/users/${userToDelete.id}/`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -99,7 +100,7 @@ const ManageUsers = () => {
 
       console.log("Sending update data:", userData)
 
-      const response = await fetch(`http://localhost:8000/api/users/${updatedUser.id}/`, {
+      const response = await fetch(`${BASE_URL}/api/users/${updatedUser.id}/`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

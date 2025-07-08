@@ -4,6 +4,7 @@ import { useState } from "react"
 import AdminLayout from "../../components/AdminLayout"
 import { UserPlus, Save, RotateCcw, Eye, EyeOff } from "lucide-react"
 import "../../styles/admin/CreateAccounts.css"
+import BASE_URL from '../../config';
 
 const CreateAccounts = () => {
   const [formData, setFormData] = useState({
@@ -26,7 +27,7 @@ const CreateAccounts = () => {
   const checkProfanity = async (field, value) => {
     if (!value.trim()) return
     try {
-      const res = await fetch("http://localhost:8000/api/profanity/", {
+      const res = await fetch(`${BASE_URL}/api/profanity/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: value.trim() }),
@@ -90,7 +91,7 @@ const CreateAccounts = () => {
 
     setLoading(true)
     try {
-      const response = await fetch("http://localhost:8000/api/users/", {
+      const response = await fetch(`${BASE_URL}/api/users/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

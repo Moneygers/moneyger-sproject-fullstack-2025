@@ -6,6 +6,7 @@ import { useAuth } from "../contexts/AuthContext"
 import Footer from "../components/Footer"
 import "../styles/LoginForm.css"
 import { LogIn, UserPlus, Eye, EyeOff, EyeIcon, EyeOffIcon, Eye as LucideEye, EyeOff as LucideEyeOff, Mail } from "lucide-react"
+import BASE_URL from '../config';
 
 const LoginForm = () => {
   const [isSignUp, setIsSignUp] = useState(false)
@@ -31,7 +32,7 @@ const LoginForm = () => {
 
   const checkProfanity = async (text) => {
     try {
-      const res = await fetch("http://localhost:8000/api/profanity/", {
+      const res = await fetch(`${BASE_URL}/api/profanity/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
@@ -156,7 +157,7 @@ const LoginForm = () => {
     setLoading(true)
 
     try {
-      const res = await fetch("http://localhost:8000/api/users/", {
+      const res = await fetch(`${BASE_URL}/api/users/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -199,7 +200,7 @@ const LoginForm = () => {
     setLoading(true)
 
     try {
-      const res = await fetch("http://localhost:8000/api/auth/login/", {
+      const res = await fetch(`${BASE_URL}/api/auth/login/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),

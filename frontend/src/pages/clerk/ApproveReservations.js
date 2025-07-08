@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Clock, CheckCircle, AlertTriangle, RotateCcw } from "lucide-react"
 import Layout from "../../components/Layout"
 import "../../styles/clerk/ApproveReservations.css"
+import BASE_URL from '../../config';
 
 const ApproveReservations = () => {
   const [pendingReservations, setPendingReservations] = useState([])
@@ -19,7 +20,7 @@ const ApproveReservations = () => {
       setLoading(true)
       setError(null)
 
-      const response = await fetch("http://127.0.0.1:8000/api/reservations/?status=pending", {
+      const response = await fetch(`${BASE_URL}/api/reservations/?status=pending`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -46,7 +47,7 @@ const ApproveReservations = () => {
   const handleApproval = async (reservationId, approved) => {
     try {
       const endpoint = approved ? "approve" : "reject"
-      const response = await fetch(`http://127.0.0.1:8000/api/reservations/${reservationId}/${endpoint}/`, {
+      const response = await fetch(`${BASE_URL}/api/reservations/${reservationId}/${endpoint}/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

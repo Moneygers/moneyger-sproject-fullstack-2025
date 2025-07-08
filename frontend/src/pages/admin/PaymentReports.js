@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import AdminLayout from "../../components/AdminLayout"
 import { DollarSign, TrendingUp, BarChart3 } from "lucide-react"
 import "../../styles/admin/PaymentReports.css"
+import BASE_URL from '../../config';
 
 const PaymentReports = () => {
   const [loading, setLoading] = useState(true)
@@ -21,7 +22,7 @@ const PaymentReports = () => {
 
   const fetchReportData = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/reports/payments/", {
+      const response = await fetch(`${BASE_URL}/api/reports/payments/`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
           "Content-Type": "application/json",

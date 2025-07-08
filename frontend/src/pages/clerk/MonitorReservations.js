@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Calendar, Car, CheckCircle, XCircle, Clock, AlertTriangle } from "lucide-react"
 import "../../styles/clerk/MonitorReservations.css"
 import Layout from "../../components/Layout"
+import BASE_URL from '../../config';
 
 const MonitorReservations = () => {
   const [reservations, setReservations] = useState([])
@@ -22,7 +23,7 @@ const MonitorReservations = () => {
         params.append("status", statusFilter)
       }
 
-      const response = await fetch(`http://127.0.0.1:8000/api/reservations/?${params}`, {
+      const response = await fetch(`${BASE_URL}/api/reservations/?${params}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -43,7 +44,7 @@ const MonitorReservations = () => {
 
   const handleArrival = async (reservationId) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/reservations/${reservationId}/arrival/`, {
+      const response = await fetch(`${BASE_URL}/api/reservations/${reservationId}/arrival/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Car, Calendar, DollarSign, BarChart3 } from "lucide-react"
 import Layout from "../../components/Layout"
 import "../../styles/clerk/Dashboard.css"
+import BASE_URL from '../../config';
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -21,7 +22,7 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/dashboard/stats/", {
+      const response = await fetch(`${BASE_URL}/api/dashboard/stats/`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

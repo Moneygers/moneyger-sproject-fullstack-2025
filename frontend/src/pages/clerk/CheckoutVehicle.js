@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 import "../../styles/clerk/CheckoutVehicle.css"
 import Layout from "../../components/Layout"
+import BASE_URL from '../../config';
 
 const CheckoutVehicle = () => {
   const [occupiedSlots, setOccupiedSlots] = useState([])
@@ -38,7 +39,7 @@ const CheckoutVehicle = () => {
       console.log("Fetching parking rates from system settings...")
       setRatesError(null)
 
-      const response = await fetch("http://localhost:8000/api/settings/", {
+      const response = await fetch(`${BASE_URL}/api/settings/`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -78,7 +79,7 @@ const CheckoutVehicle = () => {
   const fetchOccupiedSlots = async () => {
     try {
       // Use the detailed occupied slots endpoint that includes reservation information
-      const response = await fetch("http://localhost:8000/api/slots/occupied-detailed/", {
+      const response = await fetch(`${BASE_URL}/api/slots/occupied-detailed/`, {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -161,7 +162,7 @@ const CheckoutVehicle = () => {
       console.log("Payment Method:", paymentMethod)
       console.log("Should Print:", shouldPrint)
 
-      const response = await fetch(`http://localhost:8000/api/slots/${selectedSlot.id}/checkout/`, {
+      const response = await fetch(`${BASE_URL}/api/slots/${selectedSlot.id}/checkout/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

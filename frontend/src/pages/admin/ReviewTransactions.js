@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import AdminLayout from "../../components/AdminLayout"
 import { DollarSign, Receipt, TrendingUp, Search, Filter, X, CreditCard, Banknote, Smartphone } from "lucide-react"
 import "../../styles/admin/ReviewTransactions.css"
+import BASE_URL from '../../config';
 
 const ReviewTransactions = () => {
   const [transactions, setTransactions] = useState([])
@@ -27,7 +28,7 @@ const ReviewTransactions = () => {
         type_filter: typeFilter,
       })
 
-      const response = await fetch(`http://localhost:8000/api/reports/transactions/?${params}`, {
+      const response = await fetch(`${BASE_URL}/api/reports/transactions/?${params}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

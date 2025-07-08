@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import AdminLayout from "../../components/AdminLayout"
 import { DollarSign, RotateCcw, Save } from "lucide-react"
 import "../../styles/admin/SystemSettings.css"
+import BASE_URL from '../../config';
 
 const SystemSettings = () => {
   const [settings, setSettings] = useState({
@@ -24,7 +25,7 @@ const SystemSettings = () => {
 
   const fetchSettings = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/settings/", {
+      const response = await fetch(`${BASE_URL}/api/settings/`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -54,7 +55,7 @@ const SystemSettings = () => {
   const handleSave = async () => {
     setSaving(true)
     try {
-      const response = await fetch("http://localhost:8000/api/settings/", {
+      const response = await fetch(`${BASE_URL}/api/settings/`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -79,7 +80,7 @@ const SystemSettings = () => {
   const resetToDefaults = async () => {
     if (window.confirm("Are you sure you want to reset all settings to default values?")) {
       try {
-        const response = await fetch("http://localhost:8000/api/settings/reset/", {
+        const response = await fetch(`${BASE_URL}/api/settings/reset/`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

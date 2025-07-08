@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Car, RotateCcw, Star, Accessibility } from "lucide-react"
 import "../../styles/clerk/UpdateSlots.css"
 import Layout from "../../components/Layout"
+import BASE_URL from '../../config';
 
 const UpdateSlots = () => {
   const [slots, setSlots] = useState([])
@@ -26,7 +27,7 @@ const UpdateSlots = () => {
 
   const fetchSlots = async () => {
     try {
-      const response = await fetch("http://localhost:8000/api/slots/", {
+      const response = await fetch(`${BASE_URL}/api/slots/`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -113,7 +114,7 @@ const UpdateSlots = () => {
     if (!selectedSlot || !plateNumber.trim()) return
 
     try {
-      const response = await fetch(`http://localhost:8000/api/slots/${selectedSlot.id}/assign/`, {
+      const response = await fetch(`${BASE_URL}/api/slots/${selectedSlot.id}/assign/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
