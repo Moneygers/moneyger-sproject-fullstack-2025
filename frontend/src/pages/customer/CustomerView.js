@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
-import { ArrowLeft, Building2, Car, CircleAlert, MapPin, Star, Accessibility, Sun, X } from "lucide-react"
+import { ArrowLeft, Building2, Car, CircleAlert, MapPin, Star,TriangleAlert, Accessibility, Sun, X, Eye } from "lucide-react"
 import Footer from "../../components/Footer"
 import "../../styles/customer/CustomerView.css"
 
@@ -460,7 +460,7 @@ const CustomerView = () => {
             ))}
             {isAuthenticated && user?.role === "customer" && (
               <button onClick={handleViewPendingReservation} className="view-pending-button" disabled={loadingPending}>
-                <span className="pending-icon">📋</span>
+                <Eye size={20} className="pending-icon"/>
                 <span>{loadingPending ? "Loading..." : "View Active Reservation"}</span>
               </button>
             )}
@@ -582,7 +582,7 @@ const CustomerView = () => {
         </div>
       )}
 
-      {/* Active Reservation Modal */}
+      {/* Only One Reservation Modal */}
       {showActiveReservationModal && selectedSlot && (
         <div className="modal-overlay">
           <div className="reservation-modal">
@@ -594,8 +594,8 @@ const CustomerView = () => {
             </div>
 
             <div className="login-prompt-content">
-              <div className="login-prompt-icon">⚠️</div>
-              <h4>Only One Reservation Allowed</h4>
+              <h4><TriangleAlert size={20} className="login-prompt-icon"/>
+                Only One Reservation Allowed</h4>
               <p>You already have an active reservation. Only one reservation can be made at a time.</p>
               <p>
                 You tried to reserve slot{" "}
@@ -710,12 +710,12 @@ const CustomerView = () => {
         </div>
       )}
 
-      {/* Pending Reservation Modal */}
+      {/* Your Reservation Modal */}
       {showPendingModal && (
         <div className="modal-overlay">
           <div className="reservation-modal">
             <div className="modal-header">
-              <h3 className="modal-title">Your Active Reservation</h3>
+              <h3 className="modal-title">Your Reservation</h3>
               <button onClick={() => setShowPendingModal(false)} className="modal-close">
                 <X size={20} />
               </button>
@@ -767,6 +767,11 @@ const CustomerView = () => {
                       <span className="info-value">{new Date(pendingReservation.arrival_time).toLocaleString()}</span>
                     </div>
                   )}
+                  <div className="info-row">
+                    <span className="info-label">Ongoing Parking Fee:</span>
+                    <span className="info-value">
+                      ₱{pendingReservation.fee}</span>
+                  </div>
                 </div>
 
                 <div className="modal-actions">

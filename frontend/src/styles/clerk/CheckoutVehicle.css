@@ -269,6 +269,14 @@
   font-weight: 500;
 }
 
+.allocation-type{
+  margin-top: 0.2rem;
+}
+.reservation-badge{
+  font-size: 0.875rem;
+  color: #b9f3f1;
+  font-weight: 700;
+}
 .parking-details-section {
   padding: 1.25rem;
 }

@@ -155,6 +155,8 @@ const ManageUsers = () => {
         return "role-badge admin"
       case "clerk":
         return "role-badge clerk"
+      case "customer":
+        return "role-badge customer"
       default:
         return "role-badge default"
     }
@@ -510,7 +512,7 @@ const ManageUsers = () => {
 
           <div className="summary-card">
             <div className="summary-content">
-              <div className="summary-icon clerk">
+              <div className="summary-icon customer">
                 <UserCheck size={20} />
               </div>
               <div className="summary-info">

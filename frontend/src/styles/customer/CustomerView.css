@@ -163,6 +163,32 @@
   border-color: #00fff7;
 }
 
+.pending-icon {
+  color: white;
+  transition: color 0.3s ease-in-out;
+  cursor: pointer;
+}
+
+.view-pending-button{
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  background: #0a0a0a;
+  color: #a0a0a0;
+  border: 1px solid #1a1a1a;
+  cursor: pointer;
+}
+
+.view-pending-button:hover{
+  background: #8eeeeb;
+  color: #000000;
+  border-color: #00fff7;
+}
+
 .floor-button-content {
   display: flex;
   align-items: center;
@@ -492,6 +518,48 @@
   font-size: 0.8rem;
   color: #bdfffd;
   font-style: italic;
+}
+
+.reservation-info {
+  background: linear-gradient(135deg, rgba(159, 0, 255, 0.1) 0%, rgba(0, 255, 247, 0.1) 100%);
+  border: 1px solid #1a1a1a;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(26, 26, 26, 0.5);
+}
+
+.info-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.info-row:first-child {
+  padding-top: 0;
+}
+
+.info-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #b9f3f1;
+  min-width: 120px;
+  text-align: left;
+}
+
+.info-value {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #f1f1f1;
+  text-align: right;
+  flex: 1;
+  margin-left: 1rem;
 }
 
 .modal-overlay {
