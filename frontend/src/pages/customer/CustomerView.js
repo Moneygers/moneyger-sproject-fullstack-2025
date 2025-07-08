@@ -321,6 +321,72 @@ const CustomerView = () => {
     return Object.keys(errors).length === 0
   }
 
+  const calculateDuration = (startTime) => {
+  if (!startTime) return "N/A";
+  const start = new Date(startTime);
+  const now = new Date();
+  const diffMs = now.getTime() - start.getTime();
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  return `${diffHours}h ${diffMinutes}m`;
+  };
+
+
+  const calculateFee = (startTime, slotType, parkingRates) => {
+  if (!startTime || !parkingRates) return 0;
+
+  const start = new Date(startTime);
+  const now = new Date();
+  const diffMinutes = Math.floor((now.getTime() - start.getTime()) / (1000 * 60));
+
+  const initialFee = getInitialFee(slotType, parkingRates);
+  const hourlyRate = parkingRates[slotType] || parkingRates.regular;
+
+  const additionalFee = diffMinutes * hourlyRate;
+  return initialFee + additionalFee;
+  };
+
+  const getInitialFee = (slotType, parkingRates) => {
+    if (!parkingRates) return 0;
+
+    if (slotType === "vip") return parkingRates.vip;
+    if (slotType === "disabled") return parkingRates.disabled;
+    return parkingRates.regular;
+  };
+
+
+
+  const [parkingRates, setParkingRates] = useState(null);
+
+  useEffect(() => {
+    const fetchParkingRates = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/api/settings/", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+
+        if (response.ok) {
+          const settings = await response.json();
+          const rates = {
+            regular: Number(settings.regularHourlyRate),
+            vip: Number(settings.vipHourlyRate),
+            disabled: Number(settings.disabledHourlyRate),
+          };
+          setParkingRates(rates);
+        }
+      } catch (error) {
+        console.error("Failed to fetch parking rates", error);
+      }
+    };
+
+    fetchParkingRates();
+  }, []);
+
+
+
   const handleReservationSubmit = async () => {
     if (!validateForm()) {
       return
@@ -766,12 +832,24 @@ const CustomerView = () => {
                       <span className="info-label">Arrival Time:</span>
                       <span className="info-value">{new Date(pendingReservation.arrival_time).toLocaleString()}</span>
                     </div>
+                    
                   )}
-                  <div className="info-row">
-                    <span className="info-label">Ongoing Parking Fee:</span>
-                    <span className="info-value">
-                      ₱{pendingReservation.fee}</span>
-                  </div>
+                   <div className="info-row">
+                      <span className="info-label">Duration:</span>
+                      <span className="info-value">{calculateDuration(pendingReservation.arrival_time)}</span>
+                    </div>
+
+                    <div className="info-row">
+                      <span className="info-label">Ongoing Fee:</span>
+                      <span className="info-value">
+                        ₱
+                        {parkingRates
+                          ? calculateFee(pendingReservation.arrival_time, pendingReservation.slot_type, parkingRates).toFixed(2)
+                          : "Loading..."}
+                      </span>
+                    </div>
+
+
                 </div>
 
                 <div className="modal-actions">
