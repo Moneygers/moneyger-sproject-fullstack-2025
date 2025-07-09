@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ParkSlot, Payment, User, Reservations
+from .models import ParkSlot, Payment, User, Reservations, ReservationOTP
 from django.contrib.auth.hashers import make_password, check_password
 
 class ParkSlotSerializer(serializers.ModelSerializer):
@@ -284,3 +284,33 @@ class PaymentReportsSerializer(serializers.Serializer):
             child=serializers.CharField()
         )
     )
+
+class SendOTPSerializer(serializers.Serializer):
+    phone_number = serializers.CharField(max_length=20, required=True)
+    
+    def validate_phone_number(self, value):
+        if not value:
+            raise serializers.ValidationError("Phone number is required")
+        # Basic validation - can be enhanced
+        if len(value) < 10:
+            raise serializers.ValidationError("Phone number must be at least 10 digits")
+        return value
+
+class VerifyOTPSerializer(serializers.Serializer):
+    phone_number = serializers.CharField(max_length=20, required=True)
+    otp_code = serializers.CharField(max_length=6, required=True)
+    
+    def validate_otp_code(self, value):
+        if not value:
+            raise serializers.ValidationError("OTP code is required")
+        if len(value) != 6:
+            raise serializers.ValidationError("OTP code must be 6 digits")
+        if not value.isdigit():
+            raise serializers.ValidationError("OTP code must contain only digits")
+        return value
+
+class ReservationOTPSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReservationOTP
+        fields = ['id', 'phone_number', 'created_at', 'expires_at', 'is_verified', 'is_used']
+        read_only_fields = ['id', 'created_at', 'expires_at', 'is_verified', 'is_used']

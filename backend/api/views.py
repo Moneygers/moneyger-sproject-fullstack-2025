@@ -9,7 +9,7 @@ from decimal import Decimal
 from datetime import datetime, timedelta
 from django.db.models import Sum, Count, Avg
 from django.db.models.functions import Extract
-from .models import ParkSlot, Payment, User, Reservations, ParkFee
+from .models import ParkSlot, Payment, User, Reservations, ParkFee, ReservationOTP
 from .serializers import (
     ParkSlotSerializer, 
     PaymentSerializer, 
@@ -20,9 +20,11 @@ from .serializers import (
     SystemSettingsSerializer,
     DashboardStatsSerializer,
     CheckoutSerializer,
-    PaymentReportsSerializer
+    PaymentReportsSerializer,
+    SendOTPSerializer,
+    VerifyOTPSerializer
 )
-from .services import sms_service
+from .services import sms_service, otp_service
 import logging
 import threading
 import json
@@ -1458,3 +1460,79 @@ def check_profanity(text, profane_words):
             detected.add(profane_word)
 
     return bool(detected), list(detected)
+
+# OTP endpoints for reservation verification
+@api_view(['POST'])
+def send_otp(request):
+    """
+    Send OTP to phone number for reservation verification
+    """
+    try:
+        serializer = SendOTPSerializer(data=request.data)
+        if serializer.is_valid():
+            phone_number = serializer.validated_data['phone_number']
+            
+            success, message = otp_service.send_otp(phone_number)
+            
+            if success:
+                return Response({
+                    'success': True,
+                    'message': message
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    'success': False,
+                    'message': message
+                }, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({
+                'success': False,
+                'message': 'Invalid data',
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+    except Exception as e:
+        logger.error(f"Error in send_otp: {str(e)}")
+        return Response({
+            'success': False,
+            'message': 'Internal server error'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+def verify_otp(request):
+    """
+    Verify OTP for phone number
+    """
+    try:
+        serializer = VerifyOTPSerializer(data=request.data)
+        if serializer.is_valid():
+            phone_number = serializer.validated_data['phone_number']
+            otp_code = serializer.validated_data['otp_code']
+            
+            success, message = otp_service.verify_otp(phone_number, otp_code)
+            
+            if success:
+                return Response({
+                    'success': True,
+                    'message': message,
+                    'verified': True
+                }, status=status.HTTP_200_OK)
+            else:
+                return Response({
+                    'success': False,
+                    'message': message,
+                    'verified': False
+                }, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({
+                'success': False,
+                'message': 'Invalid data',
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+    except Exception as e:
+        logger.error(f"Error in verify_otp: {str(e)}")
+        return Response({
+            'success': False,
+            'message': 'Internal server error'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

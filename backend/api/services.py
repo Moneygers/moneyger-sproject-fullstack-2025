@@ -1,6 +1,7 @@
 import requests
 from django.conf import settings
 from django.utils import timezone
+from datetime import timedelta
 import logging
 
 logger = logging.getLogger(__name__)
@@ -91,7 +92,7 @@ class SMSService:
             logger.info(f"TextBee API Response Status: {response.status_code}")
             logger.info(f"TextBee API Response: {response.text}")
             
-            if response.status_code == 200:
+            if response.status_code in [200, 201]:  # Accept both 200 and 201 as success
                 try:
                     response_data = response.json()
                     logger.info(f"✅ SMS sent successfully via TextBee!")
@@ -247,12 +248,120 @@ class SMSService:
         return {
             'service': 'TextBee',
             'configured': self.is_configured,
-            'api_key_set': bool(self.api_key and self.api_key != '763d7f2d-ad28-431c-aac7-27d177790b90'),
-            'device_id_set': bool(self.device_id and self.device_id != '68694d1b7d12fccbe99678a8'),
+            'api_key_set': bool(self.api_key and self.api_key != 'default'),
+            'device_id_set': bool(self.device_id and self.device_id != 'default'),
             'base_url': self.base_url,
             'api_key_preview': f"{self.api_key[:10]}..." if self.api_key else "None",
             'device_id': self.device_id
         }
 
-# Create a global instance
+class OTPService:
+    def __init__(self):
+        self.sms_service = sms_service
+    
+    def send_otp(self, phone_number):
+        """
+        Generate and send OTP to phone number
+        """
+        from .models import ReservationOTP
+        
+        try:
+            # Format phone number
+            formatted_number = self.sms_service.format_phone_number(phone_number)
+            if not formatted_number:
+                return False, "Invalid phone number format"
+            
+            # Check if there's a recent unused OTP (within last 2 minutes)
+            recent_otp = ReservationOTP.objects.filter(
+                phone_number=formatted_number,
+                is_used=False,
+                created_at__gte=timezone.now() - timedelta(minutes=2)
+            ).first()
+            
+            if recent_otp and not recent_otp.is_expired():
+                return False, "Please wait before requesting a new OTP"
+            
+            # Create new OTP
+            if getattr(settings, 'OTP_DEVELOPMENT_MODE', True):
+                # Development mode: use fixed OTP
+                otp = ReservationOTP.objects.create(
+                    phone_number=formatted_number,
+                    otp_code=getattr(settings, 'OTP_TEST_CODE', '123456')
+                )
+                logger.info(f"Development mode: OTP {otp.otp_code} created for {formatted_number}")
+                return True, f"OTP sent successfully (DEV MODE: {otp.otp_code})"
+            else:
+                # Production mode: generate random OTP and send SMS
+                otp = ReservationOTP.objects.create(phone_number=formatted_number)
+                
+                # Send SMS
+                message = (
+                    f"🔐 MoneyGers Parking - OTP Verification\n\n"
+                    f"Your verification code is: {otp.otp_code}\n\n"
+                    f"This code will expire in 5 minutes.\n"
+                    f"Do not share this code with anyone.\n\n"
+                    f"- MoneyGers Parking Management"
+                )
+                
+                success = self.sms_service.send_sms(formatted_number, message)
+                
+                if success:
+                    logger.info(f"OTP sent successfully to {formatted_number}")
+                    return True, "OTP sent successfully"
+                else:
+                    logger.error(f"Failed to send OTP to {formatted_number}")
+                    return False, "Failed to send OTP"
+                
+        except Exception as e:
+            logger.error(f"Error in send_otp: {str(e)}")
+            return False, f"Error sending OTP: {str(e)}"
+    
+    def verify_otp(self, phone_number, otp_code):
+        """
+        Verify OTP for phone number
+        """
+        from .models import ReservationOTP
+        
+        try:
+            formatted_number = self.sms_service.format_phone_number(phone_number)
+            if not formatted_number:
+                return False, "Invalid phone number format"
+            
+            # Get the most recent unused OTP for this phone number
+            otp_record = ReservationOTP.objects.filter(
+                phone_number=formatted_number,
+                is_used=False
+            ).order_by('-created_at').first()
+            
+            if not otp_record:
+                return False, "No OTP found for this phone number"
+            
+            # Verify the OTP
+            success, message = otp_record.verify(otp_code)
+            return success, message
+            
+        except Exception as e:
+            logger.error(f"Error in verify_otp: {str(e)}")
+            return False, f"Error verifying OTP: {str(e)}"
+    
+    def cleanup_expired_otps(self):
+        """
+        Clean up expired OTPs (should be run periodically)
+        """
+        from .models import ReservationOTP
+        
+        try:
+            expired_count = ReservationOTP.objects.filter(
+                expires_at__lt=timezone.now()
+            ).delete()[0]
+            
+            logger.info(f"Cleaned up {expired_count} expired OTPs")
+            return expired_count
+            
+        except Exception as e:
+            logger.error(f"Error cleaning up expired OTPs: {str(e)}")
+            return 0
+
+# Create global instances
 sms_service = SMSService()
+otp_service = OTPService()

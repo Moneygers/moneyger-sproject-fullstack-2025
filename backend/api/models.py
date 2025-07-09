@@ -1,4 +1,8 @@
 from django.db import models
+from django.utils import timezone
+from datetime import timedelta
+import random
+import string
 
 class ParkFee(models.Model):
     id = models.AutoField(primary_key=True)
@@ -123,3 +127,46 @@ class Reservations(models.Model):
 
     def __str__(self):
         return f"Reservation for plate {self.plate_no} at slot {self.park_slot.slotNo}"
+
+class ReservationOTP(models.Model):
+    phone_number = models.CharField(max_length=20)
+    otp_code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_verified = models.BooleanField(default=False)
+    is_used = models.BooleanField(default=False)
+    
+    def save(self, *args, **kwargs):
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(minutes=5)  # OTP expires in 5 minutes
+        if not self.otp_code:
+            self.otp_code = self.generate_otp()
+        super().save(*args, **kwargs)
+    
+    def generate_otp(self):
+        """Generate a 6-digit OTP"""
+        return ''.join(random.choices(string.digits, k=6))
+    
+    def is_expired(self):
+        """Check if OTP has expired"""
+        return timezone.now() > self.expires_at
+    
+    def verify(self, input_otp):
+        """Verify the OTP"""
+        if self.is_expired():
+            return False, "OTP has expired"
+        if self.is_used:
+            return False, "OTP has already been used"
+        if self.otp_code != input_otp:
+            return False, "Invalid OTP"
+        
+        self.is_verified = True
+        self.is_used = True
+        self.save()
+        return True, "OTP verified successfully"
+    
+    def __str__(self):
+        return f"OTP for {self.phone_number} - {self.otp_code}"
+    
+    class Meta:
+        ordering = ['-created_at']

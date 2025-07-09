@@ -29,12 +29,21 @@ const CustomerView = () => {
   const [pendingReservation, setPendingReservation] = useState(null)
   const [loadingPending, setLoadingPending] = useState(false)
 
+  // OTP verification states
+  const [showOTPModal, setShowOTPModal] = useState(false)
+  const [otpCode, setOtpCode] = useState("")
+  const [otpSent, setOtpSent] = useState(false)
+  const [otpVerified, setOtpVerified] = useState(false)
+  const [otpLoading, setOtpLoading] = useState(false)
+  const [otpError, setOtpError] = useState("")
+  const [otpCountdown, setOtpCountdown] = useState(0)
+
   useEffect(() => {
     fetchAvailableSlots()
     if (isAuthenticated && user && user.role === "customer") {
       fetchPendingReservation()
     }
-  }, [isAuthenticated, user])
+  }, [isAuthenticated, user]) // fetchPendingReservation is stable, no need to add as dependency
 
   // Add this useEffect after the existing useEffect
   useEffect(() => {
@@ -49,16 +58,21 @@ const CustomerView = () => {
 
   const fetchAvailableSlots = async () => {
     try {
+      console.log('Fetching slots from:', `${BASE_URL}/api/slots/`)
       const response = await fetch(`${BASE_URL}/api/slots/`)
 
       if (response.ok) {
         const data = await response.json()
+        console.log('Slots fetched successfully:', data.length, 'slots')
         setSlots(data)
       } else {
-        console.error("Failed to fetch slots")
+        console.error("Failed to fetch slots - Status:", response.status, response.statusText)
+        const errorText = await response.text()
+        console.error("Error response:", errorText)
       }
     } catch (error) {
       console.error("Error fetching slots:", error)
+      console.error("This might be a network connectivity issue or CORS problem")
     } finally {
       setLoading(false)
     }
@@ -71,22 +85,28 @@ const CustomerView = () => {
 
     setLoadingPending(true)
     try {
+      console.log('Fetching reservations from:', `${BASE_URL}/api/reservations/`)
       const response = await fetch(`${BASE_URL}/api/reservations/`)
 
       if (response.ok) {
         const data = await response.json()
+        console.log('Reservations fetched successfully:', data.length, 'reservations')
         // Find the user's pending reservation by user ID
         const userReservation = data.find(
           (reservation) =>
             reservation.user === user.id &&
             (reservation.status === "pending" || reservation.status === "approved" || reservation.status === "arrived"),
         )
+        console.log('User reservation found:', userReservation ? 'Yes' : 'No')
         setPendingReservation(userReservation || null)
       } else {
-        console.error("Failed to fetch reservations")
+        console.error("Failed to fetch reservations - Status:", response.status, response.statusText)
+        const errorText = await response.text()
+        console.error("Error response:", errorText)
       }
     } catch (error) {
       console.error("Error fetching pending reservation:", error)
+      console.error("This might be a network connectivity issue or CORS problem")
     } finally {
       setLoadingPending(false)
     }
@@ -130,7 +150,7 @@ const CustomerView = () => {
       })
 
       if (response.ok) {
-        const data = await response.json()
+        await response.json() // Data not needed, just ensure response is consumed
         alert("Reservation cancelled successfully")
         setShowPendingModal(false)
         setPendingReservation(null)
@@ -315,6 +335,12 @@ const CustomerView = () => {
   const validateForm = () => {
     const errors = {}
 
+    const nameError = validateName(reservationForm.name)
+    if (nameError) errors.name = nameError
+
+    const contactError = validateContactNumber(reservationForm.contactNumber)
+    if (contactError) errors.contactNumber = contactError
+
     const plateError = validatePlateNumber(reservationForm.plateNumber)
     if (plateError) errors.plateNumber = plateError
 
@@ -398,6 +424,126 @@ const CustomerView = () => {
       return
     }
 
+    // Check if phone number is verified (OTP verified)
+    if (!otpVerified) {
+      // Validate contact number before showing OTP modal
+      const phoneError = validateContactNumber(reservationForm.contactNumber)
+      if (phoneError) {
+        setFormErrors(prev => ({ ...prev, contactNumber: phoneError }))
+        return
+      }
+      
+      // Show OTP modal to verify phone number
+      setShowOTPModal(true)
+      return
+    }
+
+    // If OTP is verified, proceed with reservation
+    await submitReservationAfterOTP()
+  }
+
+  // OTP verification functions
+  const sendOTP = async () => {
+    if (!reservationForm.contactNumber.trim()) {
+      setOtpError("Please enter your contact number first")
+      return
+    }
+
+    const phoneError = validateContactNumber(reservationForm.contactNumber)
+    if (phoneError) {
+      setOtpError(phoneError)
+      return
+    }
+
+    setOtpLoading(true)
+    setOtpError("")
+
+    try {
+      const response = await fetch(`${BASE_URL}/api/otp/send/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phone_number: reservationForm.contactNumber.trim(),
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        setOtpSent(true)
+        setOtpCountdown(120) // 2 minutes countdown
+        alert("OTP sent successfully! Please check your phone.")
+        
+        // Start countdown timer
+        const timer = setInterval(() => {
+          setOtpCountdown((prev) => {
+            if (prev <= 1) {
+              clearInterval(timer)
+              return 0
+            }
+            return prev - 1
+          })
+        }, 1000)
+      } else {
+        setOtpError(data.message || "Failed to send OTP")
+      }
+    } catch (error) {
+      console.error("Error sending OTP:", error)
+      setOtpError("Failed to send OTP. Please try again.")
+    } finally {
+      setOtpLoading(false)
+    }
+  }
+
+  const verifyOTP = async () => {
+    if (!otpCode.trim()) {
+      setOtpError("Please enter the OTP code")
+      return
+    }
+
+    if (otpCode.length !== 6) {
+      setOtpError("OTP must be 6 digits")
+      return
+    }
+
+    setOtpLoading(true)
+    setOtpError("")
+
+    try {
+      const response = await fetch(`${BASE_URL}/api/otp/verify/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phone_number: reservationForm.contactNumber.trim(),
+          otp_code: otpCode.trim(),
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success && data.verified) {
+        setOtpVerified(true)
+        setShowOTPModal(false)
+        alert("Phone number verified successfully!")
+        // Now proceed with reservation
+        await submitReservationAfterOTP()
+      } else {
+        setOtpError(data.message || "Invalid OTP code")
+      }
+    } catch (error) {
+      console.error("Error verifying OTP:", error)
+      setOtpError("Failed to verify OTP. Please try again.")
+    } finally {
+      setOtpLoading(false)
+    }
+  }
+
+  const submitReservationAfterOTP = async () => {
+    // This function handles the actual reservation submission after OTP verification
     try {
       const response = await fetch(`${BASE_URL}/api/reservations/`, {
         method: "POST",
@@ -406,25 +552,23 @@ const CustomerView = () => {
         },
         body: JSON.stringify({
           park_slot: selectedSlot.id,
-          user: user.id, // Add this line to associate reservation with user
+          user: user.id,
           name: reservationForm.name.trim(),
           plate_no: reservationForm.plateNumber.trim(),
           mobileNo: reservationForm.contactNumber.trim(),
-          date: new Date().toISOString().split("T")[0], // Today's date in YYYY-MM-DD format
+          date: new Date().toISOString().split("T")[0],
         }),
       })
 
       if (response.ok) {
-        const data = await response.json()
+        await response.json() // Data not needed, just ensure response is consumed
         alert(
           `Reservation created successfully for slot F${Number.parseInt(selectedSlot.structure.replace("FLOOR", ""))}-${selectedSlot.section}-${selectedSlot.slotNo}`,
         )
         setShowReservationModal(false)
-        setReservationForm({ name: "", plateNumber: "", contactNumber: "" })
-        setFormErrors({})
-        setSelectedSlot(null)
-        fetchAvailableSlots() // Refresh slots
-        fetchPendingReservation() // Refresh pending reservation
+        resetReservationForm()
+        fetchAvailableSlots()
+        fetchPendingReservation()
       } else {
         const errorData = await response.json()
         alert(`Failed to create reservation: ${errorData.detail || "Unknown error"}`)
@@ -435,11 +579,26 @@ const CustomerView = () => {
     }
   }
 
-  const closeModal = () => {
-    setShowReservationModal(false)
+  const resetReservationForm = () => {
     setReservationForm({ name: "", plateNumber: "", contactNumber: "" })
     setFormErrors({})
     setSelectedSlot(null)
+    setOtpCode("")
+    setOtpSent(false)
+    setOtpVerified(false)
+    setOtpError("")
+    setOtpCountdown(0)
+  }
+
+  const closeModal = () => {
+    setShowReservationModal(false)
+    resetReservationForm()
+  }
+
+  const closeOTPModal = () => {
+    setShowOTPModal(false)
+    setOtpCode("")
+    setOtpError("")
   }
 
   if (loading) {
@@ -726,24 +885,40 @@ const CustomerView = () => {
                 <label className="modal-label">Full Name</label>
                 <input
                   type="text"
-                  className="modal-input"
+                  className={`modal-input ${formErrors.name ? "error" : ""}`}
                   value={reservationForm.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
                   style={{ backgroundColor: "#111", color: "#fff" }}
                 />
+                {formErrors.name && <div className="error-message">{formErrors.name}</div>}
                 <div className="input-hint">Auto-filled from your account. You may edit if needed.</div>
               </div>
 
               <div className="modal-form-group">
-                <label className="modal-label">Contact Number</label>
+                <label className="modal-label">
+                  Contact Number
+                  {otpVerified && <span style={{ color: "#22c55e", marginLeft: "8px" }}>✓ Verified</span>}
+                </label>
                 <input
                   type="tel"
-                  className="modal-input"
+                  className={`modal-input ${formErrors.contactNumber ? "error" : ""} ${otpVerified ? "verified" : ""}`}
                   value={reservationForm.contactNumber}
-                  onChange={(e) => handleInputChange("contactNumber", e.target.value)}
+                  onChange={(e) => {
+                    handleInputChange("contactNumber", e.target.value)
+                    // Reset OTP verification if contact number changes
+                    if (otpVerified) {
+                      setOtpVerified(false)
+                      setOtpSent(false)
+                    }
+                  }}
                   style={{ backgroundColor: "#111", color: "#fff" }}
                 />
-                <div className="input-hint">Auto-filled from your account. You may edit if needed.</div>
+                {formErrors.contactNumber && <div className="error-message">{formErrors.contactNumber}</div>}
+                <div className="input-hint">
+                  {otpVerified 
+                    ? "Phone number verified. You can proceed with reservation." 
+                    : "Auto-filled from your account. You may edit if needed."}
+                </div>
               </div>
 
               <div className="modal-form-group">
@@ -768,11 +943,93 @@ const CustomerView = () => {
               </button>
               <button
                 onClick={handleReservationSubmit}
-                disabled={!reservationForm.plateNumber}
+                disabled={!reservationForm.plateNumber || !reservationForm.name || !reservationForm.contactNumber}
                 className="modal-submit"
               >
-                Reserve Slot
+                {otpVerified ? "Reserve Slot" : "Verify Phone & Reserve"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* OTP Verification Modal */}
+      {showOTPModal && (
+        <div className="modal-overlay">
+          <div className="reservation-modal">
+            <div className="modal-header">
+              <h3 className="modal-title">Verify Phone Number</h3>
+              <button onClick={closeOTPModal} className="modal-close">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="otp-verification-content">
+              <div className="otp-info">
+                <p>We need to verify your phone number before proceeding with the reservation.</p>
+                <p><strong>Phone: {reservationForm.contactNumber}</strong></p>
+              </div>
+
+              {!otpSent ? (
+                <div className="otp-send-section">
+                  <p>Click the button below to receive a verification code via SMS.</p>
+                  <button
+                    onClick={sendOTP}
+                    disabled={otpLoading}
+                    className="otp-send-button"
+                  >
+                    {otpLoading ? "Sending..." : "Send Verification Code"}
+                  </button>
+                </div>
+              ) : (
+                <div className="otp-verify-section">
+                  <p>Enter the 6-digit code sent to your phone:</p>
+                  <div className="otp-input-group">
+                    <input
+                      type="text"
+                      className="otp-input"
+                      value={otpCode}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/[^0-9]/g, '')
+                        if (value.length <= 6) {
+                          setOtpCode(value)
+                          setOtpError("")
+                        }
+                      }}
+                      placeholder="Enter 6-digit code"
+                      maxLength={6}
+                      style={{ backgroundColor: "#111", color: "#fff", textAlign: "center", fontSize: "18px", letterSpacing: "4px" }}
+                    />
+                  </div>
+
+                  <div className="otp-actions">
+                    <button
+                      onClick={verifyOTP}
+                      disabled={otpLoading || otpCode.length !== 6}
+                      className="otp-verify-button"
+                    >
+                      {otpLoading ? "Verifying..." : "Verify Code"}
+                    </button>
+
+                    <button
+                      onClick={sendOTP}
+                      disabled={otpLoading || otpCountdown > 0}
+                      className="otp-resend-button"
+                    >
+                      {otpCountdown > 0 
+                        ? `Resend in ${Math.floor(otpCountdown / 60)}:${String(otpCountdown % 60).padStart(2, '0')}`
+                        : "Resend Code"
+                      }
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {otpError && (
+                <div className="error-message" style={{ marginTop: "10px", textAlign: "center" }}>
+                  {otpError}
+                </div>
+              )}
             </div>
           </div>
         </div>

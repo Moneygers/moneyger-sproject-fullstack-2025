@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
+    'django_otp',
     'api',
 ]
 
@@ -149,16 +150,43 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "http://localhost:3001",  # In case frontend runs on different port
+    "http://127.0.0.1:3001",
 ]
 
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_ALL_ORIGINS = True  # Only for development
 
+CORS_ALLOWED_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
 # TextBee SMS Configuration
-TEXTBEE_API_KEY = config('API_HERE', default='default') #API key for TextBee SMS service = 763d7f2d-ad28-431c-aac7-27d177790b90
-TEXTBEE_DEVICE_ID = config('DEVICE_ID_HERE', default='default') # Device ID for TextBee SMS service = 68694d1b7d12fccbe99678a8
+TEXTBEE_API_KEY = config('API_HERE', default='763d7f2d-ad28-431c-aac7-27d177790b90') #API key for TextBee SMS service
+TEXTBEE_DEVICE_ID = config('DEVICE_ID_HERE', default='68694d1b7d12fccbe99678a8') # Device ID for TextBee SMS service
 TEXTBEE_BASE_URL = 'https://api.textbee.dev/api/v1'
+
+# OTP Development Mode (bypasses SMS sending for testing)
+OTP_DEVELOPMENT_MODE = config('OTP_DEVELOPMENT_MODE', default='False', cast=bool)
+OTP_TEST_CODE = '123456'  # Fixed OTP for development testing
 
 # Logging Configuration
 LOGGING = {
