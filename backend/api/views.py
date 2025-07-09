@@ -378,6 +378,11 @@ class ParkSlotViewSet(viewsets.ModelViewSet):
                 mode_of_payment=None  # Will be updated on checkout
             )
             
+            # If you want to ensure it's always correct, update after creation:
+            local_created_at = timezone.localtime(payment.created_at)
+            payment.date = local_created_at.date()
+            payment.save(update_fields=['date'])
+            
             # Update slot status
             slot.status = 'occupied'
             slot.save()
