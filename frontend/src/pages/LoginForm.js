@@ -23,7 +23,6 @@ const LoginForm = () => {
   const [loading, setLoading] = useState(false)
   const [formErrors, setFormErrors] = useState({})
   const [googleLoading, setGoogleLoading] = useState(false)
-  const [googleReady, setGoogleReady] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
   const googleBtnRef = useRef(null)
@@ -46,14 +45,18 @@ const LoginForm = () => {
       document.head.appendChild(script)
     }
     const initializeGoogleSignIn = () => {
-      if (window.google) {
+      if (window.google && googleBtnRef.current) {
         window.google.accounts.id.initialize({
           client_id: GOOGLE_CLIENT_ID,
           callback: handleGoogleResponse,
           auto_select: false,
           cancel_on_tap_outside: true,
         })
-        setGoogleReady(true)
+        window.google.accounts.id.renderButton(googleBtnRef.current, {
+          theme: "outline",
+          size: "large",
+          width: 300,
+        })
       }
     }
     loadGoogleScript()
@@ -109,15 +112,6 @@ const LoginForm = () => {
       setError("Network error during Google sign-in. Please try again.")
     } finally {
       setGoogleLoading(false)
-    }
-  }
-
-  // Handle Google Sign-In button click
-  const handleGoogleSignIn = () => {
-    if (window.google && googleReady) {
-      window.google.accounts.id.prompt()
-    } else {
-      setError("Google Sign-In is not available. Please try again later.")
     }
   }
 
@@ -524,17 +518,7 @@ const LoginForm = () => {
             )}
 
             <div className="submit-wrapper">
-              <button
-                type="button"
-                className="google-button"
-                onClick={handleGoogleSignIn}
-                disabled={googleLoading || !googleReady}
-              >
-                <span className="google-icon">
-                  <Mail size={18} />
-                </span>
-                {googleLoading ? "Signing in with Google..." : "Continue with Google"}
-              </button>
+              <div ref={googleBtnRef} id="google-signin-btn" style={{ display: "flex", justifyContent: "center" }}></div>
             </div>
 
             {isSignUp && (

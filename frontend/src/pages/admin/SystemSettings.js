@@ -175,37 +175,6 @@ const SystemSettings = () => {
                     className="setting-input"
                   />
                 </div>
-
-              </div>
-
-              <div className="checkbox-settings">
-                <div className="checkbox-group">
-                  <input
-                    type="checkbox"
-                    name="enableNotifications"
-                    checked={settings.enableNotifications}
-                    onChange={handleInputChange}
-                    className="setting-checkbox"
-                    id="enableNotifications"
-                  />
-                  <label htmlFor="enableNotifications" className="checkbox-label">
-                    Enable System Notifications
-                  </label>
-                </div>
-
-                <div className="checkbox-group">
-                  <input
-                    type="checkbox"
-                    name="enableReservations"
-                    checked={settings.enableReservations}
-                    onChange={handleInputChange}
-                    className="setting-checkbox"
-                    id="enableReservations"
-                  />
-                  <label htmlFor="enableReservations" className="checkbox-label">
-                    Enable Online Reservations
-                  </label>
-                </div>
               </div>
             </div>
           </div>

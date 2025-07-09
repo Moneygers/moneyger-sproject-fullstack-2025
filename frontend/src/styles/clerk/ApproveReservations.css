@@ -248,12 +248,11 @@
 
 .approve-reservations-container .reservation-details {
   display: grid;
-  grid-template-columns: auto auto auto auto;
-  gap: 0.5rem;
-  align-items: center;
-  font-family: Cambria, Cochin, Georgia, Times, "Times New Roman", serif;
-  min-width: 500px;
-  justify-content: start;
+  grid-template-columns: 1fr;
+  gap: 0.2rem;
+  text-transform: uppercase;
+  font-weight: 600;
+  font-family: "Courier New", monospace;
 }
 
 .approve-reservations-container .detail-item {
@@ -261,13 +260,14 @@
   align-items: center;
   white-space: nowrap;
   justify-content: flex-start;
+  gap: 0.1rem;
 }
 
 .approve-reservations-container .detail-label {
   font-size: 0.75rem;
   color: #a0a0a0;
   font-weight: 500;
-  margin: 0 0.25rem 0 0;
+  margin: 0;
   min-width: 60px;
 }
 
