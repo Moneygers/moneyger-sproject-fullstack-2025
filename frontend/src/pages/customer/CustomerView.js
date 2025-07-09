@@ -726,24 +726,24 @@ const CustomerView = () => {
                 <label className="modal-label">Full Name</label>
                 <input
                   type="text"
-                  className="modal-input readonly"
+                  className="modal-input"
                   value={reservationForm.name}
-                  readOnly
-                  style={{ backgroundColor: "#f5f5f5", cursor: "not-allowed" }}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
+                  style={{ backgroundColor: "#111", color: "#fff" }}
                 />
-                <div className="input-hint">Auto-filled from your account</div>
+                <div className="input-hint">Auto-filled from your account. You may edit if needed.</div>
               </div>
 
               <div className="modal-form-group">
                 <label className="modal-label">Contact Number</label>
                 <input
                   type="tel"
-                  className="modal-input readonly"
+                  className="modal-input"
                   value={reservationForm.contactNumber}
-                  readOnly
-                  style={{ backgroundColor: "#f5f5f5", cursor: "not-allowed" }}
+                  onChange={(e) => handleInputChange("contactNumber", e.target.value)}
+                  style={{ backgroundColor: "#111", color: "#fff" }}
                 />
-                <div className="input-hint">Auto-filled from your account</div>
+                <div className="input-hint">Auto-filled from your account. You may edit if needed.</div>
               </div>
 
               <div className="modal-form-group">
@@ -755,6 +755,7 @@ const CustomerView = () => {
                   value={reservationForm.plateNumber}
                   onChange={(e) => handleInputChange("plateNumber", e.target.value)}
                   maxLength={8}
+                  style={{ backgroundColor: "#111", color: "#fff" }}
                 />
                 {formErrors.plateNumber && <div className="error-message">{formErrors.plateNumber}</div>}
                 <div className="input-hint">Enter your vehicle's license plate number</div>

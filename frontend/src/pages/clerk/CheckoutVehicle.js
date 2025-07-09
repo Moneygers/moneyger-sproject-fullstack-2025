@@ -475,11 +475,8 @@ const CheckoutVehicle = () => {
           <div className="header-content">
             <h1 className="main-title">Vehicle Checkout & Payment</h1>
             <p className="subtitle">Process vehicle checkout, payment, and print receipts</p>
-            <div className="rates-info">
-              <small>
-                Initial Fees: Regular ₱{parkingRates.regular} | VIP ₱{parkingRates.vip} | Disabled ₱
-                {parkingRates.disabled} + /Hour additional
-              </small>
+            <div className="rates-info-visible">
+              Initial Fees: Regular ₱{parkingRates.regular} | VIP ₱{parkingRates.vip} | Disabled ₱{parkingRates.disabled} + /Hour additional
             </div>
           </div>
           <div className="search-wrapper">

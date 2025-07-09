@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import api_view, action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth.hashers import check_password, make_password
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from decimal import Decimal
@@ -87,6 +87,105 @@ def login_view(request):
             'token': f'token_{user.id}'  # Simple token for demo
         }, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def google_oauth_view(request):
+    """Handle Google OAuth sign-in"""
+    try:
+        # Get the credential token from the request
+        credential = request.data.get('credential')
+        if not credential:
+            return Response({
+                'error': 'No credential provided'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Google Client ID and Secret
+        GOOGLE_CLIENT_ID = "793231314826-duihujnitj4ch5s0n04mkejiaqnmutiv.apps.googleusercontent.com"
+        GOOGLE_CLIENT_SECRET = "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"
+        
+        # Verify the token
+        try:
+            from google.oauth2 import id_token
+            from google.auth.transport import requests as google_requests
+            
+            idinfo = id_token.verify_oauth2_token(
+                credential, 
+                google_requests.Request(), 
+                GOOGLE_CLIENT_ID
+            )
+            
+            # Extract user information
+            email = idinfo.get('email')
+            first_name = idinfo.get('given_name', '')
+            last_name = idinfo.get('family_name', '')
+            google_id = idinfo.get('sub')
+            
+            if not email:
+                return Response({
+                    'error': 'Email not provided by Google'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Check if user already exists
+            try:
+                user = User.objects.get(email=email)
+                # User exists, log them in
+                user_data = UserSerializer(user).data
+                return Response({
+                    'message': 'Login successful',
+                    'user': user_data,
+                    'token': f'token_{user.id}'
+                }, status=status.HTTP_200_OK)
+                
+            except User.DoesNotExist:
+                # Create new user account
+                username = email.split('@')[0]  # Use email prefix as username
+                counter = 1
+                original_username = username
+                
+                # Ensure username is unique
+                while User.objects.filter(username=username).exists():
+                    username = f"{original_username}{counter}"
+                    counter += 1
+                
+                # Create the user
+                user = User.objects.create(
+                    first_name=first_name,
+                    last_name=last_name,
+                    email=email,
+                    username=username,
+                    password=make_password(google_id),  # Use Google ID as password hash
+                    phone_no='',  # Empty phone number for Google users
+                    role='customer'
+                )
+                
+                user_data = UserSerializer(user).data
+                return Response({
+                    'message': 'Account created and login successful',
+                    'user': user_data,
+                    'token': f'token_{user.id}'
+                }, status=status.HTTP_201_CREATED)
+                
+        except ValueError as e:
+            logger.error(f"Google token verification failed: {str(e)}")
+            return Response({
+                'error': f'Invalid Google token: {str(e)}'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error(f"Google OAuth verification error: {str(e)}")
+            return Response({
+                'error': f'Token verification failed: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+    except ImportError as e:
+        logger.error(f"Google OAuth library not installed: {str(e)}")
+        return Response({
+            'error': 'Google OAuth library not installed. Please install google-auth.'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    except Exception as e:
+        logger.error(f"Google OAuth error: {str(e)}")
+        return Response({
+            'error': f'Google OAuth failed: {str(e)}'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
 def logout_view(request):

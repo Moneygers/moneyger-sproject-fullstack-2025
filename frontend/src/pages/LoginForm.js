@@ -1,12 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 import Footer from "../components/Footer"
 import "../styles/LoginForm.css"
-import { LogIn, UserPlus, Eye, EyeOff, EyeIcon, EyeOffIcon, Eye as LucideEye, EyeOff as LucideEyeOff, Mail } from "lucide-react"
-import BASE_URL from '../config';
+import { LogIn, UserPlus, Eye, EyeOff, Mail } from "lucide-react"
+import BASE_URL from "../config"
 
 const LoginForm = () => {
   const [isSignUp, setIsSignUp] = useState(false)
@@ -22,8 +22,104 @@ const LoginForm = () => {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [formErrors, setFormErrors] = useState({})
+  const [googleLoading, setGoogleLoading] = useState(false)
+  const [googleReady, setGoogleReady] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
+  const googleBtnRef = useRef(null)
+
+  // Google OAuth Client ID
+  const GOOGLE_CLIENT_ID = "793231314826-duihujnitj4ch5s0n04mkejiaqnmutiv.apps.googleusercontent.com"
+
+  // Load Google Identity Services
+  useEffect(() => {
+    const loadGoogleScript = () => {
+      if (window.google) {
+        initializeGoogleSignIn()
+        return
+      }
+      const script = document.createElement("script")
+      script.src = "https://accounts.google.com/gsi/client"
+      script.async = true
+      script.defer = true
+      script.onload = initializeGoogleSignIn
+      document.head.appendChild(script)
+    }
+    const initializeGoogleSignIn = () => {
+      if (window.google) {
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleGoogleResponse,
+          auto_select: false,
+          cancel_on_tap_outside: true,
+        })
+        setGoogleReady(true)
+      }
+    }
+    loadGoogleScript()
+  }, [])
+
+  // Handle Google OAuth response
+  const handleGoogleResponse = async (response) => {
+    setGoogleLoading(true)
+    setError("")
+
+    try {
+      // Send the credential token to your backend
+      const res = await fetch(`${BASE_URL}/api/auth/google/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          credential: response.credential,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (res.ok) {
+        // Store token and user data
+        localStorage.setItem("token", data.token)
+        localStorage.setItem("user", JSON.stringify(data.user))
+
+        // Update auth context directly (do not call login API again)
+        if (typeof login === "function") {
+          login({
+            username: data.user.username,
+            password: undefined, // Not needed for OAuth
+            role: data.user.role,
+            email: data.user.email,
+            user: data.user,
+            token: data.token,
+            isOAuth: true,
+          })
+        }
+
+        // Redirect based on role
+        if (data.user.role === "admin") navigate("/admin/payment-reports")
+        else if (data.user.role === "clerk") navigate("/dashboard")
+        else if (data.user.role === "customer") navigate("/")
+        else navigate("/customer-view")
+      } else {
+        setError(data.message || "Google sign-in failed")
+      }
+    } catch (err) {
+      console.error("Google sign-in error:", err)
+      setError("Network error during Google sign-in. Please try again.")
+    } finally {
+      setGoogleLoading(false)
+    }
+  }
+
+  // Handle Google Sign-In button click
+  const handleGoogleSignIn = () => {
+    if (window.google && googleReady) {
+      window.google.accounts.id.prompt()
+    } else {
+      setError("Google Sign-In is not available. Please try again later.")
+    }
+  }
 
   // Validation helpers
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
@@ -98,57 +194,56 @@ const LoginForm = () => {
   }
 
   const validateSignUpForm = () => {
-  const errors = {}
+    const errors = {}
 
-  if (!firstName.trim()) {
-    errors.firstName = "First name is required"
-  } else if (!validateName(firstName)) {
-    errors.firstName = "First name should contain only letters, spaces, and periods"
+    if (!firstName.trim()) {
+      errors.firstName = "First name is required"
+    } else if (!validateName(firstName)) {
+      errors.firstName = "First name should contain only letters, spaces, and periods"
+    }
+
+    if (!lastName.trim()) {
+      errors.lastName = "Last name is required"
+    } else if (!validateName(lastName)) {
+      errors.lastName = "Last name should contain only letters, spaces, and periods"
+    }
+
+    if (!email.trim()) {
+      errors.email = "Email is required"
+    } else if (!validateEmail(email)) {
+      errors.email = "Please enter a valid email address"
+    }
+
+    if (!phoneNumber.trim()) {
+      errors.phoneNumber = "Phone number is required"
+    } else if (!validatePhoneNumber(phoneNumber)) {
+      errors.phoneNumber = "Please enter a valid Philippine mobile number (09XXXXXXXXX)"
+    }
+
+    if (!username.trim()) {
+      errors.username = "Username is required"
+    } else if (username.trim().length < 3) {
+      errors.username = "Username must be at least 3 characters long"
+    }
+
+    if (!password) {
+      errors.password = "Password is required"
+    } else if (password.length < 6) {
+      errors.password = "Password must be at least 6 characters long"
+    }
+
+    if (!confirmPassword) {
+      errors.confirmPassword = "Please confirm your password"
+    } else if (password !== confirmPassword) {
+      errors.confirmPassword = "Passwords do not match"
+    }
+
+    const combinedErrors = { ...formErrors, ...errors }
+
+    setFormErrors(combinedErrors)
+
+    return Object.values(combinedErrors).every((val) => !val)
   }
-
-  if (!lastName.trim()) {
-    errors.lastName = "Last name is required"
-  } else if (!validateName(lastName)) {
-    errors.lastName = "Last name should contain only letters, spaces, and periods"
-  }
-
-  if (!email.trim()) {
-    errors.email = "Email is required"
-  } else if (!validateEmail(email)) {
-    errors.email = "Please enter a valid email address"
-  }
-
-  if (!phoneNumber.trim()) {
-    errors.phoneNumber = "Phone number is required"
-  } else if (!validatePhoneNumber(phoneNumber)) {
-    errors.phoneNumber = "Please enter a valid Philippine mobile number (09XXXXXXXXX)"
-  }
-
-  if (!username.trim()) {
-    errors.username = "Username is required"
-  } else if (username.trim().length < 3) {
-    errors.username = "Username must be at least 3 characters long"
-  }
-
-  if (!password) {
-    errors.password = "Password is required"
-  } else if (password.length < 6) {
-    errors.password = "Password must be at least 6 characters long"
-  }
-
-  if (!confirmPassword) {
-    errors.confirmPassword = "Please confirm your password"
-  } else if (password !== confirmPassword) {
-    errors.confirmPassword = "Passwords do not match"
-  }
-
-  const combinedErrors = { ...formErrors, ...errors }
-
-  setFormErrors(combinedErrors)
-
-  return Object.values(combinedErrors).every((val) => !val)
-}
-
 
   const handleSignUp = async (e) => {
     e.preventDefault()
@@ -399,7 +494,23 @@ const LoginForm = () => {
 
             <div className="submit-wrapper">
               <button type="submit" disabled={loading} className="submit-button">
-                {loading ? (isSignUp ? "Creating Account..." : "Signing in...") : isSignUp ? <><UserPlus size={18} style={{marginRight: 8}} />Sign Up</> : <><LogIn size={18} style={{marginRight: 8}} />Sign in</>}
+                {loading ? (
+                  isSignUp ? (
+                    "Creating Account..."
+                  ) : (
+                    "Signing in..."
+                  )
+                ) : isSignUp ? (
+                  <>
+                    <UserPlus size={18} style={{ marginRight: 8 }} />
+                    Sign Up
+                  </>
+                ) : (
+                  <>
+                    <LogIn size={18} style={{ marginRight: 8 }} />
+                    Sign in
+                  </>
+                )}
               </button>
             </div>
 
@@ -413,11 +524,17 @@ const LoginForm = () => {
             )}
 
             <div className="submit-wrapper">
-              <button type="button" className="google-button" disabled>
-                <span className="google-icon"><Mail size={18} /></span>
-                Continue with Google
+              <button
+                type="button"
+                className="google-button"
+                onClick={handleGoogleSignIn}
+                disabled={googleLoading || !googleReady}
+              >
+                <span className="google-icon">
+                  <Mail size={18} />
+                </span>
+                {googleLoading ? "Signing in with Google..." : "Continue with Google"}
               </button>
-              <p className="google-note">Coming soon...</p>
             </div>
 
             {isSignUp && (

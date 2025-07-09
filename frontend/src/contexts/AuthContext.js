@@ -36,6 +36,25 @@ export const AuthProvider = ({ children }) => {
   }, [])
 
   const login = async (credentials) => {
+    // If Google OAuth or no password, just set user and auth state
+    if (credentials?.isOAuth || !credentials?.password) {
+      if (credentials?.user) {
+        localStorage.setItem("token", credentials.token || "")
+        localStorage.setItem("user", JSON.stringify(credentials.user))
+        setUser(credentials.user)
+        setIsAuthenticated(true)
+        return credentials.user
+      }
+      // fallback: set from username/email if user object not present
+      setUser({
+        username: credentials.username,
+        email: credentials.email,
+        role: credentials.role,
+      })
+      setIsAuthenticated(true)
+      return { username: credentials.username, email: credentials.email, role: credentials.role }
+    }
+
     try {
       const response = await fetch(`${BASE_URL}/api/auth/login/`, {
         method: "POST",

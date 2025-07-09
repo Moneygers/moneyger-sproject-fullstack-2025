@@ -304,27 +304,40 @@
   align-items: center;
   gap: 0.7rem;
   padding: 0.7rem 1.5rem;
-  border: 2px solid #6b7280;
+  border: 2px solid #4285f4;
   font-size: 1.05rem;
   font-weight: 700;
   border-radius: 0.5rem;
   color: #fff;
-  background: linear-gradient(90deg, #23272f 0%, #6b7280 100%);
-  box-shadow: 0 2px 12px #6b728022;
-  cursor: not-allowed;
-  opacity: 0.6;
+  background: linear-gradient(90deg, #4285f4 0%, #34a853 100%);
+  box-shadow: 0 2px 12px #4285f422;
+  cursor: pointer;
   transition: background 0.18s, color 0.18s, border 0.18s, box-shadow 0.18s;
   margin-top: 0.5rem;
   letter-spacing: 0.01em;
 }
 
-.google-button:not(:disabled):hover,
-.google-button:not(:disabled):focus {
-  background: linear-gradient(90deg, #6b7280 0%, #23272f 100%);
+.google-button:hover:not(:disabled) {
+  background: linear-gradient(90deg, #34a853 0%, #4285f4 100%);
   color: #fff;
-  border-color: #23272f;
-  box-shadow: 0 4px 24px #6b728055;
+  border-color: #34a853;
+  box-shadow: 0 4px 24px #4285f455;
   outline: none;
+}
+
+.google-button:focus:not(:disabled) {
+  background: linear-gradient(90deg, #34a853 0%, #4285f4 100%);
+  color: #fff;
+  border-color: #34a853;
+  box-shadow: 0 4px 24px #4285f455;
+  outline: none;
+}
+
+.google-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: linear-gradient(90deg, #6b7280 0%, #9ca3af 100%);
+  border-color: #6b7280;
 }
 
 .google-icon {
