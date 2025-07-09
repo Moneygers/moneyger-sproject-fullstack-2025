@@ -819,6 +819,10 @@ class ReservationsViewSet(viewsets.ModelViewSet):
                 # Create the reservation
                 reservation = serializer.save()
                 
+                local_created_at = timezone.localtime(reservation.created_at)
+                reservation.date = local_created_at.date()
+                reservation.save(update_fields=['date'])
+
                 # Update slot status to reserved
                 park_slot.status = 'reserved'
                 park_slot.save()
