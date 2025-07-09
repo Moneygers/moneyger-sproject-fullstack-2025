@@ -52,11 +52,15 @@ const LoginForm = () => {
           auto_select: false,
           cancel_on_tap_outside: true,
         })
-        window.google.accounts.id.renderButton(googleBtnRef.current, {
-          theme: "outline",
-          size: "large",
-          width: 300,
-        })
+        setGoogleReady(true)
+        if (googleBtnRef.current) {
+          window.google.accounts.id.renderButton(googleBtnRef.current, {
+            theme: "filled_black",
+            size: "large",
+            width: "100%",
+            shape: "pill",
+          })
+        }
       }
     }
     loadGoogleScript()
@@ -518,7 +522,7 @@ const LoginForm = () => {
             )}
 
             <div className="submit-wrapper">
-              <div ref={googleBtnRef} id="google-signin-btn" style={{ display: "flex", justifyContent: "center" }}></div>
+              <div ref={googleBtnRef} id="google-signin-btn" style={{ display: "flex", justifyContent: "center", width: "100%" }}></div>
             </div>
 
             {isSignUp && (
