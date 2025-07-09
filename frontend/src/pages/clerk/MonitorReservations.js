@@ -70,12 +70,12 @@ const MonitorReservations = () => {
 
   const handleStatusChange = async (reservationId, newStatus) => {
     try {
-      let endpoint = `http://127.0.0.1:8000/api/reservations/${reservationId}/`
+      let endpoint = `${BASE_URL}/api/reservations/${reservationId}/`
       let method = "PATCH"
       let body = JSON.stringify({ status: newStatus })
 
       if (newStatus === "completed") {
-        endpoint = `http://127.0.0.1:8000/api/reservations/${reservationId}/complete/`
+        endpoint = `${BASE_URL}/api/reservations/${reservationId}/complete/`
         method = "POST"
         body = JSON.stringify({})
       }
