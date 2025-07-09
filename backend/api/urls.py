@@ -39,4 +39,7 @@ urlpatterns = [
     # OTP endpoints
     path('otp/send/', views.send_otp, name='send_otp'),
     path('otp/verify/', views.verify_otp, name='verify_otp'),
+    
+    # Parking search endpoint
+    path('search-parking/', views.search_parking_by_plate, name='search_parking_by_plate'),
 ]

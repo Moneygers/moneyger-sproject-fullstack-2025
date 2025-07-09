@@ -38,6 +38,12 @@ const CustomerView = () => {
   const [otpError, setOtpError] = useState("")
   const [otpCountdown, setOtpCountdown] = useState(0)
 
+  // Search parking states
+  const [searchPlateNumber, setSearchPlateNumber] = useState("")
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [searchResults, setSearchResults] = useState(null)
+  const [searchError, setSearchError] = useState("")
+
   useEffect(() => {
     fetchAvailableSlots()
     if (isAuthenticated && user && user.role === "customer") {
@@ -261,6 +267,17 @@ const CustomerView = () => {
   const closeActiveReservationModal = () => {
     setShowActiveReservationModal(false)
     setSelectedSlot(null)
+  }
+
+  const closeModal = () => {
+    setShowReservationModal(false)
+    resetReservationForm()
+  }
+
+  const closeOTPModal = () => {
+    setShowOTPModal(false)
+    setOtpCode("")
+    setOtpError("")
   }
 
   // Validation functions
@@ -590,15 +607,52 @@ const CustomerView = () => {
     setOtpCountdown(0)
   }
 
-  const closeModal = () => {
-    setShowReservationModal(false)
-    resetReservationForm()
+  // Search parking functions
+  const handleSearchParking = async () => {
+    if (!searchPlateNumber.trim()) {
+      setSearchError("Please enter a plate number")
+      return
+    }
+
+    setSearchLoading(true)
+    setSearchError("")
+    setSearchResults(null)
+
+    try {
+      const response = await fetch(`${BASE_URL}/api/search-parking/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          plate_number: searchPlateNumber.trim().toUpperCase(),
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        if (data.found) {
+          setSearchResults(data.data)
+        } else {
+          setSearchError(data.message)
+        }
+      } else {
+        setSearchError(data.message || "Failed to search for parking details")
+      }
+    } catch (error) {
+      console.error("Error searching parking:", error)
+      setSearchError("Failed to search for parking details. Please try again.")
+    } finally {
+      setSearchLoading(false)
+    }
   }
 
-  const closeOTPModal = () => {
-    setShowOTPModal(false)
-    setOtpCode("")
-    setOtpError("")
+  const resetSearch = () => {
+    setSearchPlateNumber("")
+    setSearchResults(null)
+    setSearchError("")
+    setSearchLoading(false)
   }
 
   if (loading) {
@@ -662,6 +716,99 @@ const CustomerView = () => {
       </div>
 
       <div className="customer-content">
+        {/* Search Bar Section - Only visible for guests */}
+        {(!isAuthenticated || user?.role !== "customer") && (
+          <div className="search-parking-section">
+            <div className="search-container">
+              <div className="search-info">
+                <h3 className="search-title">🔍 Search for Your Parking Slot</h3>
+                <p className="search-subtitle">
+                  Enter your plate number to quickly find your assigned slot and parking details
+                </p>
+              </div>
+              <div className="search-form">
+                <input
+                  type="text"
+                  placeholder="Enter plate number (e.g., ABC-1234)"
+                  value={searchPlateNumber}
+                  onChange={(e) => setSearchPlateNumber(e.target.value.toUpperCase())}
+                  className="search-input"
+                  maxLength={15}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && searchPlateNumber.trim()) {
+                      handleSearchParking()
+                    }
+                  }}
+                />
+                <button
+                  onClick={handleSearchParking}
+                  className="search-button"
+                  disabled={searchLoading || !searchPlateNumber.trim()}
+                >
+                  {searchLoading ? "Searching..." : "Search for Slot"}
+                </button>
+                {(searchResults || searchError) && (
+                  <button
+                    onClick={resetSearch}
+                    className="search-button search-clear-button"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+              
+              {/* Inline Search Results */}
+              {searchResults && (
+                <div className="search-results">
+                  <div className="search-results-header">
+                    <h4>✅ Vehicle Found</h4>
+                  </div>
+                  <div className="search-results-content">
+                    <div className="result-row">
+                      <span className="result-label">Assigned Slot:</span>
+                      <span className="result-value highlight">{searchResults.assigned_slot}</span>
+                    </div>
+                    <div className="result-row">
+                      <span className="result-label">Plate Number:</span>
+                      <span className="result-value">{searchResults.plate_number}</span>
+                    </div>
+                    <div className="result-row">
+                      <span className="result-label">Arrival Time:</span>
+                      <span className="result-value">{searchResults.arrival_time}</span>
+                    </div>
+                    <div className="result-row">
+                      <span className="result-label">Duration of Stay:</span>
+                      <span className="result-value">{searchResults.duration}</span>
+                    </div>
+                    <div className="result-row">
+                      <span className="result-label">Ongoing Parking Fee:</span>
+                      <span className="result-value highlight">{searchResults.ongoing_fee}</span>
+                    </div>
+                    {searchResults.customer_name && (
+                      <div className="result-row">
+                        <span className="result-label">Customer Name:</span>
+                        <span className="result-value">{searchResults.customer_name}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Inline Search Error */}
+              {searchError && (
+                <div className="search-error">
+                  <div className="search-error-header">
+                    <h4>❌ No Vehicle Found</h4>
+                  </div>
+                  <div className="search-error-content">
+                    <p>{searchError}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Floor Selector */}
         <div className="customer-floor-selector">
           <div className="floor-selector-content">

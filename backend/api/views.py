@@ -1541,3 +1541,143 @@ def verify_otp(request):
             'success': False,
             'message': 'Internal server error'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+def search_parking_by_plate(request):
+    """
+    Search for parking details by plate number for guest mode customers
+    Returns parking slot info, arrival time, duration, and ongoing fee
+    """
+    try:
+        plate_number = request.data.get('plate_number', '').strip().upper()
+        
+        if not plate_number:
+            return Response({
+                'success': False,
+                'message': 'Plate number is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Search in current reservations (arrived status)
+        reservation = Reservations.objects.filter(
+            plate_no=plate_number,
+            status='arrived'
+        ).select_related('park_slot').first()
+        
+        if reservation:
+            # Calculate duration and ongoing fee for reservation
+            arrival_time = reservation.arrival_time
+            current_time = timezone.now()
+            duration = current_time - arrival_time
+            
+            # Get parking rates
+            park_fee = ParkFee.objects.first()
+            if park_fee:
+                if reservation.park_slot.slot_type == 'vip':
+                    hourly_rate = park_fee.vip_hourly_rate
+                elif reservation.park_slot.slot_type == 'disabled':
+                    hourly_rate = park_fee.disabled_hourly_rate
+                else:
+                    hourly_rate = park_fee.regular_hourly_rate
+            else:
+                hourly_rate = Decimal('50.00')  # Default rate
+            
+            # Calculate ongoing fee: initial fee + (minutes * hourly rate)
+            duration_minutes = int(duration.total_seconds() / 60)
+            initial_fee = hourly_rate  # Initial fee same as hourly rate
+            additional_fee = duration_minutes * hourly_rate
+            ongoing_fee = initial_fee + additional_fee
+            
+            # Format duration
+            duration_hours = duration_minutes // 60
+            duration_mins = duration_minutes % 60
+            duration_formatted = f"{duration_hours}h {duration_mins}m"
+            
+            # Format slot display
+            slot_display = f"F{reservation.park_slot.structure.replace('FLOOR', '')}-{reservation.park_slot.section}-{reservation.park_slot.slotNo}"
+            
+            # Format arrival time to local timezone
+            local_arrival_time = timezone.localtime(arrival_time)
+            
+            return Response({
+                'success': True,
+                'found': True,
+                'data': {
+                    'assigned_slot': slot_display,
+                    'plate_number': reservation.plate_no,
+                    'arrival_time': local_arrival_time.strftime('%B %d, %Y at %I:%M %p'),
+                    'duration': duration_formatted,
+                    'ongoing_fee': f"₱{ongoing_fee:.2f}",
+                    'customer_name': reservation.name,
+                    'slot_type': reservation.park_slot.slot_type,
+                    'source': 'reservation'
+                }
+            }, status=status.HTTP_200_OK)
+        
+        # Search in current payments (occupied slots without reservations)
+        payment = Payment.objects.filter(
+            plate_no=plate_number
+        ).select_related('slot').order_by('-created_at').first()
+        
+        if payment and payment.slot.status == 'occupied':
+            # Calculate duration and ongoing fee for payment
+            start_time = payment.created_at
+            current_time = timezone.now()
+            duration = current_time - start_time
+            
+            # Get parking rates
+            park_fee = ParkFee.objects.first()
+            if park_fee:
+                if payment.slot.slot_type == 'vip':
+                    hourly_rate = park_fee.vip_hourly_rate
+                elif payment.slot.slot_type == 'disabled':
+                    hourly_rate = park_fee.disabled_hourly_rate
+                else:
+                    hourly_rate = park_fee.regular_hourly_rate
+            else:
+                hourly_rate = Decimal('50.00')  # Default rate
+            
+            # Calculate ongoing fee: initial fee + (minutes * hourly rate)
+            duration_minutes = int(duration.total_seconds() / 60)
+            initial_fee = hourly_rate  # Initial fee same as hourly rate
+            additional_fee = duration_minutes * hourly_rate
+            ongoing_fee = initial_fee + additional_fee
+            
+            # Format duration
+            duration_hours = duration_minutes // 60
+            duration_mins = duration_minutes % 60
+            duration_formatted = f"{duration_hours}h {duration_mins}m"
+            
+            # Format slot display
+            slot_display = f"F{payment.slot.structure.replace('FLOOR', '')}-{payment.slot.section}-{payment.slot.slotNo}"
+            
+            # Format start time to local timezone
+            local_start_time = timezone.localtime(start_time)
+            
+            return Response({
+                'success': True,
+                'found': True,
+                'data': {
+                    'assigned_slot': slot_display,
+                    'plate_number': payment.plate_no,
+                    'arrival_time': local_start_time.strftime('%B %d, %Y at %I:%M %p'),
+                    'duration': duration_formatted,
+                    'ongoing_fee': f"₱{ongoing_fee:.2f}",
+                    'customer_name': None,
+                    'slot_type': payment.slot.slot_type,
+                    'source': 'payment'
+                }
+            }, status=status.HTTP_200_OK)
+        
+        # No matching record found
+        return Response({
+            'success': True,
+            'found': False,
+            'message': 'No matching vehicle found. Please check your plate number and try again.'
+        }, status=status.HTTP_200_OK)
+        
+    except Exception as e:
+        logger.error(f"Error in search_parking_by_plate: {str(e)}")
+        return Response({
+            'success': False,
+            'message': 'Internal server error'
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
