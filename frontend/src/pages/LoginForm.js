@@ -23,6 +23,7 @@ const LoginForm = () => {
   const [loading, setLoading] = useState(false)
   const [formErrors, setFormErrors] = useState({})
   const [googleLoading, setGoogleLoading] = useState(false)
+  const [googleReady, setGoogleReady] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
   const googleBtnRef = useRef(null)
