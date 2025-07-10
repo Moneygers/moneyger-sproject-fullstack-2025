@@ -3,10 +3,22 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from "../../contexts/AuthContext"
-import { ArrowLeft, Building2, Car, CircleAlert, MapPin, Star,TriangleAlert, Accessibility, Sun, X, Eye } from "lucide-react"
+import {
+  ArrowLeft,
+  Building2,
+  Car,
+  CircleAlert,
+  MapPin,
+  Star,
+  TriangleAlert,
+  Accessibility,
+  Sun,
+  X,
+  Eye,
+} from "lucide-react"
 import Footer from "../../components/Footer"
 import "../../styles/customer/CustomerView.css"
-import BASE_URL from '../../config';
+import BASE_URL from "../../config"
 
 const CustomerView = () => {
   const [slots, setSlots] = useState([])
@@ -44,14 +56,17 @@ const CustomerView = () => {
   const [searchResults, setSearchResults] = useState(null)
   const [searchError, setSearchError] = useState("")
 
+  // Search modal states
+  const [showSearchResultModal, setShowSearchResultModal] = useState(false)
+  const [showSearchErrorModal, setShowSearchErrorModal] = useState(false)
+
   useEffect(() => {
     fetchAvailableSlots()
     if (isAuthenticated && user && user.role === "customer") {
       fetchPendingReservation()
     }
-  }, [isAuthenticated, user]) // fetchPendingReservation is stable, no need to add as dependency
+  }, [isAuthenticated, user])
 
-  // Add this useEffect after the existing useEffect
   useEffect(() => {
     if (user && isAuthenticated && user.role === "customer") {
       setReservationForm((prev) => ({
@@ -64,12 +79,12 @@ const CustomerView = () => {
 
   const fetchAvailableSlots = async () => {
     try {
-      console.log('Fetching slots from:', `${BASE_URL}/api/slots/`)
+      console.log("Fetching slots from:", `${BASE_URL}/api/slots/`)
       const response = await fetch(`${BASE_URL}/api/slots/`)
 
       if (response.ok) {
         const data = await response.json()
-        console.log('Slots fetched successfully:', data.length, 'slots')
+        console.log("Slots fetched successfully:", data.length, "slots")
         setSlots(data)
       } else {
         console.error("Failed to fetch slots - Status:", response.status, response.statusText)
@@ -91,19 +106,18 @@ const CustomerView = () => {
 
     setLoadingPending(true)
     try {
-      console.log('Fetching reservations from:', `${BASE_URL}/api/reservations/`)
+      console.log("Fetching reservations from:", `${BASE_URL}/api/reservations/`)
       const response = await fetch(`${BASE_URL}/api/reservations/`)
 
       if (response.ok) {
         const data = await response.json()
-        console.log('Reservations fetched successfully:', data.length, 'reservations')
-        // Find the user's pending reservation by user ID
+        console.log("Reservations fetched successfully:", data.length, "reservations")
         const userReservation = data.find(
           (reservation) =>
             reservation.user === user.id &&
             (reservation.status === "pending" || reservation.status === "approved" || reservation.status === "arrived"),
         )
-        console.log('User reservation found:', userReservation ? 'Yes' : 'No')
+        console.log("User reservation found:", userReservation ? "Yes" : "No")
         setPendingReservation(userReservation || null)
       } else {
         console.error("Failed to fetch reservations - Status:", response.status, response.statusText)
@@ -127,7 +141,6 @@ const CustomerView = () => {
       const response = await fetch(`${BASE_URL}/api/reservations/`)
       if (response.ok) {
         const data = await response.json()
-        // Find the user's active reservation by user ID
         const activeReservation = data.find(
           (reservation) =>
             reservation.user === user.id &&
@@ -156,11 +169,11 @@ const CustomerView = () => {
       })
 
       if (response.ok) {
-        await response.json() // Data not needed, just ensure response is consumed
+        await response.json()
         alert("Reservation cancelled successfully")
         setShowPendingModal(false)
         setPendingReservation(null)
-        fetchAvailableSlots() // Refresh slots
+        fetchAvailableSlots()
       } else {
         const errorData = await response.json()
         alert(`Failed to cancel reservation: ${errorData.error || "Unknown error"}`)
@@ -227,14 +240,12 @@ const CustomerView = () => {
 
   const handleSlotClick = async (slot) => {
     if (slot.status === "available") {
-      // Check if user is authenticated and has customer role
       if (!isAuthenticated || !user || user.role !== "customer") {
         setSelectedSlot(slot)
         setShowLoginPrompt(true)
         return
       }
 
-      // Check if user already has an active reservation
       const activeReservation = await checkForActiveReservation()
       if (activeReservation) {
         setSelectedSlot(slot)
@@ -242,10 +253,8 @@ const CustomerView = () => {
         return
       }
 
-      // User is authenticated as customer and has no active reservation, proceed with reservation
       setSelectedSlot(slot)
       setShowReservationModal(true)
-      // Auto-populate form with user data and reset only plate number
       setReservationForm({
         name: `${user.first_name || ""} ${user.last_name || ""}`.trim() || user.username || "",
         plateNumber: "",
@@ -280,9 +289,7 @@ const CustomerView = () => {
     setOtpError("")
   }
 
-  // Validation functions
   const validateName = (name) => {
-    // Allow letters, spaces, and periods (for middle initials like "John M. Doe")
     const nameRegex = /^[a-zA-Z\s.]+$/
     if (!name.trim()) {
       return "Full name is required"
@@ -293,7 +300,6 @@ const CustomerView = () => {
     if (name.trim().length < 2) {
       return "Name must be at least 2 characters long"
     }
-    // Check for excessive periods (more than 3 periods might be suspicious)
     const periodCount = (name.match(/\./g) || []).length
     if (periodCount > 3) {
       return "Too many periods in name"
@@ -325,25 +331,19 @@ const CustomerView = () => {
   const handleInputChange = (field, value) => {
     let processedValue = value
 
-    // Process input based on field type
     if (field === "name") {
-      // Allow only letters, spaces, and periods for name (for middle initials)
       processedValue = value.replace(/[^a-zA-Z\s.]/g, "")
     } else if (field === "contactNumber") {
-      // Allow only numbers for contact number
       processedValue = value.replace(/[^0-9]/g, "")
-      // Limit to 11 digits
       if (processedValue.length > 11) {
         processedValue = processedValue.slice(0, 11)
       }
     } else if (field === "plateNumber") {
-      // Convert to uppercase for plate number
       processedValue = value.toUpperCase()
     }
 
     setReservationForm((prev) => ({ ...prev, [field]: processedValue }))
 
-    // Clear error for this field when user starts typing
     if (formErrors[field]) {
       setFormErrors((prev) => ({ ...prev, [field]: "" }))
     }
@@ -366,41 +366,38 @@ const CustomerView = () => {
   }
 
   const calculateDuration = (startTime) => {
-  if (!startTime) return "N/A";
-  const start = new Date(startTime);
-  const now = new Date();
-  const diffMs = now.getTime() - start.getTime();
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-  return `${diffHours}h ${diffMinutes}m`;
-  };
-
+    if (!startTime) return "N/A"
+    const start = new Date(startTime)
+    const now = new Date()
+    const diffMs = now.getTime() - start.getTime()
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+    return `${diffHours}h ${diffMinutes}m`
+  }
 
   const calculateFee = (startTime, slotType, parkingRates) => {
-  if (!startTime || !parkingRates) return 0;
+    if (!startTime || !parkingRates) return 0
 
-  const start = new Date(startTime);
-  const now = new Date();
-  const diffMinutes = Math.floor((now.getTime() - start.getTime()) / (1000 * 60));
+    const start = new Date(startTime)
+    const now = new Date()
+    const diffMinutes = Math.floor((now.getTime() - start.getTime()) / (1000 * 60))
 
-  const initialFee = getInitialFee(slotType, parkingRates);
-  const hourlyRate = parkingRates[slotType] || parkingRates.regular;
+    const initialFee = getInitialFee(slotType, parkingRates)
+    const hourlyRate = parkingRates[slotType] || parkingRates.regular
 
-  const additionalFee = diffMinutes * hourlyRate;
-  return initialFee + additionalFee;
-  };
+    const additionalFee = diffMinutes * hourlyRate
+    return initialFee + additionalFee
+  }
 
   const getInitialFee = (slotType, parkingRates) => {
-    if (!parkingRates) return 0;
+    if (!parkingRates) return 0
 
-    if (slotType === "vip") return parkingRates.vip;
-    if (slotType === "disabled") return parkingRates.disabled;
-    return parkingRates.regular;
-  };
+    if (slotType === "vip") return parkingRates.vip
+    if (slotType === "disabled") return parkingRates.disabled
+    return parkingRates.regular
+  }
 
-
-
-  const [parkingRates, setParkingRates] = useState(null);
+  const [parkingRates, setParkingRates] = useState(null)
 
   useEffect(() => {
     const fetchParkingRates = async () => {
@@ -410,26 +407,24 @@ const CustomerView = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        });
+        })
 
         if (response.ok) {
-          const settings = await response.json();
+          const settings = await response.json()
           const rates = {
             regular: Number(settings.regularHourlyRate),
             vip: Number(settings.vipHourlyRate),
             disabled: Number(settings.disabledHourlyRate),
-          };
-          setParkingRates(rates);
+          }
+          setParkingRates(rates)
         }
       } catch (error) {
-        console.error("Failed to fetch parking rates", error);
+        console.error("Failed to fetch parking rates", error)
       }
-    };
+    }
 
-    fetchParkingRates();
-  }, []);
-
-
+    fetchParkingRates()
+  }, [])
 
   const handleReservationSubmit = async () => {
     if (!validateForm()) {
@@ -441,25 +436,20 @@ const CustomerView = () => {
       return
     }
 
-    // Check if phone number is verified (OTP verified)
     if (!otpVerified) {
-      // Validate contact number before showing OTP modal
       const phoneError = validateContactNumber(reservationForm.contactNumber)
       if (phoneError) {
-        setFormErrors(prev => ({ ...prev, contactNumber: phoneError }))
+        setFormErrors((prev) => ({ ...prev, contactNumber: phoneError }))
         return
       }
-      
-      // Show OTP modal to verify phone number
+
       setShowOTPModal(true)
       return
     }
 
-    // If OTP is verified, proceed with reservation
     await submitReservationAfterOTP()
   }
 
-  // OTP verification functions
   const sendOTP = async () => {
     if (!reservationForm.contactNumber.trim()) {
       setOtpError("Please enter your contact number first")
@@ -490,10 +480,9 @@ const CustomerView = () => {
 
       if (response.ok && data.success) {
         setOtpSent(true)
-        setOtpCountdown(120) // 2 minutes countdown
+        setOtpCountdown(120)
         alert("OTP sent successfully! Please check your phone.")
-        
-        // Start countdown timer
+
         const timer = setInterval(() => {
           setOtpCountdown((prev) => {
             if (prev <= 1) {
@@ -546,7 +535,6 @@ const CustomerView = () => {
         setOtpVerified(true)
         setShowOTPModal(false)
         alert("Phone number verified successfully!")
-        // Now proceed with reservation
         await submitReservationAfterOTP()
       } else {
         setOtpError(data.message || "Invalid OTP code")
@@ -560,7 +548,6 @@ const CustomerView = () => {
   }
 
   const submitReservationAfterOTP = async () => {
-    // This function handles the actual reservation submission after OTP verification
     try {
       const response = await fetch(`${BASE_URL}/api/reservations/`, {
         method: "POST",
@@ -578,7 +565,7 @@ const CustomerView = () => {
       })
 
       if (response.ok) {
-        await response.json() // Data not needed, just ensure response is consumed
+        await response.json()
         alert(
           `Reservation created successfully for slot F${Number.parseInt(selectedSlot.structure.replace("FLOOR", ""))}-${selectedSlot.section}-${selectedSlot.slotNo}`,
         )
@@ -607,10 +594,10 @@ const CustomerView = () => {
     setOtpCountdown(0)
   }
 
-  // Search parking functions
   const handleSearchParking = async () => {
     if (!searchPlateNumber.trim()) {
       setSearchError("Please enter a plate number")
+      setShowSearchErrorModal(true)
       return
     }
 
@@ -634,15 +621,19 @@ const CustomerView = () => {
       if (response.ok && data.success) {
         if (data.found) {
           setSearchResults(data.data)
+          setShowSearchResultModal(true)
         } else {
           setSearchError(data.message)
+          setShowSearchErrorModal(true)
         }
       } else {
         setSearchError(data.message || "Failed to search for parking details")
+        setShowSearchErrorModal(true)
       }
     } catch (error) {
       console.error("Error searching parking:", error)
       setSearchError("Failed to search for parking details. Please try again.")
+      setShowSearchErrorModal(true)
     } finally {
       setSearchLoading(false)
     }
@@ -653,6 +644,8 @@ const CustomerView = () => {
     setSearchResults(null)
     setSearchError("")
     setSearchLoading(false)
+    setShowSearchResultModal(false)
+    setShowSearchErrorModal(false)
   }
 
   if (loading) {
@@ -735,7 +728,7 @@ const CustomerView = () => {
                   className="search-input"
                   maxLength={15}
                   onKeyPress={(e) => {
-                    if (e.key === 'Enter' && searchPlateNumber.trim()) {
+                    if (e.key === "Enter" && searchPlateNumber.trim()) {
                       handleSearchParking()
                     }
                   }}
@@ -747,64 +740,10 @@ const CustomerView = () => {
                 >
                   {searchLoading ? "Searching..." : "Search for Slot"}
                 </button>
-                {(searchResults || searchError) && (
-                  <button
-                    onClick={resetSearch}
-                    className="search-button search-clear-button"
-                  >
-                    Clear
-                  </button>
-                )}
+                <button onClick={resetSearch} className="search-button search-clear-button">
+                  Clear
+                </button>
               </div>
-              
-              {/* Inline Search Results */}
-              {searchResults && (
-                <div className="search-results">
-                  <div className="search-results-header">
-                    <h4>✅ Vehicle Found</h4>
-                  </div>
-                  <div className="search-results-content">
-                    <div className="result-row">
-                      <span className="result-label">Assigned Slot:</span>
-                      <span className="result-value highlight">{searchResults.assigned_slot}</span>
-                    </div>
-                    <div className="result-row">
-                      <span className="result-label">Plate Number:</span>
-                      <span className="result-value">{searchResults.plate_number}</span>
-                    </div>
-                    <div className="result-row">
-                      <span className="result-label">Arrival Time:</span>
-                      <span className="result-value">{searchResults.arrival_time}</span>
-                    </div>
-                    <div className="result-row">
-                      <span className="result-label">Duration of Stay:</span>
-                      <span className="result-value">{searchResults.duration}</span>
-                    </div>
-                    <div className="result-row">
-                      <span className="result-label">Ongoing Parking Fee:</span>
-                      <span className="result-value highlight">{searchResults.ongoing_fee}</span>
-                    </div>
-                    {searchResults.customer_name && (
-                      <div className="result-row">
-                        <span className="result-label">Customer Name:</span>
-                        <span className="result-value">{searchResults.customer_name}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* Inline Search Error */}
-              {searchError && (
-                <div className="search-error">
-                  <div className="search-error-header">
-                    <h4>❌ No Vehicle Found</h4>
-                  </div>
-                  <div className="search-error-content">
-                    <p>{searchError}</p>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         )}
@@ -833,7 +772,7 @@ const CustomerView = () => {
             ))}
             {isAuthenticated && user?.role === "customer" && (
               <button onClick={handleViewPendingReservation} className="view-pending-button" disabled={loadingPending}>
-                <Eye size={20} className="pending-icon"/>
+                <Eye size={20} className="pending-icon" />
                 <span>{loadingPending ? "Loading..." : "View Active Reservation"}</span>
               </button>
             )}
@@ -932,8 +871,9 @@ const CustomerView = () => {
             </div>
 
             <div className="login-prompt-content">
-              <h4><CircleAlert size={20} className="login-prompt-icon"/>
-              Customer Login Required!
+              <h4>
+                <CircleAlert size={20} className="login-prompt-icon" />
+                Customer Login Required!
               </h4>
               <p>
                 To reserve slot{" "}
@@ -967,8 +907,10 @@ const CustomerView = () => {
             </div>
 
             <div className="login-prompt-content">
-              <h4><TriangleAlert size={20} className="login-prompt-icon"/>
-                Only One Reservation Allowed</h4>
+              <h4>
+                <TriangleAlert size={20} className="login-prompt-icon" />
+                Only One Reservation Allowed
+              </h4>
               <p>You already have an active reservation. Only one reservation can be made at a time.</p>
               <p>
                 You tried to reserve slot{" "}
@@ -1052,7 +994,6 @@ const CustomerView = () => {
                   value={reservationForm.contactNumber}
                   onChange={(e) => {
                     handleInputChange("contactNumber", e.target.value)
-                    // Reset OTP verification if contact number changes
                     if (otpVerified) {
                       setOtpVerified(false)
                       setOtpSent(false)
@@ -1062,8 +1003,8 @@ const CustomerView = () => {
                 />
                 {formErrors.contactNumber && <div className="error-message">{formErrors.contactNumber}</div>}
                 <div className="input-hint">
-                  {otpVerified 
-                    ? "Phone number verified. You can proceed with reservation." 
+                  {otpVerified
+                    ? "Phone number verified. You can proceed with reservation."
                     : "Auto-filled from your account. You may edit if needed."}
                 </div>
               </div>
@@ -1114,17 +1055,15 @@ const CustomerView = () => {
             <div className="otp-verification-content">
               <div className="otp-info">
                 <p>We need to verify your phone number before proceeding with the reservation.</p>
-                <p><strong>Phone: {reservationForm.contactNumber}</strong></p>
+                <p>
+                  <strong>Phone: {reservationForm.contactNumber}</strong>
+                </p>
               </div>
 
               {!otpSent ? (
                 <div className="otp-send-section">
                   <p>Click the button below to receive a verification code via SMS.</p>
-                  <button
-                    onClick={sendOTP}
-                    disabled={otpLoading}
-                    className="otp-send-button"
-                  >
+                  <button onClick={sendOTP} disabled={otpLoading} className="otp-send-button">
                     {otpLoading ? "Sending..." : "Send Verification Code"}
                   </button>
                 </div>
@@ -1137,7 +1076,7 @@ const CustomerView = () => {
                       className="otp-input"
                       value={otpCode}
                       onChange={(e) => {
-                        const value = e.target.value.replace(/[^0-9]/g, '')
+                        const value = e.target.value.replace(/[^0-9]/g, "")
                         if (value.length <= 6) {
                           setOtpCode(value)
                           setOtpError("")
@@ -1145,7 +1084,13 @@ const CustomerView = () => {
                       }}
                       placeholder="Enter 6-digit code"
                       maxLength={6}
-                      style={{ backgroundColor: "#111", color: "#fff", textAlign: "center", fontSize: "18px", letterSpacing: "4px" }}
+                      style={{
+                        backgroundColor: "#111",
+                        color: "#fff",
+                        textAlign: "center",
+                        fontSize: "18px",
+                        letterSpacing: "4px",
+                      }}
                     />
                   </div>
 
@@ -1158,15 +1103,10 @@ const CustomerView = () => {
                       {otpLoading ? "Verifying..." : "Verify Code"}
                     </button>
 
-                    <button
-                      onClick={sendOTP}
-                      disabled={otpLoading || otpCountdown > 0}
-                      className="otp-resend-button"
-                    >
-                      {otpCountdown > 0 
-                        ? `Resend in ${Math.floor(otpCountdown / 60)}:${String(otpCountdown % 60).padStart(2, '0')}`
-                        : "Resend Code"
-                      }
+                    <button onClick={sendOTP} disabled={otpLoading || otpCountdown > 0} className="otp-resend-button">
+                      {otpCountdown > 0
+                        ? `Resend in ${Math.floor(otpCountdown / 60)}:${String(otpCountdown % 60).padStart(2, "0")}`
+                        : "Resend Code"}
                     </button>
                   </div>
                 </div>
@@ -1238,24 +1178,25 @@ const CustomerView = () => {
                       <span className="info-label">Arrival Time:</span>
                       <span className="info-value">{new Date(pendingReservation.arrival_time).toLocaleString()}</span>
                     </div>
-                    
                   )}
-                   <div className="info-row">
-                      <span className="info-label">Duration:</span>
-                      <span className="info-value">{calculateDuration(pendingReservation.arrival_time)}</span>
-                    </div>
+                  <div className="info-row">
+                    <span className="info-label">Duration:</span>
+                    <span className="info-value">{calculateDuration(pendingReservation.arrival_time)}</span>
+                  </div>
 
-                    <div className="info-row">
-                      <span className="info-label">Ongoing Fee:</span>
-                      <span className="info-value">
-                        ₱
-                        {parkingRates
-                          ? calculateFee(pendingReservation.arrival_time, pendingReservation.slot_type, parkingRates).toFixed(2)
-                          : "Loading..."}
-                      </span>
-                    </div>
-
-
+                  <div className="info-row">
+                    <span className="info-label">Ongoing Fee:</span>
+                    <span className="info-value">
+                      ₱
+                      {parkingRates
+                        ? calculateFee(
+                            pendingReservation.arrival_time,
+                            pendingReservation.slot_type,
+                            parkingRates,
+                          ).toFixed(2)
+                        : "Loading..."}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="modal-actions">
@@ -1281,6 +1222,92 @@ const CustomerView = () => {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Search Result Success Modal - Full Screen Popup */}
+      {showSearchResultModal && searchResults && (
+        <div className="modal-overlay">
+          <div className="search-result-modal">
+            <div className="modal-header">
+              <h3 className="modal-title search-success-title">✅ Vehicle Found</h3>
+              <button onClick={() => setShowSearchResultModal(false)} className="modal-close">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="search-result-content">
+              <div className="search-result-info">
+                <div className="info-row">
+                  <span className="info-label">Assigned Slot:</span>
+                  <span className="info-value highlight">{searchResults.assigned_slot}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Plate Number:</span>
+                  <span className="info-value">{searchResults.plate_number}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Arrival Time:</span>
+                  <span className="info-value">{searchResults.arrival_time}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Duration of Stay:</span>
+                  <span className="info-value">{searchResults.duration}</span>
+                </div>
+                <div className="info-row">
+                  <span className="info-label">Ongoing Parking Fee:</span>
+                  <span className="info-value highlight">{searchResults.ongoing_fee}</span>
+                </div>
+                {searchResults.customer_name && (
+                  <div className="info-row">
+                    <span className="info-label">Customer Name:</span>
+                    <span className="info-value">{searchResults.customer_name}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button onClick={() => setShowSearchResultModal(false)} className="modal-submit">
+                Close
+              </button>
+              <button onClick={resetSearch} className="modal-cancel">
+                Search Again
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Search Result Error Modal - Full Screen Popup */}
+      {showSearchErrorModal && (
+        <div className="modal-overlay">
+          <div className="search-result-modal">
+            <div className="modal-header">
+              <h3 className="modal-title search-error-title">❌ No Vehicle Found</h3>
+              <button onClick={() => setShowSearchErrorModal(false)} className="modal-close">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="search-result-content">
+              <div className="search-error-info">
+                <p className="error-message-text">{searchError}</p>
+                <p className="error-help-text">
+                  Please check the plate number and try again, or contact the front desk for assistance.
+                </p>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button onClick={() => setShowSearchErrorModal(false)} className="modal-submit">
+                Close
+              </button>
+              <button onClick={resetSearch} className="modal-cancel">
+                Try Again
+              </button>
+            </div>
           </div>
         </div>
       )}
