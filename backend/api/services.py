@@ -58,6 +58,12 @@ class SMSService:
         """
         Send SMS message using TextBee API
         """
+        # Check if we're in development mode
+        if getattr(settings, 'OTP_DEVELOPMENT_MODE', False):
+            logger.info(f"🔧 DEVELOPMENT MODE: SMS not sent to {to_number}")
+            logger.info(f"📱 Message content: {message}")
+            return True  # Return success in development mode
+        
         if not self.is_configured:
             logger.error("TextBee SMS service not configured. Cannot send SMS.")
             return False
@@ -164,11 +170,16 @@ class SMSService:
             # Format date
             date_str = reservation.date.strftime('%B %d, %Y')
             
+            # Format rejection time (current time in local timezone)
+            rejection_time = timezone.localtime(timezone.now())
+            rejection_time_str = rejection_time.strftime('%I:%M %p')
+            
             message = (
                 f"❌ RESERVATION REJECTED\n\n"
                 f"📍 Slot: {slot_display}\n"
                 f"📅 Date: {date_str}\n"
-                f"🚗 Vehicle: {reservation.plate_no}\n\n"
+                f"🚗 Vehicle: {reservation.plate_no}\n"
+                f"⏰ Rejected at: {rejection_time_str}\n\n"
                 f"We apologize for the inconvenience. Please try booking another slot or contact us for assistance.\n\n"
                 f"- MoneyGers Parking Management"
             )
