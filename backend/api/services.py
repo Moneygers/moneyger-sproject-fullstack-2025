@@ -190,8 +190,12 @@ class SMSService:
             # Format slot display
             slot_display = f"{reservation.park_slot.structure}-{reservation.park_slot.section}-{reservation.park_slot.slotNo}"
             
-            # Format arrival time
-            arrival_time_str = reservation.arrival_time.strftime('%I:%M %p') if reservation.arrival_time else timezone.now().strftime('%I:%M %p')
+            # Format arrival time - convert to local timezone first
+            if reservation.arrival_time:
+                local_arrival_time = timezone.localtime(reservation.arrival_time)
+                arrival_time_str = local_arrival_time.strftime('%I:%M %p')
+            else:
+                arrival_time_str = timezone.localtime(timezone.now()).strftime('%I:%M %p')
             
             message = (
                 f"✅ ARRIVAL CONFIRMED!\n\n"
