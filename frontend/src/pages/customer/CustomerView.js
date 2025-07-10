@@ -203,6 +203,22 @@ const CustomerView = () => {
       .filter((slot) => slot.status === "available")
   }
 
+  const getTotalFloorSlots = (floor) => {
+    return slots
+      .filter((slot) => {
+        const floorNumber = Number.parseInt(slot.structure.replace("FLOOR", ""))
+        return floorNumber === floor
+      })
+  }
+
+  const getTotalFloorSlots = (floor) => {
+    return slots
+      .filter((slot) => {
+        const floorNumber = Number.parseInt(slot.structure.replace("FLOOR", ""))
+        return floorNumber === floor
+      })
+  }
+
   const getSlotsBySection = (floorSlots) => {
     const sections = {}
     floorSlots.forEach((slot) => {
