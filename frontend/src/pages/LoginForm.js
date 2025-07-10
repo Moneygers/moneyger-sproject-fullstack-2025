@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 import Footer from "../components/Footer"
 import "../styles/LoginForm.css"
-import { LogIn, UserPlus, Eye, EyeOff, Mail } from "lucide-react"
+import { LogIn, UserPlus, Eye, EyeOff } from "lucide-react"
 import BASE_URL from "../config"
 
 const LoginForm = () => {
@@ -22,8 +22,6 @@ const LoginForm = () => {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [formErrors, setFormErrors] = useState({})
-  const [googleLoading, setGoogleLoading] = useState(false)
-  const [googleReady, setGoogleReady] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
   const googleBtnRef = useRef(null)
@@ -53,7 +51,6 @@ const LoginForm = () => {
           auto_select: false,
           cancel_on_tap_outside: true,
         })
-        setGoogleReady(true)
         if (googleBtnRef.current) {
           window.google.accounts.id.renderButton(googleBtnRef.current, {
             theme: "filled_black",
@@ -65,11 +62,11 @@ const LoginForm = () => {
       }
     }
     loadGoogleScript()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Handle Google OAuth response
   const handleGoogleResponse = async (response) => {
-    setGoogleLoading(true)
     setError("")
 
     try {
@@ -115,8 +112,6 @@ const LoginForm = () => {
     } catch (err) {
       console.error("Google sign-in error:", err)
       setError("Network error during Google sign-in. Please try again.")
-    } finally {
-      setGoogleLoading(false)
     }
   }
 
@@ -173,6 +168,8 @@ const LoginForm = () => {
         break
       case "confirmPassword":
         setConfirmPassword(processedValue)
+        break
+      default:
         break
     }
 

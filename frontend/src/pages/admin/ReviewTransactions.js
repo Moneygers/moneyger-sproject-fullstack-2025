@@ -14,6 +14,7 @@ const ReviewTransactions = () => {
   const [dateFilter, setDateFilter] = useState("today")
   const [typeFilter, setTypeFilter] = useState("all")
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchTransactions()
   }, [dateFilter, typeFilter])

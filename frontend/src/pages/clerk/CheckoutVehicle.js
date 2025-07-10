@@ -26,7 +26,6 @@ const CheckoutVehicle = () => {
   const [showPrintModal, setShowPrintModal] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState("")
   const [parkingRates, setParkingRates] = useState(null)
-  const [ratesLoaded, setRatesLoaded] = useState(false)
   const [ratesError, setRatesError] = useState(null)
 
   useEffect(() => {
@@ -62,7 +61,6 @@ const CheckoutVehicle = () => {
 
         console.log("Parsed parking rates from database:", rates)
         setParkingRates(rates)
-        setRatesLoaded(true)
       } else {
         const errorText = await response.text()
         console.error("Failed to fetch system settings:", response.status, response.statusText, errorText)
@@ -71,7 +69,6 @@ const CheckoutVehicle = () => {
     } catch (error) {
       console.error("Error fetching parking rates:", error)
       setRatesError(error.message)
-      setRatesLoaded(false)
       setParkingRates(null)
     }
   }

@@ -12,6 +12,7 @@ const MonitorReservations = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchReservations()
   }, [statusFilter])
@@ -65,42 +66,6 @@ const MonitorReservations = () => {
     } catch (error) {
       console.error("Error recording arrival:", error)
       alert("Failed to record arrival")
-    }
-  }
-
-  const handleStatusChange = async (reservationId, newStatus) => {
-    try {
-      let endpoint = `${BASE_URL}/api/reservations/${reservationId}/`
-      let method = "PATCH"
-      let body = JSON.stringify({ status: newStatus })
-
-      if (newStatus === "completed") {
-        endpoint = `${BASE_URL}/api/reservations/${reservationId}/complete/`
-        method = "POST"
-        body = JSON.stringify({})
-      }
-
-      const response = await fetch(endpoint, {
-        method: method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: body,
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setReservations((prev) => prev.map((res) => (res.id === reservationId ? data.reservation || data : res)))
-        alert(`Reservation ${newStatus} successfully`)
-        fetchReservations()
-      } else {
-        const errorData = await response.json()
-        alert(`Failed to update reservation: ${errorData.error || "Unknown error"}`)
-      }
-    } catch (error) {
-      console.error("Error updating reservation:", error)
-      alert("Failed to update reservation")
     }
   }
 

@@ -7,7 +7,7 @@ import "../styles/NotFound.css"
 const NotFound = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const { isAuthenticated, isAdmin, isClerk, isCustomer } = useAuth()
+  const { isAuthenticated, isAdmin, isClerk } = useAuth()
 
   // Determine the type of error based on the current path and user role
   const getErrorType = () => {

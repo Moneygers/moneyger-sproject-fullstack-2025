@@ -65,6 +65,7 @@ const CustomerView = () => {
     if (isAuthenticated && user && user.role === "customer") {
       fetchPendingReservation()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, user])
 
   useEffect(() => {
@@ -201,14 +202,6 @@ const CustomerView = () => {
         return floorNumber === floor
       })
       .filter((slot) => slot.status === "available")
-  }
-
-  const getTotalFloorSlots = (floor) => {
-    return slots
-      .filter((slot) => {
-        const floorNumber = Number.parseInt(slot.structure.replace("FLOOR", ""))
-        return floorNumber === floor
-      })
   }
 
   const getTotalFloorSlots = (floor) => {
@@ -676,7 +669,7 @@ const CustomerView = () => {
 
   const currentFloorSlots = getFloorSlots(selectedFloor)
   const sectionedSlots = getSlotsBySection(currentFloorSlots)
-  const availableCount = currentFloorSlots.filter((slot) => slot.status === "available").length
+  const availableCount = currentFloorSlots.length
 
   return (
     <div className="customer-view-container">
@@ -782,7 +775,7 @@ const CustomerView = () => {
                   </span>
                 </div>
                 <div className="floor-available-count">
-                  {getFloorSlots(floor).filter((s) => s.status === "available").length} available
+                  {getFloorSlots(floor).length} available
                 </div>
               </button>
             ))}
@@ -803,7 +796,7 @@ const CustomerView = () => {
               {selectedFloor === 1 ? "Floor 1" : selectedFloor === 4 ? "Floor 4" : `Floor ${selectedFloor}`}
             </h2>
             <p className="floor-layout-subtitle">
-              {availableCount} available slots out of {currentFloorSlots.length} total
+              {availableCount} available slots out of {getTotalFloorSlots(selectedFloor).length} total
             </p>
             <p className="click-instruction">
               {isAuthenticated && user?.role === "customer"

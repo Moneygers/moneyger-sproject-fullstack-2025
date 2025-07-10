@@ -1,6 +1,6 @@
 "use client"
 
-import { NavLink, useNavigate } from "react-router-dom"
+import { NavLink } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 import {
   Eye,
@@ -18,15 +18,9 @@ import {
 import "../styles/components/Sidebar.css"
 
 const Sidebar = () => {
-  const { isAuthenticated, user, isAdmin, isClerk, isCustomer, logout } = useAuth()
-  const navigate = useNavigate()
+  const { isAuthenticated, user, isAdmin, isClerk, isCustomer } = useAuth()
 
   if (!isAuthenticated) return null
-
-  const handleLogout = () => {
-    logout()
-    navigate("/login")
-  }
 
   // Define navigation items based on use case diagram
   const getNavItems = () => {

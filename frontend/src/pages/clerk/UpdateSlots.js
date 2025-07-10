@@ -21,6 +21,7 @@ const UpdateSlots = () => {
     fetchSlots()
   }, [])
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     filterSlots()
   }, [slots, searchTerm, statusFilter, floorFilter])
