@@ -38,7 +38,7 @@
 }
 
 .footer-description {
-  color: #d1d5dbad;
+  color: #f9fafb;
   line-height: 1.7;
   margin: 0;
   font-size: 1rem;
@@ -55,17 +55,13 @@
 }
 
 .footer-features li {
-  color: #d1d5dbad;
+  color: #f9fafb;
   font-size: 1rem;
   position: relative;
   padding-left: 1.5rem;
   line-height: 1.5;
 }
 
-.footer-features li:hover {
-  color: #ffffff;
-  cursor: pointer;
-}
 .footer-features li::before {
   content: "✓";
   position: absolute;

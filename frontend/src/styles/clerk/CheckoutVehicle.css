@@ -269,10 +269,10 @@
   font-weight: 500;
 }
 
-.allocation-type{
+.allocation-type {
   margin-top: 0.2rem;
 }
-.reservation-badge{
+.reservation-badge {
   font-size: 0.875rem;
   color: #b9f3f1;
   font-weight: 700;
@@ -316,14 +316,14 @@
 .detail-value {
   font-size: 0.875rem;
   font-weight: 600;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: "Courier New", Courier, monospace;
   color: #f1f1f1;
   word-break: break-word;
 }
 
 .detail-value.duration {
   color: #ffef00;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: "Courier New", Courier, monospace;
   font-weight: 700;
 }
 
@@ -504,6 +504,20 @@
   font-weight: 500;
   transition: all 0.2s ease;
   margin-top: 0.5rem;
+}
+
+.cancel-button {
+  width: auto;
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #1a1a1a;
+  color: #a0a0a0;
+  border-radius: 0.75rem;
+  background: #0a0a0a;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  margin: 0.5rem auto 0;
+  display: block;
 }
 
 .cancel-button:hover,
