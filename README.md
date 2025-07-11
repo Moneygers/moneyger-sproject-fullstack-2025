@@ -1,8 +1,8 @@
-# 🅿️ Parking Management System (Moneyger)
+#  Parking Management System (Moneyger)
 
 A comprehensive full-stack parking management system built with Django REST Framework and React.
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites
 - Python 3.11+
@@ -30,7 +30,7 @@ npm install
 npm start
 ```
 
-## 🚀 Production Deployment
+##  Production Deployment
 
 See `DEPLOYMENT_GUIDE.md` for comprehensive production deployment instructions including:
 - Environment configuration
@@ -41,38 +41,38 @@ See `DEPLOYMENT_GUIDE.md` for comprehensive production deployment instructions i
 - Security considerations
 - CI/CD pipeline setup
 
-## 🎯 Features
+##  Features
 
-### 🔐 Authentication System
+###  Authentication System
 - Role-based access control (Admin, Clerk, Customer)
 - Simple token-based authentication
 - Google OAuth integration
 
-### 🅿️ Parking Management
+###  Parking Management
 - 240 parking slots (4 floors × 2 sections × 30 slots)
 - Real-time slot status tracking
 - Different slot types: Regular, VIP, Disabled
 - Automated slot assignment and checkout
 
-### 💰 Payment System
+###  Payment System
 - Multiple payment methods (Cash, GCash)
 - Automatic fee calculation based on slot type and duration
 - Receipt generation and tracking
 - Hourly rates: Regular (₱50), VIP (₱100), Disabled (₱25)
 
-### 📱 Reservation System
+###  Reservation System
 - OTP-verified reservations via SMS
 - TextBee SMS integration
 - Reservation approval workflow
 - Real-time status updates
 
-### 📊 Admin Dashboard
+###  Admin Dashboard
 - System statistics and analytics
 - User management
 - Payment reports
 - Slot utilization tracking
 
-## 🛠️ Technology Stack
+##  Technology Stack
 
 ### Backend
 - **Framework:** Django REST Framework
@@ -88,7 +88,7 @@ See `DEPLOYMENT_GUIDE.md` for comprehensive production deployment instructions i
 - **State Management:** Context API
 - **HTTP Client:** Axios
 
-## 📋 System Architecture
+##  System Architecture
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -103,7 +103,7 @@ See `DEPLOYMENT_GUIDE.md` for comprehensive production deployment instructions i
                        └─────────────────┘
 ```
 
-## 🔗 API Endpoints
+##  API Endpoints
 
 ### Authentication
 - `POST /api/auth/login/` - User login
@@ -127,7 +127,7 @@ See `DEPLOYMENT_GUIDE.md` for comprehensive production deployment instructions i
 - `GET /api/users/` - User management
 - `GET /api/reports/payments/` - Payment reports
 
-## 🧪 Testing
+##  Testing
 
 The system includes comprehensive test coverage with **100% pass rate** (28/28 tests passed).
 
@@ -142,9 +142,9 @@ python manage.py test api.test_corrected
 - **Execution Report:** `FINAL_TEST_EXECUTION_REPORT.md`
 - **Quick Summary:** `QUICK_TEST_SUMMARY.md`
 
-## 📊 System Status
+##  System Status
 
-### ✅ Production Ready
+###  Production Ready
 - **Core Functionality:** 100% Working
 - **Security:** Role-based access implemented
 - **Performance:** All endpoints < 2 seconds
@@ -152,14 +152,14 @@ python manage.py test api.test_corrected
 - **SMS Integration:** TextBee configured
 - **Error Handling:** Comprehensive validation
 
-### 🎯 Quality Metrics
+###  Quality Metrics
 - **Test Coverage:** 100% pass rate (28/28 tests)
 - **Code Quality:** Well-structured and maintainable
 - **Security:** Authentication and authorization implemented
 - **Performance:** Optimized database queries
 - **Scalability:** Designed for growth
 
-## 📁 Project Structure
+##  Project Structure
 
 ```
 parking-management-system/
@@ -185,7 +185,7 @@ parking-management-system/
 └── README.md
 ```
 
-## 🔧 Configuration
+##  Configuration
 
 ### Environment Variables
 Create `.env` file in backend directory:
@@ -206,7 +206,7 @@ const config = {
 };
 ```
 
-## 🚀 Deployment
+##  Deployment
 
 ### Backend Deployment
 1. Set up production database (PostgreSQL)
@@ -220,20 +220,20 @@ const config = {
 2. Deploy to static hosting (Netlify, Vercel, etc.)
 3. Update API base URL for production
 
-## 📞 Support
+##  Support
 
 For technical support or questions about the system:
 - Check the comprehensive test documentation
 - Review the API endpoints reference
 - Examine the test execution reports
 
-## 📄 License
+##  License
 
 This project is developed for educational purposes as part of the Moneyger fullstack project.
 
 ---
 
-**Status:** ✅ Production Ready  
+**Status:**  Production Ready  
 **Version:** 2.0  
 **Last Updated:** July 11, 2025  
 **Test Coverage:** 100% (28/28 tests passed)
