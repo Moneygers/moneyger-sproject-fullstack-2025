@@ -1,10 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Car, RotateCcw, Star, Accessibility } from "lucide-react"
+import { Car, RotateCcw, Star, Accessibility, Printer } from 'lucide-react'
 import "../../styles/clerk/UpdateSlots.css"
 import Layout from "../../components/Layout"
-import BASE_URL from '../../config';
+import BASE_URL from "../../config"
 
 const UpdateSlots = () => {
   const [slots, setSlots] = useState([])
@@ -16,6 +16,9 @@ const UpdateSlots = () => {
   const [showPlateModal, setShowPlateModal] = useState(false)
   const [selectedSlot, setSelectedSlot] = useState(null)
   const [plateNumber, setPlateNumber] = useState("")
+  const [plateError, setPlateError] = useState("")
+  const [showPrintModal, setShowPrintModal] = useState(false)
+  const [assignmentResult, setAssignmentResult] = useState(null)
 
   useEffect(() => {
     fetchSlots()
@@ -101,11 +104,64 @@ const UpdateSlots = () => {
     return null
   }
 
+  const validateLicensePlate = (plate) => {
+    // Remove spaces and convert to uppercase
+    const cleanPlate = plate.replace(/\s/g, "").toUpperCase()
+
+    // Check length (3-8 characters)
+    if (cleanPlate.length < 3) {
+      return { isValid: false, error: "License plate must be at least 3 characters" }
+    }
+    if (cleanPlate.length > 8) {
+      return { isValid: false, error: "License plate cannot exceed 8 characters" }
+    }
+
+    // Check format: only letters, numbers, and hyphens allowed
+    const validFormat = /^[A-Z0-9-]+$/.test(cleanPlate)
+    if (!validFormat) {
+      return { isValid: false, error: "Only letters, numbers, and hyphens allowed" }
+    }
+
+    // Check for valid patterns (at least one letter and one number, or all letters, or all numbers)
+    const hasLetter = /[A-Z]/.test(cleanPlate)
+    const hasNumber = /[0-9]/.test(cleanPlate)
+    const hasOnlyHyphens = /^-+$/.test(cleanPlate)
+
+    if (hasOnlyHyphens) {
+      return { isValid: false, error: "License plate cannot contain only hyphens" }
+    }
+
+    return { isValid: true, error: "" }
+  }
+
+  const handlePlateNumberChange = (e) => {
+    let value = e.target.value.toUpperCase()
+
+    // Remove invalid characters in real-time
+    value = value.replace(/[^A-Z0-9-\s]/g, "")
+
+    // Limit to 8 characters
+    if (value.length > 8) {
+      value = value.substring(0, 8)
+    }
+
+    setPlateNumber(value)
+
+    // Validate and show error
+    if (value.trim()) {
+      const validation = validateLicensePlate(value)
+      setPlateError(validation.error)
+    } else {
+      setPlateError("")
+    }
+  }
+
   const handleSlotClick = (slot) => {
     if (slot.status === "available") {
       setSelectedSlot(slot)
       setShowPlateModal(true)
       setPlateNumber("")
+      setPlateError("")
     } else if (slot.status === "occupied") {
       alert(`Please go to "Checkout Page" to the release slot ${getSlotDisplayId(slot)}`)
     }
@@ -114,7 +170,16 @@ const UpdateSlots = () => {
   const handleAssignSlot = async () => {
     if (!selectedSlot || !plateNumber.trim()) return
 
+    // Final validation before assignment
+    const validation = validateLicensePlate(plateNumber)
+    if (!validation.isValid) {
+      setPlateError(validation.error)
+      return
+    }
+
     try {
+      const cleanPlateNumber = plateNumber.replace(/\s/g, "").toUpperCase()
+
       const response = await fetch(`${BASE_URL}/api/slots/${selectedSlot.id}/assign/`, {
         method: "POST",
         headers: {
@@ -122,7 +187,8 @@ const UpdateSlots = () => {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({
-          license_plate: plateNumber.trim(),
+          license_plate: cleanPlateNumber,
+          mark_as_arrived: true, // Mark as arrived for manual assignments
         }),
       })
 
@@ -133,12 +199,20 @@ const UpdateSlots = () => {
         setSlots((prev) => prev.map((slot) => (slot.id === selectedSlot.id ? result.slot : slot)))
 
         setShowPlateModal(false)
-        setSelectedSlot(null)
         setPlateNumber("")
+        setPlateError("")
 
-        alert(
-          `Slot ${getSlotDisplayId(selectedSlot)} assigned to vehicle ${plateNumber}.`,
-        )
+        // Store assignment result and show print modal
+        setAssignmentResult({
+          slot: result.slot,
+          slotDisplayId: getSlotDisplayId(selectedSlot),
+          plateNumber: cleanPlateNumber,
+          entryTime: new Date().toISOString(),
+          slotType: selectedSlot.slot_type || "regular",
+        })
+        setShowPrintModal(true)
+
+        alert(`Slot ${getSlotDisplayId(selectedSlot)} assigned to vehicle ${cleanPlateNumber} and marked as arrived.`)
       } else {
         const errorData = await response.json()
         alert(`Failed to assign slot: ${errorData.error || "Unknown error"}`)
@@ -147,6 +221,61 @@ const UpdateSlots = () => {
       console.error("Error assigning slot:", error)
       alert("Failed to assign slot")
     }
+  }
+
+  const printInitialTicket = () => {
+    if (!assignmentResult) return
+
+    const ticketContent = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Parking Entry Ticket</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 400px; margin: 0 auto; padding: 20px; }
+    .ticket { border: 2px solid #333; padding: 20px; text-align: center; }
+    .header { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+    .logo { width: 60px; height: 60px; margin: 0 auto 10px; display: block; }
+    .info { text-align: left; margin: 10px 0; }
+    .info strong { display: inline-block; width: 120px; }
+  </style>
+</head>
+<body>
+  <div class="ticket">
+    <img src="/favicon.png" alt="ParkManager Logo" class="logo" />
+    <div class="header">ParkManager</div>
+    <div>Parking Entry Ticket</div>
+    
+    <div class="info"><strong>Slot:</strong> ${assignmentResult.slotDisplayId}</div>
+    <div class="info"><strong>License Plate:</strong> ${assignmentResult.plateNumber}</div>
+    <div class="info"><strong>Slot Type:</strong> ${assignmentResult.slotType?.toUpperCase() || "REGULAR"}</div>
+    <div class="info"><strong>Entry Time:</strong> ${new Date(assignmentResult.entryTime).toLocaleString()}</div>
+    
+    <div style="margin-top: 20px; font-size: 12px;">
+      <p>Welcome to ParkManager!</p>
+      <p>Keep this ticket for checkout.</p>
+    </div>
+  </div>
+</body>
+</html>
+`
+
+    const printWindow = window.open("", "_blank")
+    if (printWindow) {
+      printWindow.document.write(ticketContent)
+      printWindow.document.close()
+      printWindow.print()
+    }
+  }
+
+  const completePrintProcess = (shouldPrint) => {
+    if (shouldPrint) {
+      printInitialTicket()
+    }
+
+    setShowPrintModal(false)
+    setAssignmentResult(null)
+    setSelectedSlot(null)
   }
 
   const getSlotColor = (status, slotType) => {
@@ -161,6 +290,12 @@ const UpdateSlots = () => {
     if (slotType === "disabled") return <Accessibility size={20} />
     if (slotType === "vip") return <Star size={20} />
     return status === "occupied" ? <Car size={20} /> : <Car size={20} />
+  }
+
+  const isAssignButtonDisabled = () => {
+    if (!plateNumber.trim()) return true
+    const validation = validateLicensePlate(plateNumber)
+    return !validation.isValid
   }
 
   if (loading) {
@@ -324,22 +459,93 @@ const UpdateSlots = () => {
                 <label className="input-label">License Plate Number</label>
                 <input
                   type="text"
-                  placeholder="ABC-1234"
-                  className="plate-input"
+                  placeholder="ABC-1234 (3-8 characters)"
+                  className={`plate-input ${plateError ? "error" : ""}`}
                   value={plateNumber}
-                  maxLength={8}
-                  onChange={(e) => setPlateNumber(e.target.value.toUpperCase())}
-                  onKeyPress={(e) => e.key === "Enter" && handleAssignSlot()}
+                  onChange={handlePlateNumberChange}
+                  onKeyPress={(e) => e.key === "Enter" && !isAssignButtonDisabled() && handleAssignSlot()}
                   autoFocus
                 />
+                {plateError && (
+                  <div className="error-message" style={{ color: "#ff4444", fontSize: "12px", marginTop: "5px" }}>
+                    {plateError}
+                  </div>
+                )}
+                <div className="input-help" style={{ fontSize: "11px", color: "#666", marginTop: "5px" }}>
+                  Format: Letters, numbers, and hyphens only (3-8 characters)
+                </div>
               </div>
 
               <div className="modal-actions">
                 <button onClick={() => setShowPlateModal(false)} className="modal-cancel">
                   Cancel
                 </button>
-                <button onClick={handleAssignSlot} disabled={!plateNumber.trim()} className="modal-assign">
+                <button
+                  onClick={handleAssignSlot}
+                  disabled={isAssignButtonDisabled()}
+                  className="modal-assign"
+                  style={{
+                    opacity: isAssignButtonDisabled() ? 0.5 : 1,
+                    cursor: isAssignButtonDisabled() ? "not-allowed" : "pointer",
+                  }}
+                >
                   Assign Vehicle
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Print Ticket Modal */}
+        {showPrintModal && assignmentResult && (
+          <div className="modal-overlay">
+            <div className="plate-modal">
+              <h3 className="modal-title">Vehicle Assigned Successfully</h3>
+
+              <div className="slot-info">
+                <div style={{ textAlign: "center", marginBottom: "20px" }}>
+                  <div style={{ fontSize: "48px", color: "#00fff7", marginBottom: "10px" }}>✅</div>
+                  <p>
+                    Vehicle <strong>{assignmentResult.plateNumber}</strong> has been assigned to slot{" "}
+                    <strong>{assignmentResult.slotDisplayId}</strong> and marked as arrived.
+                  </p>
+                </div>
+
+                <div
+                  style={{
+                    background: "rgba(0, 255, 247, 0.1)",
+                    padding: "15px",
+                    borderRadius: "8px",
+                    marginBottom: "20px",
+                  }}
+                >
+                  <h4 style={{ color: "#00fff7", marginBottom: "10px" }}>Entry Ticket Details:</h4>
+                  <p>
+                    <strong>Slot:</strong> {assignmentResult.slotDisplayId}
+                  </p>
+                  <p>
+                    <strong>License Plate:</strong> {assignmentResult.plateNumber}
+                  </p>
+                  <p>
+                    <strong>Slot Type:</strong> {assignmentResult.slotType?.toUpperCase() || "REGULAR"}
+                  </p>
+                  <p>
+                    <strong>Entry Time:</strong> {new Date(assignmentResult.entryTime).toLocaleString()}
+                  </p>
+                </div>
+
+                <div style={{ textAlign: "center", marginBottom: "20px" }}>
+                  <Printer size={24} style={{ color: "#00fff7", marginBottom: "10px" }} />
+                  <p>Would you like to print the entry ticket now?</p>
+                </div>
+              </div>
+
+              <div className="modal-actions">
+                <button onClick={() => completePrintProcess(false)} className="modal-cancel">
+                  Skip Printing
+                </button>
+                <button onClick={() => completePrintProcess(true)} className="modal-assign">
+                  Print Ticket
                 </button>
               </div>
             </div>
