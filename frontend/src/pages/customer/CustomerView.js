@@ -860,7 +860,7 @@ const CustomerView = () => {
               </p>
               <div className="info-details">
                 <p>• Payment accepted: Cash, GCash</p>
-                <p>• Hourly rates apply based on slot type</p>
+                <p>• Per-minute rates apply based on slot type</p>
                 <p>• VIP slots include premium amenities</p>
               </div>
             </div>

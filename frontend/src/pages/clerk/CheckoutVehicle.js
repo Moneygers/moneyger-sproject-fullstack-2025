@@ -1,21 +1,10 @@
-"use client"
+﻿"use client"
 
 import { useState, useEffect } from "react"
-import {
-  Car,
-  CreditCard,
-  Smartphone,
-  Printer,
-  DollarSign,
-  Clock,
-  RotateCcw,
-  CheckCircle,
-  Star,
-  Accessibility,
-} from "lucide-react"
+import { Car, CreditCard, Smartphone, Printer, DollarSign, Clock, RotateCcw, CheckCircle, Star, Accessibility } from 'lucide-react'
 import "../../styles/clerk/CheckoutVehicle.css"
 import Layout from "../../components/Layout"
-import BASE_URL from '../../config';
+import BASE_URL from "../../config"
 
 const CheckoutVehicle = () => {
   const [occupiedSlots, setOccupiedSlots] = useState([])
@@ -260,6 +249,7 @@ const CheckoutVehicle = () => {
       body { font-family: Arial, sans-serif; max-width: 400px; margin: 0 auto; padding: 20px; }
       .receipt { border: 2px solid #333; padding: 20px; text-align: center; }
       .header { font-size: 24px; font-weight: bold; margin-bottom: 10px; }
+      .logo { width: 60px; height: 60px; margin: 0 auto 10px; display: block; }
       .info { text-align: left; margin: 10px 0; }
       .info strong { display: inline-block; width: 120px; }
       .total { font-size: 18px; font-weight: bold; margin-top: 20px; }
@@ -269,7 +259,8 @@ const CheckoutVehicle = () => {
   </head>
   <body>
     <div class="receipt">
-      <div class="header">🏢 ParkManager</div>
+      <img src="/favicon.png" alt="ParkManager Logo" class="logo" />
+      <div class="header">ParkManager</div>
       <div>Parking Receipt</div>
       
       ${
@@ -473,7 +464,8 @@ const CheckoutVehicle = () => {
             <h1 className="main-title">Vehicle Checkout & Payment</h1>
             <p className="subtitle">Process vehicle checkout, payment, and print receipts</p>
             <div className="rates-info-visible">
-              Initial Fees: Regular ₱{parkingRates.regular} | VIP ₱{parkingRates.vip} | Disabled ₱{parkingRates.disabled} + /Hour additional
+              Parking Rates (per hour): Regular ₱{parkingRates.regular} | VIP ₱{parkingRates.vip} | Disabled ₱
+              {parkingRates.disabled}
             </div>
           </div>
           <div className="search-wrapper">

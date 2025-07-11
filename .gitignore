@@ -1,16 +1,24 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Parking Management System - Git Ignore
 
 # ---- Global ignores ----
 .DS_Store
 *.log
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # ---- Python/Django (backend) ----
 backend/__pycache__/
 backend/**/*.py[cod]
+backend/**/__pycache__/
 backend/env/
 backend/venv/
 backend/.env
 backend/db.sqlite3
+backend/media/
+backend/static/
 
 # ---- Node/Frontend ----
 frontend/node_modules/
@@ -18,6 +26,43 @@ frontend/build/
 frontend/.env*
 frontend/.pnp
 frontend/pnp.js
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/coverage/
+
+# ---- IDE/Editor files ----
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ---- Testing files ----
+coverage/
+*.cover
+*.coverage
+.pytest_cache/
+.tox/
+test_reports/
+**/test_*.py
+**/tests/
+**/*.test.js
+jest.config.json
+setupTests.js
+reportWebVitals.js
+
+# ---- Development files ----
+run_*.bat
+run_*.py
+TEST_*.md
+DETAILED_*.md
+CORRECTED_*.md
+
+# ---- Temporary files ----
+*.tmp
+*.temp
+temp/
 frontend/coverage
 
 # ---- Editor & OS files ----

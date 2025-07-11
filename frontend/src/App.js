@@ -4,7 +4,6 @@ import LoginForm from "./pages/LoginForm"
 import CustomerView from "./pages/customer/CustomerView"
 import NotFound from "./pages/NotFound"
 import ProtectedRoute from "./components/ProtectedRoute"
-import APITestPage from "./pages/APITestPage"
 
 // Clerk pages
 import UpdateSlots from "./pages/clerk/UpdateSlots"
@@ -27,7 +26,6 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginForm />} />
           <Route path="/" element={<CustomerView />} />
-          <Route path="/api-test" element={<APITestPage />} />
 
           {/* Clerk routes - accessible by clerks only */}
           <Route

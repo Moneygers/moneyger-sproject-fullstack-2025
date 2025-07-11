@@ -144,7 +144,7 @@ const SystemSettings = () => {
             <div className="settings-content">
               <div className="settings-grid">
                 <div className="setting-group">
-                  <label className="setting-label">Regular Hourly Rate (₱)</label>
+                  <label className="setting-label">Regular Per-Minute Rate (₱)</label>
                   <input
                     type="number"
                     name="regularHourlyRate"
@@ -155,7 +155,7 @@ const SystemSettings = () => {
                 </div>
 
                 <div className="setting-group">
-                  <label className="setting-label">VIP Hourly Rate (₱)</label>
+                  <label className="setting-label">VIP Per-Minute Rate (₱)</label>
                   <input
                     type="number"
                     name="vipHourlyRate"
@@ -166,7 +166,7 @@ const SystemSettings = () => {
                 </div>
 
                 <div className="setting-group">
-                  <label className="setting-label">Disabled Access Rate (₱)</label>
+                  <label className="setting-label">Disabled Access Per-Minute Rate (₱)</label>
                   <input
                     type="number"
                     name="disabledHourlyRate"
