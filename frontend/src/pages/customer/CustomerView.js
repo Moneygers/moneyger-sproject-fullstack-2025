@@ -575,9 +575,6 @@ const CustomerView = () => {
 
       if (response.ok) {
         await response.json()
-        alert(
-          `Reservation created successfully for slot F${Number.parseInt(selectedSlot.structure.replace("FLOOR", ""))}-${selectedSlot.section}-${selectedSlot.slotNo}`,
-        )
         setShowReservationModal(false)
         resetReservationForm()
         fetchAvailableSlots()
