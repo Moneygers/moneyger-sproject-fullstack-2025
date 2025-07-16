@@ -220,6 +220,22 @@ const config = {
 2. Deploy to static hosting (Netlify, Vercel, etc.)
 3. Update API base URL for production
 
+
+## Credentials for testing:
+Backend: https://parking-test-deploy.onrender.com/admin/
+- superuser: admin Password: 123
+
+Accounts: https://moneygersparking.netlify.app/ 
+Clerk Login:
+- User: clerk Password: 123
+Admin Login:
+- User: admin Password: 123
+Customer Login:
+- User: customer Password: 123
+
+## FOR CUSTOMER TESTING, USE A LEGITIMATE ACCOUNT / NUMBER FOR OTP VERIFICATION
+
+
 ##  Support
 
 For technical support or questions about the system:
