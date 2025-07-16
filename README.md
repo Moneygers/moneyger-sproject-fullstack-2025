@@ -226,15 +226,14 @@ Backend: https://parking-test-deploy.onrender.com/admin/
 - superuser: admin Password: 123
 
 Accounts: https://moneygersparking.netlify.app/ 
-Clerk Login:
-- User: clerk Password: 123
-Admin Login:
-- User: admin Password: 123
-Customer Login:
-- User: customer Password: 123
+- Clerk Login:
+  - User: clerk Password: 123
+- Admin Login:
+  - User: admin Password: 123
+- Customer Login:
+  - User: customer Password: 123
 
-## FOR CUSTOMER TESTING, USE A LEGITIMATE ACCOUNT / NUMBER FOR OTP VERIFICATION
-
+FOR CUSTOMER TESTING, USE A LEGITIMATE ACCOUNT / NUMBER FOR OTP VERIFICATION
 
 ##  Support
 
